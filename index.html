@@ -1,0 +1,1894 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Absensi KSU</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #e9f1ff;
+    --surface: #ffffff;
+    --ink: #0f1f3d;
+    --muted: #5b6b88;
+    --line: #d3e1f7;
+    --brand: #1d5ff0;
+    --brand-dark: #1747b8;
+    --brand-soft: #e3edff;
+    --ok: #047857;
+    --ok-soft: #d8f5e7;
+    --late: #c2410c;
+    --late-soft: #ffe9d6;
+    --ot: #4338ca;
+    --ot-soft: #e6e5ff;
+    --early: #be185d;
+    --early-soft: #fde4ef;
+    --off-soft: #e6ecf6;
+    --abs: #b91c1c;
+    --abs-soft: #fde0e0;
+    --warn-soft: #e6ecf6;
+    --app-h: 100vh;
+  }
+  @supports (height: 100dvh) { :root { --app-h: 100dvh; } }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: linear-gradient(180deg, #d9e8ff 0, var(--bg) 260px, var(--bg) 100%) no-repeat, var(--bg);
+    color: var(--ink);
+    font-family: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 20px 16px 48px; }
+  header {
+    background: linear-gradient(120deg, #1239a8 0%, #1d5ff0 55%, #3aa0ff 100%);
+    color: #fff;
+    border-radius: 16px;
+    padding: 22px 24px;
+    box-shadow: 0 8px 22px rgba(29, 95, 240, .28);
+  }
+  header h1 { margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.01em; }
+  header p { margin: 4px 0 0; color: rgba(255, 255, 255, .88); }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 16px;
+    margin-top: 16px;
+    box-shadow: 0 2px 8px rgba(29, 95, 240, .07);
+  }
+
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--brand-soft); }
+  .seg button {
+    font: inherit; font-weight: 600; color: var(--muted);
+    border: 0; background: transparent; padding: 9px 16px; cursor: pointer;
+  }
+  .seg button[aria-pressed="true"] { background: var(--brand); color: #fff; box-shadow: inset 0 -2px 0 rgba(0,0,0,.12); }
+
+  .filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-top: 14px; }
+  .field label { display: block; font-size: 13px; font-weight: 600; color: #3c5185; margin-bottom: 4px; }
+  .field select, .field input {
+    width: 100%; font: inherit; color: var(--ink);
+    padding: 9px 10px; border: 1px solid #b9cdf0; border-radius: 9px; background: #fff;
+  }
+  .field select:hover, .field input:hover { border-color: var(--brand); }
+  .field.wide { grid-column: span 2; }
+
+  .sfwrap { position: relative; }
+  .sf-btn {
+    display: flex; align-items: center; width: 100%; text-align: left; cursor: pointer; font: inherit; line-height: normal; color: var(--ink);
+    padding: 9px 34px 9px 10px; border: 1px solid #b9cdf0; border-radius: 9px; background: #fff; position: relative;
+  }
+  .sf-btn:hover { border-color: var(--brand); }
+  .sf-btn span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sf-btn::after {
+    content: ""; position: absolute; right: 13px; top: 50%; width: 6px; height: 6px; margin-top: -5px;
+    border-right: 2px solid #1f2a44; border-bottom: 2px solid #1f2a44; transform: rotate(45deg);
+  }
+  .sf-btn[aria-expanded="true"]::after { margin-top: -2px; transform: rotate(225deg); }
+  .sf-btn.active { border-color: var(--brand); background: var(--brand-soft); color: #1448c9; font-weight: 600; }
+
+  .sf-backdrop { position: fixed; inset: 0; z-index: 99; background: rgba(15, 30, 70, .45); }
+  .sf-backdrop[hidden], .sf-panel[hidden] { display: none; }
+  .sf-panel {
+    position: absolute; z-index: 100; top: calc(100% + 6px); left: 0; width: 380px; max-width: calc(100vw - 24px);
+    display: flex; flex-direction: column; max-height: min(72vh, 560px);
+    background: #fff; border: 1px solid #b9cdf0; border-radius: 14px; box-shadow: 0 12px 32px rgba(29, 95, 240, .22); overflow: hidden;
+  }
+  .sf-panel.right { left: auto; right: 0; }
+  .sf-top, .sf-modebox, .sf-foot { flex: 0 0 auto; }
+  .sf-top { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px 8px; }
+  .sf-top b { font-size: 15px; color: var(--ink); }
+  .sf-clear { font: inherit; font-size: 13.5px; font-weight: 600; color: var(--brand); background: none; border: 0; cursor: pointer; padding: 4px 8px; border-radius: 6px; }
+  .sf-clear:hover { background: var(--brand-soft); }
+  .sf-clear:disabled { color: #9aa9c7; cursor: default; background: none; }
+  .sf-modebox { padding: 0 14px 10px; border-bottom: 1px solid var(--line); }
+  .sf-modebox > span { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 5px; }
+  .sf-seg { display: grid; grid-template-columns: 1fr 1fr; padding: 3px; gap: 3px; background: var(--brand-soft); border-radius: 10px; }
+  .sf-seg button { font: inherit; font-size: 13.5px; font-weight: 600; color: var(--muted); background: transparent; border: 0; border-radius: 8px; padding: 7px 8px; cursor: pointer; }
+  .sf-seg button[aria-pressed="true"] { background: #fff; color: var(--brand); box-shadow: 0 1px 3px rgba(29, 95, 240, .25); }
+  .sf-modebox.dim .sf-seg { opacity: .55; }
+  .sf-body { overflow-y: auto; padding: 4px 6px 8px; flex: 1 1 auto; -webkit-overflow-scrolling: touch; }
+  .sf-gh { padding: 10px 8px 4px; font-size: 11.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: #6a7fa8; }
+  .field label.sf-opt { display: flex; align-items: center; gap: 10px; padding: 8px 8px; margin: 0; border-radius: 9px; cursor: pointer; position: relative; font-size: inherit; font-weight: inherit; color: inherit; }
+  .field label.sf-opt:hover { background: #f1f6ff; }
+  .sf-opt input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .sf-box { flex: 0 0 20px; width: 20px; height: 20px; border: 2px solid #9db6e6; border-radius: 6px; background: #fff; position: relative; transition: background .12s, border-color .12s; }
+  .sf-opt input:checked + .sf-box { background: var(--brand); border-color: var(--brand); }
+  .sf-opt input:checked + .sf-box::after { content: ""; position: absolute; left: 5px; top: 1px; width: 5px; height: 10px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+  .sf-opt input:focus-visible + .sf-box { outline: 3px solid #9cc0ff; outline-offset: 1px; }
+  .sf-txt { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
+  .sf-l { font-weight: 500; color: var(--ink); }
+  .sf-d { font-size: 12px; color: var(--muted); line-height: 1.3; }
+  .sf-n { flex: 0 0 auto; min-width: 28px; text-align: center; padding: 2px 8px; border-radius: 999px; font-size: 12.5px; font-weight: 700; font-variant-numeric: tabular-nums; background: var(--c-soft); color: var(--c); }
+  .sf-opt.zero .sf-l { color: #7d8db0; }
+  .sf-opt.zero .sf-n { opacity: .55; }
+  .sf-opt.ok { --c: var(--ok); --c-soft: var(--ok-soft); }
+  .sf-opt.late { --c: var(--late); --c-soft: var(--late-soft); }
+  .sf-opt.early { --c: var(--early); --c-soft: var(--early-soft); }
+  .sf-opt.ot { --c: var(--ot); --c-soft: var(--ot-soft); }
+  .sf-opt.abs { --c: var(--abs); --c-soft: var(--abs-soft); }
+  .sf-opt.inc { --c: #4a5d80; --c-soft: var(--off-soft); }
+  .sf-opt.mix { --c: var(--brand); --c-soft: var(--brand-soft); }
+  .sf-foot { padding: 10px 14px 12px; border-top: 1px solid var(--line); background: #fff; }
+  .sf-done { width: 100%; font: inherit; font-weight: 700; color: #fff; background: var(--brand); border: 0; border-radius: 10px; padding: 10px; cursor: pointer; }
+  .sf-done:hover { filter: brightness(1.07); }
+
+  @media (min-width: 1100px) {
+    .filters { grid-template-columns: 1.2fr 1.1fr .8fr 1fr 1.1fr 1.2fr; }
+    .field.wide { grid-column: span 1; }
+  }
+  @media (max-width: 640px) {
+    .sf-btn { font-size: 16px; }
+    .sf-panel {
+      position: fixed; left: 0; right: 0; bottom: 0; top: auto; width: auto; max-width: none; max-height: calc(var(--app-h) - 24px);
+      border: 0; border-radius: 18px 18px 0 0; box-shadow: 0 -8px 32px rgba(15, 30, 70, .3);
+    }
+    .sf-panel::before { content: ""; display: block; width: 40px; height: 4px; border-radius: 4px; background: #c5d3ee; margin: 8px auto 0; }
+    .field label.sf-opt { padding: 11px 8px; }
+    .sf-l { font-size: 15.5px; }
+    .sf-d { font-size: 12.5px; }
+    .sf-foot { padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
+  }
+  .combo { position: relative; }
+  .combo input { padding-right: 34px; }
+  .combo-arrow {
+    position: absolute; right: 1px; top: 1px; bottom: 1px; width: 32px; border: 0; background: transparent; cursor: pointer; border-radius: 0 8px 8px 0;
+  }
+  .combo-arrow::after {
+    content: ""; position: absolute; left: 50%; top: 50%; width: 6px; height: 6px; margin: -5px 0 0 -4px;
+    border-right: 2px solid #1f2a44; border-bottom: 2px solid #1f2a44; transform: rotate(45deg);
+  }
+  .combo-list {
+    position: absolute; z-index: 30; left: 0; right: 0; top: calc(100% + 4px); margin: 0; padding: 4px; list-style: none;
+    max-height: 260px; overflow-y: auto; background: #fff; border: 1px solid #b9cdf0; border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(29, 95, 240, .18);
+  }
+  .combo-list[hidden] { display: none; }
+  .combo-list li { padding: 8px 10px; border-radius: 7px; cursor: pointer; }
+  .combo-list li.active, .combo-list li:hover { background: var(--brand-soft); }
+  .combo-list li.sel { font-weight: 700; color: var(--brand); }
+  .combo-list li.none { color: var(--muted); cursor: default; }
+  .combo-list li.none:hover { background: transparent; }
+
+  button:focus-visible, select:focus-visible, input:focus-visible {
+    outline: 3px solid #9cc0ff; outline-offset: 1px;
+  }
+
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-top: 16px; }
+  .stat {
+    background: var(--surface); border: 1px solid var(--line); border-top: 4px solid var(--brand); border-radius: 12px;
+    padding: 14px 12px; min-height: 92px; box-shadow: 0 2px 8px rgba(29, 95, 240, .07);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; gap: 2px;
+  }
+  .stat b { display: block; font-size: 24px; line-height: 1.2; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat span { color: var(--muted); font-size: 13.5px; font-weight: 500; }
+  .stat small { display: block; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+  .stat.hadir b { color: var(--brand); }
+  .stat.late { border-top-color: #f97316; }
+  .stat.late b { color: var(--late); }
+  .stat.early { border-top-color: #ec4899; }
+  .stat.early b { color: var(--early); }
+  .stat.ot { border-top-color: #6366f1; }
+  .stat.ot b { color: var(--ot); }
+
+  .toolbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-top: 16px; }
+  .count { color: var(--muted); font-size: 14px; }
+
+  .tablebox { overflow-x: auto; margin-top: 10px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); box-shadow: 0 2px 8px rgba(29, 95, 240, .07); }
+  table { width: 100%; border-collapse: collapse; min-width: 620px; font-variant-numeric: tabular-nums; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th { font-size: 13px; color: #2c4a99; font-weight: 700; background: var(--brand-soft); position: sticky; top: 0; }
+  tbody tr:hover td { background: #f3f8ff; }
+  tbody tr:last-child td { border-bottom: 0; }
+  td.num, th.num { text-align: right; }
+  td.dim { color: var(--muted); }
+
+  .chip { display: inline-block; font-size: 12.5px; font-weight: 600; padding: 2px 8px; border-radius: 999px; margin-right: 4px; }
+  .chip.ok { background: var(--ok-soft); color: var(--ok); }
+  .chip.late { background: var(--late-soft); color: var(--late); }
+  .chip.ot { background: var(--ot-soft); color: var(--ot); }
+  .chip.early { background: var(--early-soft); color: var(--early); }
+  .chip.inc { background: var(--off-soft); color: #4a5d80; }
+
+  .more { display: block; margin: 14px auto 0; font: inherit; font-weight: 600; color: var(--brand);
+          background: #fff; border: 1px solid var(--brand); border-radius: 8px; padding: 9px 18px; cursor: pointer; }
+  .empty { padding: 36px 16px; text-align: center; color: var(--muted); }
+  .error { color: #9b1c1c; background: #fde8e8; border: 1px solid #f5c2c2; border-radius: 10px; padding: 14px; margin-top: 16px; }
+  .loading { padding: 40px 0; text-align: center; color: var(--brand-dark); font-weight: 600; }
+  .note { color: var(--muted); font-size: 13px; margin-top: 18px; }
+  .chip.off { background: var(--off-soft); color: #4a5d80; }
+  .chip.abs { background: var(--abs-soft); color: var(--abs); }
+  tr.libur td { color: var(--muted); background: #f2f6fc; }
+  .stat.absent { border-top-color: #ef4444; }
+  .stat.absent b { color: var(--abs); }
+
+  .pager { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-top: 12px; }
+  .pager .size { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 14px; }
+  .pager .size select { width: auto; font: inherit; color: var(--ink); padding: 7px 10px; border: 1px solid #b9cdf0; border-radius: 9px; background: #fff; }
+  .pagenav { display: flex; align-items: center; gap: 10px; }
+  .pagenav button { font: inherit; font-weight: 600; color: #fff; background: var(--brand); border: 1px solid var(--brand); border-radius: 9px; padding: 8px 14px; cursor: pointer; }
+  .pagenav button:hover:not(:disabled) { background: var(--brand-dark); }
+  .pagenav button:disabled { color: #98a8c4; border-color: var(--line); background: #eef3fb; cursor: not-allowed; }
+  .pagenav span { color: var(--muted); font-size: 14px; min-width: 120px; text-align: center; }
+
+  .chips { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+  .chip { margin-right: 0; }
+  html, body { overflow-x: hidden; }
+
+  @media (max-width: 900px) {
+    .field.wide { grid-column: 1 / -1; }
+  }
+
+  @media (max-width: 640px) {
+    body { font-size: 14.5px; }
+    .wrap { padding: 14px 12px 36px; }
+    header { padding: 16px 16px; border-radius: 14px; }
+    header h1 { font-size: 22px; }
+    .panel { padding: 12px; margin-top: 12px; }
+
+    .seg { display: flex; width: 100%; }
+    .seg button { flex: 1; padding: 10px 8px; }
+
+    .filters { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .field select, .field input { font-size: 16px; }
+
+    .stats { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .stats .stat:last-child:nth-child(odd) { grid-column: 1 / -1; }
+    .stat { padding: 10px 8px; min-height: 80px; }
+    .stat b { font-size: 20px; }
+
+    .toolbar { flex-direction: column; align-items: stretch; gap: 8px; }
+    .count { text-align: center; }
+
+    .tablebox { border: 0; background: transparent; overflow: visible; }
+    .tablebox .empty { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
+    table, tbody { display: block; min-width: 0; width: 100%; }
+    thead { display: none; }
+    tr { display: block; background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--brand); border-radius: 12px; padding: 8px 12px; margin-bottom: 10px; box-shadow: 0 2px 8px rgba(29, 95, 240, .07); }
+    tr.libur { background: #f2f6fc; }
+    tr.libur td { background: transparent; }
+    td { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 5px 0; border: 0; white-space: normal; text-align: right; }
+    td::before { content: attr(data-label); flex: 0 0 auto; color: var(--muted); font-size: 13px; font-weight: 600; text-align: left; }
+    td:first-child { font-weight: 700; padding-bottom: 7px; margin-bottom: 3px; border-bottom: 1px solid var(--line); }
+    td:first-child::before { display: none; }
+    td .chips { justify-content: flex-end; }
+
+    .pager { flex-direction: column; align-items: stretch; gap: 10px; }
+    .pager .size { justify-content: center; }
+    .pager .size select { font-size: 16px; }
+    .pagenav { justify-content: space-between; }
+    .pagenav span { min-width: 0; flex: 1; }
+    .pagenav button { padding: 10px 12px; }
+  }
+
+  @media (max-width: 380px) {
+    .filters { grid-template-columns: 1fr; }
+    .pagenav button { padding: 10px 8px; font-size: 14px; }
+  }
+
+  .per { width: fit-content; max-width: 100%; margin-top: 14px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: #f3f8ff; }
+  .per > .seg { margin-bottom: 10px; }
+  .per-l { display: block; font-size: 13px; font-weight: 600; color: #3c5185; margin-bottom: 6px; }
+  .per-l span { font-weight: 500; color: var(--muted); }
+  .per-top { display: flex; gap: 8px; align-items: stretch; }
+  .per-top .field { flex: 0 1 auto; min-width: 0; }
+  .per .field select { width: auto; max-width: 100%; padding-right: 30px; }
+  .per-nav { flex: 0 0 auto; width: 44px; font: inherit; font-size: 22px; line-height: 1; font-weight: 700; color: var(--brand); background: #fff; border: 1px solid #b9cdf0; border-radius: 9px; cursor: pointer; }
+  .per-nav:hover:not(:disabled) { border-color: var(--brand); background: var(--brand-soft); }
+  .per-nav:disabled { color: #9aa9c7; background: #eef3fb; cursor: not-allowed; }
+  .per-info { margin: 8px 2px 0; font-size: 13.5px; color: #1f3a85; }
+  .per-info small { color: var(--muted); font-size: 13px; }
+  .field select:disabled { background: #eef3fb; color: #8a9ab8; cursor: not-allowed; border-color: var(--line); }
+  @media (min-width: 1100px) { .filters.per-on { grid-template-columns: 1.3fr 1.2fr 1fr 1.2fr; } }
+  @media (max-width: 640px) { .per { width: auto; padding: 10px; } .per-top .field { flex: 1 1 auto; } .per .field select { width: 100%; font-size: 16px; } .per-nav { width: 48px; } }
+
+  .stat { font: inherit; color: inherit; cursor: pointer; width: 100%; -webkit-appearance: none; appearance: none; transition: transform .12s, box-shadow .12s; }
+  .stat:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(29, 95, 240, .16); }
+  .stat:active { transform: translateY(0); }
+  .stat::after { content: "Lihat detail ›"; margin-top: 3px; font-size: 11.5px; font-weight: 600; color: var(--brand); }
+  .stat.forgot { border-top-color: #eab308; }
+  .stat.forgot b { color: #a16207; }
+  .chip.forgot { background: #fef3c7; color: #92400e; }
+  .chip.night { background: #dbe4ff; color: #1e3a8a; }
+
+  .dt-back { position: fixed; inset: 0; z-index: 200; background: rgba(15, 30, 70, .5); }
+  .dt {
+    position: fixed; z-index: 201; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    width: min(1000px, calc(100vw - 24px)); max-height: calc(var(--app-h) - 32px);
+    display: flex; flex-direction: column; background: #fff; border-radius: 16px; overflow: hidden;
+    border-top: 5px solid var(--dt-c, var(--brand)); box-shadow: 0 20px 50px rgba(15, 30, 70, .35);
+  }
+  .dt-head, .kd .dt-sum, .kd .dt-foot { flex: 0 0 auto; }
+  .dt-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 16px 18px 4px; }
+  .dt-head h2 { margin: 0; font-size: 20px; letter-spacing: -0.01em; }
+  .dt-head p { margin: 2px 0 0; color: var(--muted); font-size: 13.5px; }
+  .dt-x { flex: 0 0 auto; width: 36px; height: 36px; border: 0; border-radius: 10px; background: var(--brand-soft); color: var(--brand-dark); font-size: 22px; line-height: 1; cursor: pointer; }
+  .dt-x:hover { background: #d3e1ff; }
+  .dt-desc { margin: 0; padding: 4px 18px 8px; color: var(--muted); font-size: 13px; }
+  .dt-sum { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; padding: 4px 18px 12px; }
+  .dt-t { background: var(--brand-soft); border-radius: 10px; padding: 8px 10px; }
+  .dt-t span { display: block; font-size: 12px; font-weight: 600; color: var(--muted); }
+  .dt-t b { display: block; margin-top: 1px; font-size: 15.5px; font-variant-numeric: tabular-nums; word-break: break-word; }
+  .dt-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 0 18px 10px; }
+  .dt-tools input, .dt-tools select { font: inherit; color: var(--ink); padding: 8px 10px; border: 1px solid #b9cdf0; border-radius: 9px; background: #fff; }
+  .dt-tools input { flex: 1 1 180px; min-width: 0; }
+  .dt-body { overflow: auto; flex: 1 1 auto; padding: 0 18px; border-top: 1px solid var(--line); -webkit-overflow-scrolling: touch; }
+  .dt-body table { min-width: 560px; }
+  .dt-body .empty { padding: 40px 12px; }
+  .dt-foot { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; padding: 10px 18px 14px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13.5px; }
+  .dt-foot .more { margin: 0; }
+  .dt .chips { white-space: normal; }
+  .dt-close2 { display: none; font: inherit; font-weight: 700; color: #fff; background: var(--brand); border: 0; border-radius: 10px; padding: 11px; cursor: pointer; width: 100%; }
+  .dt td.tglchips { white-space: normal; min-width: 260px; }
+  @media (max-width: 640px) {
+    .dt { left: 0; right: 0; top: 0; bottom: 0; transform: none; width: auto; height: var(--app-h); max-height: none; display: flex; flex-direction: column; overflow-y: auto; -webkit-overflow-scrolling: touch; border-radius: 0; border-top: 0; }
+    .dt > * { flex-shrink: 0; }
+    .dt-head { position: sticky; top: 0; z-index: 5; background: #fff; padding-top: 12px; padding-bottom: 10px; border-top: 5px solid var(--dt-c, var(--brand)); border-bottom: 1px solid var(--line); }
+    .dt-x { width: 40px; height: 40px; }
+    .dt-body { overflow: visible; border-top: 0; flex: 1 0 auto; }
+    .dt-foot { position: sticky; bottom: 0; z-index: 5; background: #fff; }
+    .dt-foot > span { flex: 1 1 100%; }
+    .dt-close2 { display: block; }
+    .dt-head, .dt-desc, .dt-sum, .dt-tools, .dt-foot { padding-left: 14px; padding-right: 14px; }
+    .dt-sum { grid-template-columns: 1fr 1fr; }
+    .dt-body { padding: 10px 12px 2px; }
+    .dt-body table { min-width: 0; }
+    .dt-tools input, .dt-tools select { font-size: 16px; }
+    .dt-tools select { flex: 1 1 140px; }
+    .dt-foot { padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
+    .dt td.tglchips { min-width: 0; flex-direction: column; align-items: flex-end; }
+  }
+  .reload { margin-top: 12px; border: 1px solid rgba(255,255,255,.55); background: rgba(255,255,255,.16); color: #fff; font: inherit; font-size: 13px; font-weight: 600; padding: 7px 14px; border-radius: 10px; cursor: pointer; }
+  .reload:hover { background: rgba(255,255,255,.28); }
+  .reload:disabled { opacity: .65; cursor: wait; }
+
+  .tablebox .kal { border: 0; box-shadow: none; border-radius: 0; }
+  .kal { background: var(--surface); padding: 14px; }
+  .kal-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+  .kal-head b { font-size: 16px; letter-spacing: -0.01em; }
+  .kal-nav { display: flex; gap: 6px; }
+  .kal-nav button { width: 36px; height: 36px; border: 1px solid var(--line); background: var(--brand-soft); color: var(--brand-dark); border-radius: 10px; font-size: 20px; line-height: 1; cursor: pointer; }
+  .kal-nav button:disabled { opacity: .4; cursor: default; }
+  .kal-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-bottom: 12px; font-size: 12.5px; color: var(--muted); }
+  .kal-legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .kal-legend b { color: var(--ink); font-variant-numeric: tabular-nums; }
+  .kal-legend i { width: 13px; height: 13px; border-radius: 4px; display: inline-block; border: 1.5px solid transparent; }
+  .kal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+  .kal-dow { text-align: center; font-size: 12px; font-weight: 700; color: var(--muted); padding: 2px 0 4px; }
+  .kal-c { display: flex; flex-direction: column; gap: 1px; min-height: 76px; padding: 6px 7px; border-radius: 10px; border: 1.5px solid transparent; text-align: left; font: inherit; color: inherit; -webkit-appearance: none; appearance: none; }
+  button.kal-c { cursor: pointer; transition: transform .1s, box-shadow .1s; }
+  button.kal-c:hover { transform: translateY(-1px); box-shadow: 0 3px 10px rgba(15, 30, 70, .14); }
+  button.kal-c:focus-visible { outline: 3px solid var(--brand); outline-offset: 1px; }
+  .kal-d { font-size: 13.5px; font-weight: 700; line-height: 1.2; }
+  .kal-t, .kal-s { font-size: 11.5px; line-height: 1.25; font-variant-numeric: tabular-nums; opacity: .92; }
+  .kal-s { font-weight: 600; }
+  .kal-c.ok, .kal-legend i.ok { background: var(--ok-soft); color: var(--ok); border-color: #a8e3c6; }
+  .kal-c.warn, .kal-legend i.warn { background: #fef3c7; color: #92400e; border-color: #f2d97a; }
+  .kal-c.abs, .kal-legend i.abs { background: var(--abs-soft); color: var(--abs); border-color: #f5b5b5; }
+  .kal-c.off, .kal-legend i.off { background: var(--off-soft); color: #4a5d80; border-color: #cbd7ea; }
+  .kal-c.mg, .kal-legend i.mg { background: var(--brand-soft); color: var(--brand-dark); border-color: #b9cdf0; }
+  .kal-c.none, .kal-legend i.none { background: transparent; color: #9aa8c2; border: 1.5px dashed var(--line); }
+  .kal-c.today { box-shadow: 0 0 0 2px var(--brand); }
+  .kal-c.redup { opacity: .3; }
+  .kal-cek { margin-top: 14px; padding: 10px 12px; border-radius: 10px; background: #fffbeb; border: 1px solid #f2d97a; font-size: 13.5px; }
+  .kal-cek > b { display: block; margin-bottom: 6px; color: #92400e; }
+  .kal-cek.baik { background: var(--ok-soft); border-color: #a8e3c6; color: var(--ok); font-weight: 600; }
+  .kal-lupa { display: inline-block; margin: 0 6px 6px 0; padding: 4px 10px; border: 0; border-radius: 999px; background: #fef3c7; color: #92400e; font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; box-shadow: inset 0 0 0 1px #f2d97a; }
+  .kal-lupa:hover { background: #fde68a; }
+
+  .kd {
+    position: fixed; z-index: 201; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    width: min(440px, calc(100vw - 24px)); max-height: calc(var(--app-h) - 32px);
+    display: flex; flex-direction: column; background: #fff; border-radius: 16px; overflow: hidden;
+    border-top: 5px solid var(--kd-c, var(--brand)); box-shadow: 0 20px 50px rgba(15, 30, 70, .35);
+  }
+  .kd-body { overflow: auto; flex: 1 1 auto; padding: 4px 18px 10px; border-top: 1px solid var(--line); margin-top: 8px; }
+  .kd-chips { margin: 10px 0 6px; }
+  .kd-row { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 14.5px; }
+  .kd-row span { color: var(--muted); }
+  .kd-row b { text-align: right; font-variant-numeric: tabular-nums; }
+  .kd-note { margin: 12px 0 4px; padding: 10px 12px; border-radius: 10px; background: #fef3c7; color: #92400e; font-size: 13.5px; }
+  .kd-info { margin: 12px 0 4px; color: var(--muted); font-size: 14px; }
+
+  @media (max-width: 640px) {
+    .kal { padding: 10px; border: 1px solid var(--line); border-radius: 12px; }
+    .tablebox .kal { border: 1px solid var(--line); border-radius: 12px; }
+    .kal-grid { gap: 4px; }
+    .kal-c { min-height: 60px; padding: 4px 4px 4px 5px; border-radius: 8px; }
+    .kal-d { font-size: 12.5px; }
+    .kal-t, .kal-s { font-size: 10px; }
+    .kd { top: auto; bottom: 0; left: 0; transform: none; width: 100%; max-height: calc(var(--app-h) - 24px); border-radius: 16px 16px 0 0; }
+    .kd .dt-foot { padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
+  }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Absensi KSU</h1>
+    <p>Lihat kehadiran seluruh karyawan atau data Anda sendiri.</p>
+    <button type="button" id="btnReload" class="reload" hidden>↻ Muat ulang data</button>
+  </header>
+
+  <div id="loading" class="loading">Memuat data absensi…</div>
+  <div id="error" class="error" hidden></div>
+
+  <main id="app" hidden>
+    <section class="panel" aria-label="Filter data">
+      <div class="seg" role="group" aria-label="Pilih data">
+        <button type="button" id="mMe" aria-pressed="true">Data saya</button>
+        <button type="button" id="mAll" aria-pressed="false">Semua karyawan</button>
+      </div>
+
+      <div class="per" id="perBox">
+        <div class="seg" id="perMode" role="group" aria-label="Jenis periode">
+          <button type="button" id="pmGaji" aria-pressed="true">Periode gaji (26–25)</button>
+          <button type="button" id="pmKal" aria-pressed="false">Kalender biasa</button>
+        </div>
+        <div id="perGaji">
+          <label for="selPeriode" class="per-l">Pilih periode gaji</label>
+          <div class="per-top">
+            <button type="button" class="per-nav" id="perPrev" aria-label="Periode sebelumnya">‹</button>
+            <div class="field"><select id="selPeriode"></select></div>
+            <button type="button" class="per-nav" id="perNext" aria-label="Periode berikutnya">›</button>
+          </div>
+          <p class="per-info" id="perInfo"></p>
+        </div>
+      </div>
+
+      <div class="filters">
+        <div class="field wide" id="fNama">
+          <label for="selNama">Nama Anda</label>
+          <div class="combo" id="comboNama">
+            <input id="selNama" type="text" role="combobox" aria-expanded="false" aria-controls="listNama" aria-autocomplete="list" autocomplete="off" spellcheck="false" placeholder="Ketik atau pilih nama">
+            <button type="button" class="combo-arrow" id="arrowNama" tabindex="-1" aria-label="Tampilkan daftar nama"></button>
+            <ul class="combo-list" id="listNama" role="listbox" hidden></ul>
+          </div>
+        </div>
+        <div class="field wide" id="fCari" hidden>
+          <label for="inpCari">Cari nama</label>
+          <input id="inpCari" type="search" placeholder="Ketik nama karyawan">
+        </div>
+        <div class="field wide" id="fStatus">
+          <label for="sfBtn">Status</label>
+          <div class="sfwrap" id="sfWrap">
+            <button type="button" class="sf-btn" id="sfBtn" aria-haspopup="dialog" aria-expanded="false" aria-controls="sfPanel"><span id="sfBtnText">Semua status</span></button>
+            <div class="sf-backdrop" id="sfBackdrop" hidden></div>
+            <div class="sf-panel" id="sfPanel" role="dialog" aria-label="Filter status" hidden></div>
+          </div>
+        </div>
+        <div class="field">
+          <label for="selTahun">Tahun</label>
+          <select id="selTahun"></select>
+        </div>
+        <div class="field">
+          <label for="selBulan">Bulan</label>
+          <select id="selBulan"></select>
+        </div>
+        <div class="field">
+          <label for="selTanggal">Tanggal</label>
+          <select id="selTanggal"></select>
+        </div>
+        <div class="field">
+          <label for="selUrut">Urutkan</label>
+          <select id="selUrut">
+            <option value="baru">Tanggal terbaru</option>
+            <option value="lama">Tanggal terlama</option>
+            <option value="nama">Nama A–Z</option>
+            <option value="telat">Terlambat terlama</option>
+            <option value="cepat">Pulang cepat terlama</option>
+            <option value="lembur">Lembur terbanyak</option>
+            <option value="masuk">Jam masuk terawal</option>
+            <option value="masukl">Jam masuk terakhir</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <section class="stats" id="stats" aria-live="polite"></section>
+
+    <div class="toolbar" id="toolbar">
+      <div class="seg" role="group" aria-label="Bentuk tampilan" id="tampilSeg">
+        <button type="button" id="tKal" aria-pressed="true">Kalender</button>
+        <button type="button" id="tTabel" aria-pressed="false">Tabel</button>
+      </div>
+      <div class="seg" role="group" aria-label="Tampilan" id="viewSeg" hidden>
+        <button type="button" id="vHarian" aria-pressed="true">Rincian harian</button>
+        <button type="button" id="vRekap" aria-pressed="false">Rekap per karyawan</button>
+      </div>
+      <div class="count" id="count"></div>
+    </div>
+
+    <div class="tablebox" id="tableBox"></div>
+    <div class="pager" id="pager" hidden>
+      <div class="size">
+        <label for="selSize">Tampilkan</label>
+        <select id="selSize">
+          <option value="10" selected>10</option>
+          <option value="25">25</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+        </select>
+        <span>baris per halaman</span>
+      </div>
+      <div class="pagenav">
+        <button type="button" id="btnPrev">‹ Sebelumnya</button>
+        <span id="pageInfo"></span>
+        <button type="button" id="btnNext">Berikutnya ›</button>
+      </div>
+    </div>
+
+    <p class="note" id="note"></p>
+  </main>
+</div>
+
+<div class="dt-back" id="dtBack" hidden></div>
+<div class="dt" id="dtPanel" role="dialog" aria-modal="true" aria-labelledby="dtTitle" hidden>
+  <div class="dt-head">
+    <div><h2 id="dtTitle"></h2><p id="dtSub"></p></div>
+    <button type="button" class="dt-x" id="dtX" aria-label="Tutup">×</button>
+  </div>
+  <p class="dt-desc" id="dtDesc"></p>
+  <div class="dt-sum" id="dtSum"></div>
+  <div class="dt-tools">
+    <div class="seg" id="dtView" role="group" aria-label="Tampilan detail" hidden>
+      <button type="button" data-v="tgl" aria-pressed="true">Per tanggal</button>
+      <button type="button" data-v="kary" aria-pressed="false">Per karyawan</button>
+    </div>
+    <input id="dtCari" type="search" placeholder="Cari nama karyawan" hidden>
+    <select id="dtUrut" aria-label="Urutkan"></select>
+  </div>
+  <div class="dt-body" id="dtBody"></div>
+  <div class="dt-foot">
+    <span id="dtCount"></span>
+    <button type="button" class="more" id="dtMore" hidden>Tampilkan lebih banyak</button>
+    <button type="button" class="more" id="dtExport">📥 CSV</button>
+    <button type="button" class="dt-close2" id="dtClose2">Tutup</button>
+  </div>
+</div>
+
+<div class="dt-back" id="kdBack" hidden></div>
+<div class="kd" id="kdPanel" role="dialog" aria-modal="true" aria-labelledby="kdTitle" hidden>
+  <div class="dt-head">
+    <div><h2 id="kdTitle"></h2><p id="kdSub"></p></div>
+    <button type="button" class="dt-x" id="kdX" aria-label="Tutup">×</button>
+  </div>
+  <div class="kd-body" id="kdBody"></div>
+  <div class="dt-foot"><span></span><button type="button" class="dt-close2" id="kdClose2">Tutup</button></div>
+</div>
+
+<script>
+(function () {
+  function setH() {
+    var h = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
+    if (h) document.documentElement.style.setProperty('--app-h', Math.round(h) + 'px');
+  }
+  setH();
+  window.addEventListener('resize', setH);
+  window.addEventListener('orientationchange', setH);
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', setH);
+})();
+</script>
+<script>
+  var BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  var HARI = ['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
+
+  var LIBUR_JIKA_SEMUA_KOSONG = true;
+
+  // Shift malam hari kerja: masuk sore/malam lalu pulang keesokan paginya, tercatat di satu kolom tanggal
+  // dengan jam pulang lebih kecil dari jam masuk (mis. masuk 20:00, pulang 06:00).
+  var SHIFT_MALAM_AKTIF = true;
+  var SHIFT_MALAM_MASUK_MIN = '12:00';  // masuk minimal jam ini baru dianggap shift malam
+  var SHIFT_MALAM_MAKS_JAM = 16;        // lama kerja maksimal; lebih dari ini dianggap salah catat
+
+  // ============================================================
+  // >>>>>>>>>>>>>>>>>>>>>  TEMPEL DISINI  <<<<<<<<<<<<<<<<<<<<<<
+  // Tempel URL Web App dari Apps Script di antara tanda kutip.
+  // Contoh: 'https://script.google.com/macros/s/XXXX/exec'
+  // ============================================================
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyOlfoRwsNH-RpWu2f-BvSqLgELUfi5Dz5pJW1k6RAgkr2sRNEoUAZILZ4DKdEoPGOiGw/exec';
+  // ============================================================
+
+  function p2(n) { return (n < 10 ? '0' : '') + n; }
+  function hariIni() { var n = new Date(); return n.getFullYear() + '-' + p2(n.getMonth() + 1) + '-' + p2(n.getDate()); }
+  var TODAY = hariIni();
+
+  var DB = { periods: [], records: [], names: {}, config: null };
+  var LOADED = {};
+  var SEEN = {};   // nama|tanggal yang sudah masuk DB, mencegah hitungan ganda jika dua sheet tumpang tindih
+  var LOADING = false;
+  var S = { periode: '', mode: 'me', nama: '', cari: '', tahun: '', bulan: '', tanggal: '', urut: 'baru', status: [], smode: 'or', view: 'harian', tampil: 'kal', page: 1, size: 10 };
+
+  function $(id) { return document.getElementById(id); }
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+
+  function fmtMin(m) {
+    if (!m) return '0 menit';
+    if (m < 60) return m + ' menit';
+    var h = Math.floor(m / 60), r = m % 60;
+    return r ? h + ' j ' + r + ' m' : h + ' jam';
+  }
+  function fmtTgl(r) { return HARI[r.dow] + ', ' + r.d + ' ' + BULAN[r.m - 1].slice(0, 3) + ' ' + r.y; }
+  function toMin(t) { var p = t.split(':'); return parseInt(p[0], 10) * 60 + parseInt(p[1], 10); }
+
+
+  function showError(e) {
+    $('loading').hidden = true;
+    var box = $('error');
+    box.hidden = false;
+    box.textContent = 'Data belum bisa dimuat: ' + (e && e.message ? e.message : e) + '. Muat ulang halaman, atau hubungi admin jika masalah berlanjut.';
+  }
+
+  function api(action, names, ok, fail, fresh) {
+    function hasil(res) {
+      if (res && res.error) fail(new Error(res.error)); else ok(res);
+    }
+    if (APPS_SCRIPT_URL) {
+      var url = APPS_SCRIPT_URL + (APPS_SCRIPT_URL.indexOf('?') >= 0 ? '&' : '?') + 'action=' + action +
+                (names ? '&names=' + encodeURIComponent(names.join('|')) : '') + (fresh ? '&fresh=1&_=' + Date.now() : '');
+      fetch(url).then(function (r) { return r.json(); }).then(hasil).catch(function (e) {
+        if (e && e.name === 'SyntaxError') e = new Error('Respons server bukan data yang valid. Pastikan Web App di-deploy dengan akses "Anyone" dan URL /exec sudah yang terbaru');
+        else if (e && e.name === 'TypeError') e = new Error('Tidak bisa terhubung ke server. Periksa koneksi internet Anda');
+        fail(e);
+      });
+    } else if (window.google && google.script && google.script.run) {
+      var run = google.script.run.withSuccessHandler(hasil).withFailureHandler(fail);
+      if (action === 'init') run.getInit(!!fresh); else run.getSheetsData(names, !!fresh);
+    } else {
+      fail(new Error('URL Apps Script belum diisi. Isi APPS_SCRIPT_URL di bagian TEMPEL DISINI'));
+    }
+  }
+
+  api('init', null, init, showError);
+
+  // Shift malam hari kerja. Jadwal kantor (masuk 08:00, pulang 17:00) tidak berlaku, jadi tidak ada
+  // terlambat/pulang cepat. Lembur = waktu kerja sejak LEMBUR_MULAI (atau jam masuk, bila lebih malam)
+  // sampai jam pulang keesokan harinya. Mengembalikan true jika catatan ini shift malam.
+  function hitungShiftMalam(r) {
+    if (!SHIFT_MALAM_AKTIF || !r.masuk || !r.pulang) return false;
+    var m = toMin(r.masuk), p = toMin(r.pulang);
+    if (p >= m || m < toMin(SHIFT_MALAM_MASUK_MIN)) return false;
+    if (p + 24 * 60 - m > SHIFT_MALAM_MAKS_JAM * 60) return false;
+    r.malam = true;
+    r.lembur = p + 24 * 60 - Math.max(m, toMin(DB.config.lemburMulai));
+    return true;
+  }
+
+  function hitung(r) {
+    var c = DB.config;
+    if (hitungShiftMalam(r)) return;
+    if (r.masuk && toMin(r.masuk) > toMin(c.jamMasuk) + c.toleransi) r.telat = toMin(r.masuk) - toMin(c.jamMasuk);
+    if (r.pulang) {
+      var p = toMin(r.pulang);
+      if (p > toMin(c.lemburMulai)) r.lembur = p - toMin(c.lemburMulai);
+      if (p < toMin(c.jamPulang)) r.cepat = toMin(c.jamPulang) - p;
+    }
+  }
+
+  // Perbaikan: dukung lembur lintas tengah malam (shift malam akhir pekan)
+  function hitungMinggu(r) {
+    var t = [r.masuk, r.pulang].filter(Boolean);
+    r.mg = true;
+    r.masuk = t[0] || '';
+    r.pulang = t.length > 1 ? t[t.length - 1] : '';
+    if (r.masuk && r.pulang) {
+      var sel = toMin(r.pulang) - toMin(r.masuk);
+      if (sel < 0) { sel += 24 * 60; r.malam = true; }
+      if (sel > 0 && sel <= 24 * 60) r.lembur = sel;
+    }
+  }
+
+  function rangeDates(s, e) {
+    var out = [];
+    if (!s || !e) return out;
+    var a = s.split('-'), b = e.split('-');
+    var cur = new Date(+a[0], +a[1] - 1, +a[2]), end = new Date(+b[0], +b[1] - 1, +b[2]);
+    var guard = 0;
+    while (cur <= end && guard++ < 70) {
+      out.push(cur.getFullYear() + '-' + p2(cur.getMonth() + 1) + '-' + p2(cur.getDate()));
+      cur.setDate(cur.getDate() + 1);
+    }
+    return out;
+  }
+
+  function buildRows(data) {
+    var rec = {}, has = {}, maxD = '';
+    data.k.forEach(function (n) { DB.names[n] = true; });
+    data.r.forEach(function (row) {
+      rec[row[0] + '|' + row[1]] = row;
+      has[row[1]] = true;
+      if (row[1] > maxD) maxD = row[1];
+    });
+    if (!maxD) return;
+    var batas = maxD < TODAY ? maxD : TODAY;
+
+    rangeDates(data.s, data.e).forEach(function (tgl) {
+      if (tgl > batas) return;
+      var p = tgl.split('-'), y = +p[0], m = +p[1], d = +p[2];
+      var dow = new Date(y, m - 1, d).getDay();
+      data.k.forEach(function (nama) {
+        var key = nama + '|' + tgl;
+        if (SEEN[key]) return;
+        SEEN[key] = true;
+        var row = rec[key];
+        var r = { nama: nama, tgl: tgl, y: y, m: m, d: d, dow: dow, masuk: '', pulang: '', telat: 0, lembur: 0, cepat: 0, st: '', mg: false, malam: false };
+        if (row) {
+          r.masuk = row[2]; r.pulang = row[3]; r.st = 'hadir';
+          // Satu kali scan yang tercatat di baris Masuk dan Pulang sekaligus (jam sama persis)
+          // bukan jam kerja sungguhan: anggap hanya scan masuk, scan pulang belum ada.
+          if (r.masuk && r.masuk === r.pulang) r.pulang = '';
+          if (dow === 0) hitungMinggu(r); else hitung(r);
+        } else if (dow === 0) r.st = 'libur';
+        else if (LIBUR_JIKA_SEMUA_KOSONG && !has[tgl]) r.st = 'libur';
+        else if (tgl === TODAY) r.st = 'belum';
+        else r.st = 'absen';
+        DB.records.push(r);
+      });
+    });
+  }
+
+  function addSheets(map, forced) {
+    var names = Object.keys(map || {});
+    (forced || []).forEach(function (n) { if (names.indexOf(n) < 0) names.push(n); });
+    names.forEach(function (n) {
+      if (LOADED[n]) return;
+      LOADED[n] = true;
+      var data = map && map[n];
+      if (data && data.r && data.k) buildRows(data);
+    });
+  }
+
+  var NAMA_LIST = [];
+
+  function updateNames() {
+    var list = Object.keys(DB.names).sort(function (a, b) { return a.localeCompare(b, 'id'); });
+    NAMA_LIST = list;
+    if (S.nama && !DB.names[S.nama]) S.nama = '';
+    $('selNama').value = S.nama || '';
+  }
+
+  function sheetsFor(tahun, bulan) {
+    tahun = +tahun; bulan = +bulan;
+    return DB.periods.filter(function (p) {
+      if (bulan) {
+        var ny = bulan === 12 ? tahun + 1 : tahun, nm = bulan === 12 ? 1 : bulan + 1;
+        return (p.y === tahun && p.m === bulan) || (p.y === ny && p.m === nm);
+      }
+      return p.y === tahun || (p.y === tahun + 1 && p.m === 1);
+    }).map(function (p) { return p.name; });
+  }
+
+  function setBusy() {
+    $('stats').innerHTML = '';
+    $('count').textContent = '';
+    $('pager').hidden = true;
+    $('tableBox').innerHTML = '<div class="empty">Memuat data periode yang dipilih…</div>';
+  }
+
+  function refresh() {
+    var need = (S.periode && PMAP[S.periode] ? [PMAP[S.periode].name] : sheetsFor(S.tahun, S.bulan)).filter(function (n) { return !LOADED[n]; });
+    if (!need.length) { render(); return; }
+    if (LOADING) return;
+    LOADING = true;
+    setBusy();
+    api('sheets', need, function (res) {
+      LOADING = false;
+      addSheets(res, need);
+      updateNames();
+      refresh();
+    }, function (e) { LOADING = false; showError(e); });
+  }
+
+  function isiOpsiTahun() {
+    var years = {};
+    DB.periods.forEach(function (p) { years[p.y] = true; if (p.m === 1) years[p.y - 1] = true; });
+    var yl = Object.keys(years).sort(function (a, b) { return b - a; });
+    $('selTahun').innerHTML = yl.map(function (y) { return '<option value="' + y + '">' + y + '</option>'; }).join('');
+  }
+
+  function init(data) {
+    DB.periods = data.periods || [];
+    DB.config = data.config;
+
+    if (!DB.periods.length) { showError(new Error('Tidak ada sheet bulanan yang terbaca dari spreadsheet')); return; }
+
+    addSheets(data.sheets, []);
+
+    isiOpsiTahun();
+
+    $('selBulan').innerHTML = '<option value="">Semua bulan</option>' +
+      BULAN.map(function (n, i) { return '<option value="' + (i + 1) + '">' + n + '</option>'; }).join('');
+    var tg = '<option value="">Semua tanggal</option>';
+    for (var d = 1; d <= 31; d++) tg += '<option value="' + d + '">' + d + '</option>';
+    $('selTanggal').innerHTML = tg;
+
+    updateNames();
+
+    var latest = DB.records.reduce(function (a, r) { return r.st === 'hadir' && (!a || r.tgl > a.tgl) ? r : a; }, null);
+    var lp = DB.periods[DB.periods.length - 1];
+    S.tahun = String(latest ? latest.y : lp.y);
+    S.bulan = String(latest ? latest.m : lp.m);
+    $('selTahun').value = S.tahun;
+    $('selBulan').value = S.bulan;
+
+    bind();
+    initPeriode(latest);
+    $('loading').hidden = true;
+    $('app').hidden = false;
+    $('btnReload').hidden = false;
+    refresh();
+  }
+
+  var LAST_LOAD = Date.now();
+  var AUTO_MIN_JEDA = 60 * 1000;      // jangan muat ulang otomatis lebih sering dari 1 menit
+  var AUTO_INTERVAL = 5 * 60 * 1000;  // muat ulang otomatis tiap 5 menit saat tab terlihat
+
+  // Sheet yang sedang dilihat pengguna (berdasarkan periode gaji atau tahun/bulan terpilih)
+  function sheetDilihat() {
+    if (S.periode && PMAP[S.periode]) return [PMAP[S.periode].name];
+    return sheetsFor(S.tahun, S.bulan);
+  }
+
+  // silent = true  : muat ulang otomatis di latar belakang, memakai cache server (maks. 1 menit),
+  //                  tanpa pesan error dan tanpa menyentuh tombol.
+  // silent = false : tombol "Muat ulang data", melewati cache server agar data benar-benar terbaru.
+  // Data lama tetap tampil sampai data baru lengkap, lalu layar diganti sekali saja (tanpa kedip).
+  function muatUlang(silent) {
+    var btn = $('btnReload');
+    if (LOADING) return;
+    LOADING = true;
+    var fresh = silent !== true;
+    if (fresh) { btn.disabled = true; btn.textContent = '↻ Memuat…'; $('error').hidden = true; }
+
+    function selesai() {
+      LOADING = false;
+      btn.disabled = false; btn.textContent = '↻ Muat ulang data';
+    }
+    function gagal(e) {
+      selesai();
+      if (fresh) showError(e);   // gagal saat auto-refresh: diam saja, data lama tetap tampil
+    }
+
+    api('init', null, function (data) {
+      var awal = data.sheets || {};
+      DB.periods = data.periods || [];
+      DB.config = data.config;
+      buildPeriods();
+      var perlu = sheetDilihat().filter(function (n) { return !awal[n]; });
+
+      function terapkan(tambahan) {
+        var semua = {}, k;
+        for (k in awal) semua[k] = awal[k];
+        for (k in (tambahan || {})) semua[k] = tambahan[k];
+        DB.records = []; DB.names = {}; LOADED = {}; SEEN = {};
+        TODAY = hariIni();
+        addSheets(semua, []);
+        isiOpsiTahun();
+        isiOpsiPeriode();
+        if (S.periode && !PMAP[S.periode]) S.periode = PKEYS[PKEYS.length - 1] || '';
+        if (DB.periods.length && !DB.periods.some(function (p) { return String(p.y) === S.tahun || String(p.y - 1) === S.tahun; })) S.tahun = String(DB.periods[DB.periods.length - 1].y);
+        $('selTahun').value = S.tahun;
+        updateNames();
+        syncPeriode();
+        LAST_LOAD = Date.now();
+        selesai();
+        refresh();
+      }
+
+      if (!perlu.length) { terapkan({}); return; }
+      api('sheets', perlu, terapkan, gagal, fresh);
+    }, gagal, fresh);
+  }
+
+  // Auto-refresh: saat tab kembali aktif dan secara berkala, selama tidak ada dialog terbuka
+  function autoRefresh() {
+    if (document.hidden || LOADING || $('app').hidden) return;
+    if (!$('dtPanel').hidden || !$('kdPanel').hidden || !$('sfPanel').hidden) return;
+    if (Date.now() - LAST_LOAD < AUTO_MIN_JEDA) return;
+    muatUlang(true);
+  }
+  document.addEventListener('visibilitychange', autoRefresh);
+  window.addEventListener('focus', autoRefresh);
+  setInterval(autoRefresh, AUTO_INTERVAL);
+
+  function bind() {
+    $('btnReload').onclick = function () { muatUlang(false); };
+    $('tKal').onclick = function () { setTampil('kal'); };
+    $('tTabel').onclick = function () { setTampil('tabel'); };
+    syncTampil();
+    bindKalender();
+    $('mAll').onclick = function () { setMode('all'); };
+    $('mMe').onclick = function () { setMode('me'); };
+    $('vHarian').onclick = function () { setView('harian'); };
+    $('vRekap').onclick = function () { setView('rekap'); };
+
+    initNamaCombo();
+    initStatusFilter();
+    bindDetail();
+    $('inpCari').oninput = function () { S.cari = this.value.trim().toLowerCase(); reset(); };
+    $('selTahun').onchange = function () { S.tahun = this.value; reset(); };
+    $('selBulan').onchange = function () { S.bulan = this.value; reset(); };
+    $('selTanggal').onchange = function () { S.tanggal = this.value; reset(); };
+    $('selUrut').onchange = function () { S.urut = this.value; reset(); };
+
+    $('selSize').onchange = function () { S.size = parseInt(this.value, 10); S.page = 1; render(); };
+    $('btnPrev').onclick = function () { S.page--; render(); toTop(); };
+    $('btnNext').onclick = function () { S.page++; render(); toTop(); };
+  }
+
+  function initNamaCombo() {
+    var inp = $('selNama'), list = $('listNama'), items = [], act = -1;
+
+    function open() { list.hidden = false; inp.setAttribute('aria-expanded', 'true'); }
+    function close() { list.hidden = true; inp.setAttribute('aria-expanded', 'false'); act = -1; }
+    function setAct(i) {
+      var lis = list.querySelectorAll('li[data-v]');
+      if (!lis.length) return;
+      act = (i + lis.length) % lis.length;
+      for (var k = 0; k < lis.length; k++) lis[k].classList.toggle('active', k === act);
+      lis[act].scrollIntoView({ block: 'nearest' });
+    }
+    function build(q) {
+      q = (q || '').trim().toLowerCase();
+      items = NAMA_LIST.filter(function (n) { return !q || n.toLowerCase().indexOf(q) >= 0; });
+      list.innerHTML = items.length
+        ? items.map(function (n) { return '<li role="option" data-v="' + esc(n) + '"' + (n === S.nama ? ' class="sel"' : '') + '>' + esc(n) + '</li>'; }).join('')
+        : '<li class="none">Nama tidak ditemukan</li>';
+      act = -1;
+    }
+    function pick(n) {
+      inp.value = n;
+      close();
+      if (S.nama !== n) { S.nama = n; reset(); }
+    }
+    function revert() { inp.value = S.nama || ''; }
+
+    inp.addEventListener('focus', function () { inp.select(); build(''); open(); });
+    inp.addEventListener('click', function () { if (list.hidden) { build(''); open(); } });
+    inp.addEventListener('input', function () {
+      build(inp.value); open();
+      if (!inp.value.trim() && S.nama) { S.nama = ''; reset(); }
+      else if (items.length) setAct(0);
+    });
+    inp.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowDown') { e.preventDefault(); if (list.hidden) { build(inp.value); open(); } setAct(act + 1); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); setAct(act - 1); }
+      else if (e.key === 'Enter') {
+        if (!list.hidden && items.length) { e.preventDefault(); pick(items[act >= 0 ? act : 0]); }
+      } else if (e.key === 'Escape') { close(); revert(); }
+    });
+    inp.addEventListener('blur', function () {
+      setTimeout(function () {
+        close();
+        var v = inp.value.trim().toLowerCase();
+        var exact = NAMA_LIST.filter(function (n) { return n.toLowerCase() === v; })[0];
+        if (exact) pick(exact); else revert();
+      }, 120);
+    });
+    list.addEventListener('mousedown', function (e) {
+      var li = e.target.closest ? e.target.closest('li[data-v]') : null;
+      e.preventDefault();
+      if (li) pick(li.getAttribute('data-v'));
+    });
+    $('arrowNama').addEventListener('mousedown', function (e) {
+      e.preventDefault();
+      if (list.hidden) { inp.focus(); build(''); open(); } else close();
+    });
+  }
+
+  function hadirLengkap(r) { return r.st === 'hadir' && !r.mg; }
+  function tdkLengkap(r) { return r.st === 'hadir' && (!r.masuk || !r.pulang) && !(r.tgl === TODAY && r.masuk && !r.pulang); }
+  var SF = [
+    { k: 'hadir',      g: 'Kehadiran',   c: 'ok',    l: 'Hadir',                 t: function (r) { return r.st === 'hadir'; } },
+    { k: 'absen',      g: 'Kehadiran',   c: 'abs',   l: 'Tidak hadir',           t: function (r) { return r.st === 'absen'; } },
+    { k: 'belum', d: 'Belum ada scan sama sekali hari ini',      g: 'Kehadiran',   c: 'inc',   l: 'Belum absen',           t: function (r) { return r.st === 'belum'; } },
+    { k: 'tdklengkap', d: 'Scan masuk atau scan pulang masih kosong', g: 'Kehadiran',   c: 'inc',   l: 'Absen belum lengkap',   t: tdkLengkap },
+    { k: 'libur',      g: 'Kehadiran',   c: 'inc',   l: 'Libur',                 t: function (r) { return r.st === 'libur'; } },
+    { k: 'liburmasuk', d: 'Hari libur tetapi tetap masuk', g: 'Kehadiran',   c: 'ot',    l: 'Masuk saat libur',      t: function (r) { return r.st === 'hadir' && r.mg; } },
+    { k: 'malam', d: 'Masuk sore/malam dan pulang keesokan harinya', g: 'Kehadiran',   c: 'ot',    l: 'Shift malam',           t: function (r) { return r.malam; } },
+
+    { k: 'tepatmasuk', d: 'Masuk sebelum batas jam masuk', g: 'Jam masuk',   c: 'ok',    l: 'Masuk tepat waktu',     t: function (r) { return hadirLengkap(r) && !!r.masuk && !r.telat; } },
+    { k: 'telat', d: 'Masuk setelah batas jam masuk',      g: 'Jam masuk',   c: 'late',  l: 'Terlambat',             t: function (r) { return r.telat > 0; } },
+
+    { k: 'sesuai', d: 'Pulang tepat jadwal, tidak cepat dan tidak lembur',     g: 'Jam pulang',  c: 'ok',    l: 'Pulang sesuai jadwal',  t: function (r) { return hadirLengkap(r) && !!r.pulang && !r.cepat && !r.lembur; } },
+    { k: 'cepat', d: 'Pulang sebelum jam pulang',      g: 'Jam pulang',  c: 'early', l: 'Pulang cepat',          t: function (r) { return r.cepat > 0; } },
+    { k: 'lembur', d: 'Pulang setelah jam mulai lembur',     g: 'Jam pulang',  c: 'ot',    l: 'Lembur',                t: function (r) { return r.lembur > 0; } },
+
+    { k: 'penuh', d: 'Masuk tepat waktu dan tidak pulang cepat',      g: 'Gabungan',    c: 'mix',   l: 'Tepat waktu penuh',     t: function (r) { return hadirLengkap(r) && !!r.masuk && !!r.pulang && !r.telat && !r.cepat; } },
+    { k: 'telatcepat', d: 'Terlambat masuk sekaligus pulang cepat', g: 'Gabungan',    c: 'mix',   l: 'Terlambat & pulang cepat', t: function (r) { return r.telat > 0 && r.cepat > 0; } },
+    { k: 'telatlembur', d: 'Terlambat masuk tetapi tetap lembur',g: 'Gabungan',    c: 'mix',   l: 'Terlambat tapi lembur', t: function (r) { return r.telat > 0 && r.lembur > 0; } },
+    { k: 'tepatlembur', d: 'Masuk tepat waktu dan lembur',g: 'Gabungan',    c: 'mix',   l: 'Tepat waktu & lembur',  t: function (r) { return hadirLengkap(r) && !!r.masuk && !r.telat && r.lembur > 0; } },
+    { k: 'perhatian', d: 'Tidak hadir, terlambat, pulang cepat, atau absen belum lengkap',  g: 'Gabungan',    c: 'mix',   l: 'Perlu perhatian',
+      t: function (r) { return r.st === 'absen' || r.telat > 0 || r.cepat > 0 || tdkLengkap(r); } }
+  ];
+  var SF_MAP = {};
+  SF.forEach(function (f) { SF_MAP[f.k] = f; });
+
+  function filterStatus(list) {
+    if (!S.status.length) return list;
+    var fs = S.status.map(function (k) { return SF_MAP[k]; });
+    return list.filter(function (r) {
+      return S.smode === 'and'
+        ? fs.every(function (f) { return f.t(r); })
+        : fs.some(function (f) { return f.t(r); });
+    });
+  }
+
+  function initStatusFilter() {
+    var wrap = $('sfWrap'), btn = $('sfBtn'), panel = $('sfPanel'), back = $('sfBackdrop');
+    var groups = [], gmap = {};
+    SF.forEach(function (f) { if (!gmap[f.g]) { gmap[f.g] = []; groups.push(f.g); } gmap[f.g].push(f); });
+
+    var h = '<div class="sf-top"><b>Filter status</b><button type="button" class="sf-clear" id="sfClear">Hapus</button></div>' +
+      '<div class="sf-modebox" id="sfModeBox"><span>Gabungkan pilihan</span>' +
+      '<div class="sf-seg" id="sfMode" role="group" aria-label="Cara menggabungkan filter">' +
+      '<button type="button" data-m="or" aria-pressed="true">Salah satu</button>' +
+      '<button type="button" data-m="and" aria-pressed="false">Semua syarat</button></div></div>' +
+      '<div class="sf-body">';
+    groups.forEach(function (g) {
+      h += '<div class="sf-gh">' + esc(g) + '</div>';
+      gmap[g].forEach(function (f) {
+        h += '<label class="sf-opt ' + f.c + '"><input type="checkbox" data-k="' + f.k + '"><span class="sf-box"></span>' +
+          '<span class="sf-txt"><span class="sf-l">' + esc(f.l) + '</span>' + (f.d ? '<span class="sf-d">' + esc(f.d) + '</span>' : '') + '</span>' +
+          '<span class="sf-n">0</span></label>';
+      });
+    });
+    h += '</div><div class="sf-foot"><button type="button" class="sf-done" id="sfDone">Selesai</button></div>';
+    panel.innerHTML = h;
+
+    function mobile() { return window.matchMedia('(max-width: 640px)').matches; }
+    function open() {
+      panel.hidden = false; btn.setAttribute('aria-expanded', 'true');
+      panel.classList.remove('right'); panel.style.maxHeight = '';
+      if (mobile()) { back.hidden = false; document.documentElement.style.overflow = 'hidden'; }
+      else {
+        if (panel.getBoundingClientRect().right > window.innerWidth - 8) panel.classList.add('right');
+        var room = window.innerHeight - panel.getBoundingClientRect().top - 12;
+        panel.style.maxHeight = Math.max(300, Math.min(room, 560)) + 'px';
+      }
+    }
+    function close() {
+      panel.hidden = true; back.hidden = true; btn.setAttribute('aria-expanded', 'false');
+      document.documentElement.style.overflow = '';
+    }
+
+    btn.addEventListener('click', function () { if (panel.hidden) open(); else close(); });
+    back.addEventListener('click', close);
+    $('sfDone').addEventListener('click', function () { close(); btn.focus(); });
+    document.addEventListener('click', function (e) { if (!panel.hidden && !wrap.contains(e.target)) close(); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !panel.hidden) { close(); btn.focus(); } });
+
+    panel.addEventListener('change', function (e) {
+      var k = e.target.getAttribute && e.target.getAttribute('data-k');
+      if (!k) return;
+      var i = S.status.indexOf(k);
+      if (e.target.checked && i < 0) S.status.push(k);
+      else if (!e.target.checked && i >= 0) S.status.splice(i, 1);
+      syncStatusUI(); reset();
+    });
+    panel.addEventListener('click', function (e) {
+      var m = e.target.closest ? e.target.closest('#sfMode button') : null;
+      if (m) { S.smode = m.getAttribute('data-m'); syncStatusUI(); reset(); }
+      else if (e.target.id === 'sfClear') { S.status = []; syncStatusUI(); reset(); }
+    });
+    syncStatusUI();
+  }
+
+  function syncStatusUI() {
+    var boxes = $('sfPanel').querySelectorAll('input[data-k]');
+    for (var i = 0; i < boxes.length; i++) boxes[i].checked = S.status.indexOf(boxes[i].getAttribute('data-k')) >= 0;
+    var n = S.status.length;
+    $('sfBtnText').textContent = n === 0 ? 'Semua status' : n === 1 ? SF_MAP[S.status[0]].l : n + ' status dipilih';
+    $('sfBtn').classList.toggle('active', n > 0);
+    $('sfClear').disabled = n === 0;
+    $('sfModeBox').classList.toggle('dim', n < 2);
+    var btns = $('sfMode').querySelectorAll('button');
+    for (var j = 0; j < btns.length; j++) btns[j].setAttribute('aria-pressed', btns[j].getAttribute('data-m') === S.smode);
+  }
+
+  function updateSfCounts(base, list) {
+    var opts = $('sfPanel').querySelectorAll('.sf-opt');
+    for (var i = 0; i < opts.length; i++) {
+      var f = SF_MAP[opts[i].querySelector('input').getAttribute('data-k')], n = 0;
+      for (var j = 0; j < base.length; j++) if (f.t(base[j])) n++;
+      opts[i].querySelector('.sf-n').textContent = n;
+      opts[i].classList.toggle('zero', n === 0);
+    }
+    $('sfDone').textContent = S.status.length ? 'Selesai · ' + list.length + ' baris' : 'Selesai';
+  }
+
+  function toTop() { try { $('toolbar').scrollIntoView({ block: 'start' }); } catch (e) {} }
+
+  function reset() { S.page = 1; refresh(); }
+
+  function setMode(m) {
+    S.mode = m;
+    $('mAll').setAttribute('aria-pressed', m === 'all');
+    $('mMe').setAttribute('aria-pressed', m === 'me');
+    $('fNama').hidden = m !== 'me';
+    $('fCari').hidden = m !== 'all';
+    $('viewSeg').hidden = m !== 'all';
+    $('tampilSeg').hidden = m !== 'me';
+    if (m === 'me') S.view = 'harian';
+    $('vHarian').setAttribute('aria-pressed', S.view === 'harian');
+    $('vRekap').setAttribute('aria-pressed', S.view === 'rekap');
+    reset();
+  }
+
+  function setView(v) {
+    S.view = v;
+    $('vHarian').setAttribute('aria-pressed', v === 'harian');
+    $('vRekap').setAttribute('aria-pressed', v === 'rekap');
+    reset();
+  }
+
+  function getList() {
+    var pr = S.periode ? PMAP[S.periode] : null;
+    var list = DB.records.filter(function (r) {
+      if (pr) return r.tgl >= pr.s && r.tgl <= pr.e && (!S.tanggal || r.d == S.tanggal);
+      return (!S.tahun || r.y == S.tahun) && (!S.bulan || r.m == S.bulan) && (!S.tanggal || r.d == S.tanggal);
+    });
+    if (S.mode === 'me') list = list.filter(function (r) { return r.nama === S.nama; });
+    else if (S.cari) list = list.filter(function (r) { return r.nama.toLowerCase().indexOf(S.cari) >= 0; });
+
+    function byTgl(a, b) { return a.tgl > b.tgl ? -1 : a.tgl < b.tgl ? 1 : a.nama.localeCompare(b.nama, 'id'); }
+    list.sort(function (a, b) {
+      if (S.urut === 'nama') return a.nama.localeCompare(b.nama, 'id') || (a.tgl < b.tgl ? -1 : 1);
+      if (S.urut === 'lama') return a.tgl < b.tgl ? -1 : a.tgl > b.tgl ? 1 : a.nama.localeCompare(b.nama, 'id');
+      if (S.urut === 'telat' || S.urut === 'cepat' || S.urut === 'lembur') return (b[S.urut] - a[S.urut]) || byTgl(a, b);
+      if (S.urut === 'masuk' || S.urut === 'masukl') {
+        if (!a.masuk !== !b.masuk) return a.masuk ? -1 : 1;
+        var d = toMin(a.masuk || '0:0') - toMin(b.masuk || '0:0');
+        return (S.urut === 'masuk' ? d : -d) || byTgl(a, b);
+      }
+      return byTgl(a, b);
+    });
+    return list;
+  }
+
+  function chips(r) {
+    if (r.st === 'libur') return '<span class="chip off">Libur</span>';
+    if (r.st === 'absen') return '<span class="chip abs">Tidak hadir</span>';
+    if (r.st === 'belum') return '<span class="chip inc">Belum absen</span>';
+    var out = [];
+    if (r.mg) out.push('<span class="chip off">Libur (masuk)</span>');
+    if (r.malam) out.push('<span class="chip night">Shift malam</span>');
+    if (!r.masuk || !r.pulang) out.push('<span class="chip inc">' + (r.masuk ? 'Belum absen pulang' : 'Belum absen masuk') + '</span>');
+    if (r.telat) out.push('<span class="chip late">Terlambat ' + fmtMin(r.telat) + '</span>');
+    if (r.cepat) out.push('<span class="chip early">Pulang cepat ' + fmtMin(r.cepat) + '</span>');
+    if (r.lembur) out.push('<span class="chip ot">Lembur ' + fmtMin(r.lembur) + '</span>');
+    if (!out.length) out.push('<span class="chip ok">Tepat waktu</span>');
+    return out.join('');
+  }
+
+  function render() {
+    var box = $('tableBox');
+    $('pager').hidden = true;
+
+    if (S.mode === 'me' && !S.nama) {
+      $('stats').innerHTML = '';
+      updateSfCounts([], []);
+      $('count').textContent = '';
+      box.innerHTML = '<div class="empty">Pilih nama Anda untuk melihat data absensi pribadi.</div>';
+      $('note').textContent = '';
+      return;
+    }
+
+    var base = getList();
+    var list = filterStatus(base);
+    updateSfCounts(base, list);
+
+    var hadir = 0, absen = 0, telatN = 0, telatM = 0, lemburM = 0, cepatN = 0, lupaN = 0;
+    base.forEach(function (r) {
+      if (r.st === 'hadir') hadir++;
+      if (r.st === 'absen') absen++;
+      if (r.telat) { telatN++; telatM += r.telat; }
+      if (r.cepat) cepatN++;
+      if (isLupa(r)) lupaN++;
+      lemburM += r.lembur;
+    });
+    $('stats').innerHTML =
+      statBtn('hadir', 'hadir', hadir, 'Hari hadir', '') +
+      statBtn('absen', 'absent', absen, 'Tidak hadir', '') +
+      statBtn('lupa', 'forgot', lupaN, 'Belum absen', 'scan terlewat') +
+      statBtn('telat', 'late', telatN + '×', 'Terlambat', fmtMin(telatM)) +
+      statBtn('cepat', 'early', cepatN + '×', 'Pulang cepat', '') +
+      statBtn('lembur', 'ot', fmtMin(lemburM), 'Total lembur', '');
+
+    if (S.mode === 'me' && S.tampil === 'kal') {
+      renderKalender();
+    } else if (!list.length) {
+      $('count').textContent = '';
+      box.innerHTML = '<div class="empty">' + (S.status.length && base.length
+        ? 'Tidak ada data yang cocok dengan filter status.' + (S.smode === 'and' && S.status.length > 1 ? ' Coba ubah ke "Salah satu" atau kurangi pilihan.' : '') + '</div>'
+        : 'Tidak ada data untuk pilihan ini. Coba ganti bulan, tahun, atau tanggal.</div>');
+    } else if (S.mode === 'all' && S.view === 'rekap') {
+      renderRekap(list);
+    } else {
+      renderHarian(list);
+    }
+    if (S.status.length && list.length && !(S.mode === 'me' && S.tampil === 'kal')) $('count').textContent += ' · difilter dari ' + base.length + ' baris';
+
+    $('note').textContent = 'Terlambat jika masuk lewat ' + DB.config.jamMasuk + (DB.config.toleransi ? ' (toleransi ' + DB.config.toleransi + ' menit)' : ' (tanpa toleransi)') + '. Lembur hari kerja dihitung setelah pukul ' +
+      DB.config.lemburMulai + '. Pulang cepat jika sebelum ' + DB.config.jamPulang + '. Hari Minggu libur; jika masuk, lembur dihitung dari absen pertama sampai absen terakhir.' +
+      (SHIFT_MALAM_AKTIF ? ' Shift malam hari kerja (jam pulang lebih kecil dari jam masuk, mis. masuk 20:00 pulang 06:00) tidak dihitung terlambat atau pulang cepat; lembur dihitung dari pukul ' + DB.config.lemburMulai + ' (atau jam masuk bila lebih malam) sampai jam pulang.' : '') +
+      (LIBUR_JIKA_SEMUA_KOSONG ? ' Hari kerja tanpa absen dari seluruh karyawan dianggap libur.' : '') +
+      ' "Belum absen" = hari hadir dengan scan masuk atau pulang yang kosong (scan pulang hari ini yang masih berjalan tidak dihitung).';
+  }
+
+  function renderHarian(list) {
+    var total = list.length;
+    var pages = Math.max(1, Math.ceil(total / S.size));
+    if (S.page > pages) S.page = pages;
+    if (S.page < 1) S.page = 1;
+    var from = (S.page - 1) * S.size;
+    var shown = list.slice(from, from + S.size);
+    var showNama = S.mode === 'all';
+
+    var h = '<table><thead><tr><th>Tanggal</th>' + (showNama ? '<th>Nama</th>' : '') +
+            '<th class="num">Masuk</th><th class="num">Pulang</th><th>Keterangan</th></tr></thead><tbody>';
+    shown.forEach(function (r) {
+      h += '<tr' + (r.st === 'libur' ? ' class="libur"' : '') + '><td data-label="Tanggal">' + fmtTgl(r) + '</td>' + (showNama ? '<td data-label="Nama">' + esc(r.nama) + '</td>' : '') +
+           '<td class="num" data-label="Masuk">' + (r.masuk || '<span class="dim">–</span>') + '</td>' +
+           '<td class="num" data-label="Pulang">' + (r.pulang || '<span class="dim">–</span>') + '</td>' +
+           '<td data-label="Keterangan"><span class="chips">' + chips(r) + '</span></td></tr>';
+    });
+    $('tableBox').innerHTML = h + '</tbody></table>';
+    $('count').textContent = 'Menampilkan ' + (from + 1) + '–' + (from + shown.length) + ' dari ' + total + ' baris';
+
+    $('pager').hidden = false;
+    $('selSize').value = String(S.size);
+    $('pageInfo').textContent = 'Halaman ' + S.page + ' dari ' + pages;
+    $('btnPrev').disabled = S.page <= 1;
+    $('btnNext').disabled = S.page >= pages;
+  }
+
+  function renderRekap(list) {
+    var g = {};
+    list.forEach(function (r) {
+      var x = g[r.nama] || (g[r.nama] = { nama: r.nama, hadir: 0, absen: 0, tn: 0, tm: 0, cn: 0, lm: 0 });
+      if (r.st === 'hadir') x.hadir++;
+      if (r.st === 'absen') x.absen++;
+      if (r.telat) { x.tn++; x.tm += r.telat; }
+      if (r.cepat) x.cn++;
+      x.lm += r.lembur;
+    });
+    var rows = Object.keys(g).map(function (k) { return g[k]; })
+      .sort(function (a, b) { return a.nama.localeCompare(b.nama, 'id'); });
+
+    var h = '<table><thead><tr><th>Nama</th><th class="num">Hari hadir</th><th class="num">Tidak hadir</th><th class="num">Terlambat</th>' +
+            '<th class="num">Menit terlambat</th><th class="num">Pulang cepat</th><th class="num">Total lembur</th></tr></thead><tbody>';
+    rows.forEach(function (x) {
+      h += '<tr><td data-label="Nama">' + esc(x.nama) + '</td><td class="num" data-label="Hari hadir">' + x.hadir + '</td><td class="num" data-label="Tidak hadir">' + x.absen + '</td><td class="num" data-label="Terlambat">' + x.tn + '×</td>' +
+           '<td class="num" data-label="Menit terlambat">' + fmtMin(x.tm) + '</td><td class="num" data-label="Pulang cepat">' + x.cn + '×</td><td class="num" data-label="Total lembur">' + fmtMin(x.lm) + '</td></tr>';
+    });
+    $('tableBox').innerHTML = h + '</tbody></table>';
+    $('count').textContent = rows.length + ' karyawan';
+  }
+
+  var HARI_PJG = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+  var KAL = { recs: {}, tgl: '', buka: false };
+  var KAL_LBL = { ok: 'Tepat waktu', warn: 'Terlambat / belum lengkap', abs: 'Tidak hadir', off: 'Libur', mg: 'Masuk saat libur', none: 'Belum ada data' };
+  var KAL_WARNA = { ok: '#10b981', warn: '#eab308', abs: '#ef4444', off: '#94a3b8', mg: '#1d5ff0', none: '#94a3b8' };
+
+  function kalKelas(r) {
+    if (!r) return 'none';
+    if (r.st === 'libur') return 'off';
+    if (r.st === 'absen') return 'abs';
+    if (r.st === 'belum') return 'warn';
+    if (r.telat > 0 || r.cepat > 0 || isLupa(r)) return 'warn';
+    return r.mg ? 'mg' : 'ok';
+  }
+
+  function kalRange() {
+    var pr = S.periode ? PMAP[S.periode] : null;
+    if (pr) return { s: pr.s, e: pr.e, judul: 'Periode gaji ' + periodeText(S.periode) };
+    if (!S.bulan) return null;
+    var y = +S.tahun, m = +S.bulan, last = new Date(y, m, 0).getDate();
+    return { s: y + '-' + p2(m) + '-01', e: y + '-' + p2(m) + '-' + p2(last), judul: BULAN[m - 1] + ' ' + y };
+  }
+
+  function adaBulan(y, m) {
+    var ny = m === 12 ? y + 1 : y, nm = m === 12 ? 1 : m + 1;
+    return DB.periods.some(function (p) { return (p.y === y && p.m === m) || (p.y === ny && p.m === nm); });
+  }
+
+  function syncTampil() {
+    $('tKal').setAttribute('aria-pressed', S.tampil === 'kal');
+    $('tTabel').setAttribute('aria-pressed', S.tampil === 'tabel');
+  }
+  function setTampil(t) {
+    S.tampil = t; S.page = 1;
+    syncTampil();
+    render();
+  }
+
+  function renderKalender() {
+    var box = $('tableBox'), rg = kalRange();
+    tutupHari();
+    if (!rg) {
+      KAL.recs = {};
+      $('count').textContent = '';
+      box.innerHTML = '<div class="empty">Pilih satu bulan (bukan "Semua bulan") atau gunakan Periode gaji untuk melihat kalender.</div>';
+      return;
+    }
+
+    var recs = {};
+    DB.records.forEach(function (r) { if (r.nama === S.nama && r.tgl >= rg.s && r.tgl <= rg.e) recs[r.tgl] = r; });
+    KAL.recs = recs;
+
+    var dates = rangeDates(rg.s, rg.e);
+    var c = { ok: 0, warn: 0, abs: 0, off: 0, mg: 0, none: 0 }, cek = [];
+    var a0 = dates[0].split('-');
+    var lead = (new Date(+a0[0], +a0[1] - 1, +a0[2]).getDay() + 6) % 7;
+
+    var cells = '';
+    for (var i = 0; i < lead; i++) cells += '<div class="kal-b"></div>';
+
+    dates.forEach(function (tgl, idx) {
+      var p = tgl.split('-'), d = +p[2], m = +p[1];
+      var r = recs[tgl], k = kalKelas(r);
+      c[k]++;
+      var lbl = (idx === 0 || d === 1) ? d + ' ' + BULAN[m - 1].slice(0, 3) : String(d);
+      // Perbaikan: redupkan tanggal yang tidak cocok dengan filter tanggal
+      var dimTgl = S.tanggal && String(d) !== String(S.tanggal);
+      var cls = 'kal-c ' + k + (tgl === TODAY ? ' today' : '') +
+                ((S.status.length && r && !filterStatus([r]).length) || dimTgl ? ' redup' : '');
+      if (!r) { cells += '<div class="' + cls + '"><span class="kal-d">' + lbl + '</span></div>'; return; }
+
+      var isi;
+      if (r.st === 'libur') isi = '<span class="kal-s">Libur</span>';
+      else if (r.st === 'absen') isi = '<span class="kal-s">Absen</span>';
+      // Perbaikan: label diseragamkan "Belum absen"
+      else if (r.st === 'belum') isi = '<span class="kal-s">Belum absen</span>';
+      else isi = '<span class="kal-t">' + (r.masuk || '–') + '</span><span class="kal-t">' + (r.pulang || '–') + '</span>';
+
+      var lupa = r.st === 'hadir' && isLupa(r);
+      if (isLupa(r)) cek.push(r);
+      var aria = d + ' ' + BULAN[m - 1] + ': ' + KAL_LBL[k] +
+                 (r.masuk ? ', masuk ' + r.masuk : '') + (r.pulang ? ', pulang ' + r.pulang : '') +
+                 (lupa || r.st === 'belum' ? ', ' + lupaApa(r).toLowerCase() : '');
+      cells += '<button type="button" class="' + cls + '" data-tgl="' + tgl + '" aria-label="' + esc(aria) + '">' +
+               '<span class="kal-d">' + lbl + '</span>' + isi + '</button>';
+    });
+
+    var prevOk, nextOk;
+    if (S.periode && PMAP[S.periode]) { prevOk = !$('perPrev').disabled; nextOk = !$('perNext').disabled; }
+    else {
+      var y = +S.tahun, m = +S.bulan;
+      prevOk = m === 1 ? adaBulan(y - 1, 12) : adaBulan(y, m - 1);
+      nextOk = m === 12 ? adaBulan(y + 1, 1) : adaBulan(y, m + 1);
+    }
+
+    var h = '<div class="kal">' +
+      '<div class="kal-head"><b>' + esc(rg.judul) + '</b><div class="kal-nav">' +
+      '<button type="button" data-nav="-1" aria-label="Sebelumnya"' + (prevOk ? '' : ' disabled') + '>‹</button>' +
+      '<button type="button" data-nav="1" aria-label="Berikutnya"' + (nextOk ? '' : ' disabled') + '>›</button></div></div>';
+
+    h += '<div class="kal-legend">' + ['ok', 'warn', 'abs', 'off', 'mg', 'none'].filter(function (k) {
+      return c[k] > 0 || k === 'ok' || k === 'warn' || k === 'abs' || k === 'off';
+    }).map(function (k) {
+      return '<span><i class="' + k + '"></i>' + KAL_LBL[k] + ' <b>' + c[k] + '</b></span>';
+    }).join('') + '</div>';
+
+    h += '<div class="kal-grid">' + ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'].map(function (n) {
+      return '<div class="kal-dow">' + n + '</div>';
+    }).join('') + cells + '</div>';
+
+    if (cek.length) {
+      h += '<div class="kal-cek"><b>Perlu dicek (' + cek.length + ')</b>' + cek.map(function (r) {
+        return '<button type="button" class="kal-lupa" data-tgl="' + r.tgl + '">' + shortTgl(r) + ' · ' + lupaApa(r) + '</button>';
+      }).join('') + '</div>';
+    } else if (c.none < dates.length) {
+      h += '<div class="kal-cek baik">Tidak ada scan masuk/pulang yang terlewat pada periode ini.</div>';
+    }
+    box.innerHTML = h + '</div>';
+    $('count').textContent = S.nama + ' · ' + rg.judul;
+  }
+
+  function kalNav(dir) {
+    if (S.periode && PMAP[S.periode]) { $(dir < 0 ? 'perPrev' : 'perNext').click(); return; }
+    var y = +S.tahun, m = +S.bulan + dir;
+    if (m < 1) { m = 12; y--; }
+    if (m > 12) { m = 1; y++; }
+    if (!adaBulan(y, m)) return;
+    S.tahun = String(y); S.bulan = String(m);
+    $('selTahun').value = S.tahun; $('selBulan').value = S.bulan;
+    reset();
+  }
+
+  function bukaHari(tgl, opener) {
+    var r = KAL.recs[tgl];
+    if (!r) return;
+    var k = kalKelas(r), p = tgl.split('-');
+    var dow = new Date(+p[0], +p[1] - 1, +p[2]).getDay();
+    KAL.tgl = tgl; KAL.buka = true;
+
+    $('kdPanel').style.setProperty('--kd-c', KAL_WARNA[k]);
+    $('kdTitle').textContent = HARI_PJG[dow] + ', ' + (+p[2]) + ' ' + BULAN[+p[1] - 1] + ' ' + p[0];
+    $('kdSub').textContent = S.nama;
+
+    function row(l, v) { return '<div class="kd-row"><span>' + l + '</span><b>' + v + '</b></div>'; }
+    var h = '<div class="kd-chips">' + chips(r) + '</div>';
+    if (r.st === 'hadir') {
+      h += row('Jam masuk', tm(r.masuk)) + row('Jam pulang', tm(r.pulang)) + row('Durasi kerja', durKerja(r) || DASH);
+      if (r.mg) {
+        h += row('Jenis hari', 'Hari libur (masuk)') + row('Lembur', r.lembur ? esc(fmtMin(r.lembur)) : 'Tidak ada');
+      } else if (r.malam) {
+        h += row('Jenis shift', 'Shift malam <small>(pulang keesokan harinya)</small>') +
+             row('Terlambat / pulang cepat', 'Tidak dihitung') +
+             row('Lembur', r.lembur ? esc(fmtMin(r.lembur)) : 'Tidak ada');
+      } else {
+        h += row('Terlambat', r.telat ? esc(fmtMin(r.telat)) + ' <small>(batas ' + esc(DB.config.jamMasuk) + ')</small>' : 'Tidak') +
+             row('Pulang cepat', r.cepat ? esc(fmtMin(r.cepat)) + ' <small>(jadwal ' + esc(DB.config.jamPulang) + ')</small>' : 'Tidak') +
+             row('Lembur', r.lembur ? esc(fmtMin(r.lembur)) : 'Tidak ada');
+      }
+      if (isLupa(r)) h += '<div class="kd-note"><b>' + esc(lupaApa(r)) + '.</b> Jika Anda merasa sudah absen, hubungi admin untuk dicek.</div>';
+    } else if (r.st === 'libur') {
+      h += '<p class="kd-info">' + (r.dow === 0 ? 'Hari Minggu — libur.' : 'Tidak ada scan dari seluruh karyawan pada hari ini, sehingga dianggap hari libur.') + '</p>';
+    } else if (r.st === 'absen') {
+      h += '<p class="kd-info">Tidak ada scan masuk maupun pulang pada hari kerja ini.</p>' +
+           '<div class="kd-note">Jika Anda merasa sudah absen, hubungi admin untuk dicek.</div>';
+    } else {
+      h += '<p class="kd-info">Belum ada scan hari ini.</p>';
+    }
+    $('kdBody').innerHTML = h;
+
+    $('kdBack').hidden = false;
+    $('kdPanel').hidden = false;
+    document.documentElement.style.overflow = 'hidden';
+    $('kdBody').scrollTop = 0;
+    $('kdX').focus();
+  }
+
+  function tutupHari() {
+    if (!KAL.buka) return;
+    KAL.buka = false;
+    $('kdBack').hidden = true;
+    $('kdPanel').hidden = true;
+    document.documentElement.style.overflow = '';
+    var el = document.querySelector('.kal-c[data-tgl="' + KAL.tgl + '"]');
+    if (el) { try { el.focus(); } catch (e) {} }
+  }
+
+  function bindKalender() {
+    $('tableBox').addEventListener('click', function (e) {
+      var t = e.target.closest ? e.target.closest('[data-tgl]') : null;
+      if (t) { bukaHari(t.getAttribute('data-tgl'), t); return; }
+      var n = e.target.closest ? e.target.closest('[data-nav]') : null;
+      if (n && !n.disabled) kalNav(parseInt(n.getAttribute('data-nav'), 10));
+    });
+    $('kdX').onclick = tutupHari;
+    $('kdClose2').onclick = tutupHari;
+    $('kdBack').onclick = tutupHari;
+    document.addEventListener('keydown', function (e) {
+      if (!KAL.buka) return;
+      if (e.key === 'Escape') { tutupHari(); return; }
+      if (e.key === 'Tab') {
+        var a = $('kdX'), b = $('kdClose2');
+        if (e.shiftKey && document.activeElement === a) { e.preventDefault(); b.focus(); }
+        else if (!e.shiftKey && document.activeElement === b) { e.preventDefault(); a.focus(); }
+      }
+    });
+  }
+
+  var D = { key: '', view: 'tgl', cari: '', urut: 'baru', limit: 50, rows: [], opener: null };
+  var DASH = '<span class="dim">–</span>';
+
+  function statBtn(k, cls, b, label, small) {
+    return '<button type="button" class="stat ' + cls + '" data-card="' + k + '" aria-haspopup="dialog" aria-label="Lihat detail ' + label + '">' +
+      '<b>' + b + '</b><span>' + label + '</span>' + (small ? '<small>' + small + '</small>' : '') + '</button>';
+  }
+
+  function tm(t) { return t || DASH; }
+  function shortTgl(r) { return r.d + ' ' + BULAN[r.m - 1].slice(0, 3); }
+  function cnt(L, f) { return L.filter(f).length; }
+  function tot(L, k) { return L.reduce(function (s, r) { return s + (r[k] || 0); }, 0); }
+  function uniqN(L) { var o = {}; L.forEach(function (r) { o[r.nama] = 1; }); return Object.keys(o).length; }
+  function durKerja(r) {
+    if (!r.masuk || !r.pulang) return '';
+    var d = toMin(r.pulang) - toMin(r.masuk);
+    if (d < 0) d += 24 * 60;
+    return d > 0 ? fmtMin(d) : '';
+  }
+  function avgTime(L, k) {
+    var a = L.filter(function (r) { return r[k]; });
+    if (!a.length) return '–';
+    var m = Math.round(a.reduce(function (s, r) { return s + toMin(r[k]); }, 0) / a.length);
+    return p2(Math.floor(m / 60)) + ':' + p2(m % 60);
+  }
+  function maxRec(L, k) { return L.reduce(function (a, r) { return r[k] > 0 && (!a || r[k] > a[k]) ? r : a; }, null); }
+  function recTxt(r, k) { return r ? fmtMin(r[k]) + ' · ' + shortTgl(r) + (S.mode === 'all' ? ' · ' + r.nama : '') : '–'; }
+  function topNama(L) {
+    var g = {}, best = '', n = 0;
+    L.forEach(function (r) { g[r.nama] = (g[r.nama] || 0) + 1; if (g[r.nama] > n) { n = g[r.nama]; best = r.nama; } });
+    return best ? best + ' (' + n + '×)' : '–';
+  }
+
+  function isLupa(r) {
+    if (r.st === 'belum') return true;
+    if (r.st !== 'hadir' || (r.masuk && r.pulang)) return false;
+    return !(r.tgl === TODAY && r.masuk && !r.pulang);
+  }
+  function lupaApa(r) {
+    if (r.st === 'belum') return 'Belum absen hari ini';
+    return 'Lupa absen ' + (!r.masuk && !r.pulang ? 'masuk & pulang' : !r.masuk ? 'masuk' : 'pulang');
+  }
+  function sumMenit(L, k, lbl) {
+    var t = tot(L, k);
+    return [[lbl, L.length + '×'], ['Total menit', fmtMin(t)], ['Rata-rata', L.length ? fmtMin(Math.round(t / L.length)) : '–'], ['Terlama', recTxt(maxRec(L, k), k)]];
+  }
+
+  var CARDS = {
+    hadir: {
+      t: 'Hari hadir', col: '#1d5ff0', chip: 'ok',
+      d: 'Semua hari dengan minimal satu scan absen (masuk dan/atau pulang), termasuk masuk di hari libur.',
+      test: function (r) { return r.st === 'hadir'; },
+      cols: [['Masuk', 'num', function (r) { return tm(r.masuk); }], ['Pulang', 'num', function (r) { return tm(r.pulang); }],
+             ['Durasi kerja', 'num', function (r) { return durKerja(r) || DASH; }], ['Keterangan', '', function (r) { return '<span class="chips">' + chips(r) + '</span>'; }]],
+      ct: function () { return ''; },
+      aggL: 'Tepat waktu penuh',
+      agg: function (a) { return cnt(a, function (r) { return !r.mg && r.masuk && r.pulang && !r.telat && !r.cepat; }) + ' hari'; },
+      sum: function (L) {
+        var k = L.filter(function (r) { return !r.mg; });
+        return [['Total hari hadir', L.length], ['Hari kerja', k.length], ['Masuk saat libur', L.length - k.length],
+                ['Tepat waktu penuh', cnt(k, function (r) { return r.masuk && r.pulang && !r.telat && !r.cepat; })],
+                ['Rata-rata jam masuk', avgTime(k.filter(function (r) { return !r.malam; }), 'masuk')],
+                ['Rata-rata jam pulang', avgTime(k.filter(function (r) { return !r.malam; }), 'pulang')]];
+      }
+    },
+    absen: {
+      t: 'Tidak hadir', col: '#ef4444', chip: 'abs',
+      d: 'Hari kerja yang tidak memiliki scan masuk maupun pulang sama sekali (hari Minggu dan hari libur tidak dihitung).',
+      test: function (r) { return r.st === 'absen'; },
+      cols: [['Keterangan', '', function () { return '<span class="chip abs">Tidak hadir · tanpa scan</span>'; }]],
+      ct: function () { return ''; },
+      sum: function (L) { var d = {}; L.forEach(function (r) { d[r.tgl] = 1; }); return [['Total tidak hadir', L.length + ' hari'], ['Tanggal berbeda', Object.keys(d).length]]; }
+    },
+    lupa: {
+      t: 'Belum absen', col: '#eab308', chip: 'forgot',
+      d: 'Hari hadir tetapi scan masuk atau scan pulang kosong (lupa absen), serta hari ini bila belum scan sama sekali. Scan pulang hari ini yang masih berjalan tidak dihitung.',
+      test: isLupa,
+      cols: [['Masuk', 'num', function (r) { return tm(r.masuk); }], ['Pulang', 'num', function (r) { return tm(r.pulang); }],
+             ['Yang terlewat', '', function (r) { return '<span class="chip forgot">' + lupaApa(r) + '</span>'; }]],
+      ct: function (r) { return ' · ' + (r.st === 'belum' ? 'belum absen' : 'lupa ' + (!r.masuk && !r.pulang ? 'masuk & pulang' : !r.masuk ? 'masuk' : 'pulang')); },
+      aggL: 'Rincian',
+      agg: function (a) {
+        var m = cnt(a, function (r) { return r.st === 'hadir' && !r.masuk; }), p = cnt(a, function (r) { return r.st === 'hadir' && r.masuk && !r.pulang; }), b = cnt(a, function (r) { return r.st === 'belum'; }), o = [];
+        if (m) o.push(m + ' masuk'); if (p) o.push(p + ' pulang'); if (b) o.push('hari ini');
+        return o.join(' · ');
+      },
+      sum: function (L) {
+        return [['Total belum absen', L.length + ' hari'],
+                ['Lupa absen masuk', cnt(L, function (r) { return r.st === 'hadir' && !r.masuk; })],
+                ['Lupa absen pulang', cnt(L, function (r) { return r.st === 'hadir' && r.masuk && !r.pulang; })],
+                ['Belum absen hari ini', cnt(L, function (r) { return r.st === 'belum'; })]];
+      }
+    },
+    telat: {
+      t: 'Terlambat', col: '#f97316', chip: 'late', vk: 'telat', vl: 'Terlambat terlama',
+      d: function () { return 'Hari kerja dengan scan masuk setelah pukul ' + DB.config.jamMasuk + (DB.config.toleransi ? ' (toleransi ' + DB.config.toleransi + ' menit)' : ' (tanpa toleransi)') + '.'; },
+      test: function (r) { return r.telat > 0; },
+      cols: [['Jam masuk', 'num', function (r) { return tm(r.masuk); }], ['Batas masuk', 'num', function () { return DB.config.jamMasuk; }],
+             ['Pulang', 'num', function (r) { return tm(r.pulang); }], ['Terlambat', '', function (r) { return '<span class="chip late">' + fmtMin(r.telat) + '</span>'; }]],
+      ct: function (r) { return ' · ' + fmtMin(r.telat); },
+      aggL: 'Total terlambat', agg: function (a) { return fmtMin(tot(a, 'telat')); },
+      sum: function (L) { return sumMenit(L, 'telat', 'Kali terlambat'); }
+    },
+    cepat: {
+      t: 'Pulang cepat', col: '#ec4899', chip: 'early', vk: 'cepat', vl: 'Pulang cepat terlama',
+      d: function () { return 'Hari kerja dengan scan pulang sebelum pukul ' + DB.config.jamPulang + '.'; },
+      test: function (r) { return r.cepat > 0; },
+      cols: [['Masuk', 'num', function (r) { return tm(r.masuk); }], ['Jam pulang', 'num', function (r) { return tm(r.pulang); }],
+             ['Seharusnya', 'num', function () { return DB.config.jamPulang; }], ['Lebih cepat', '', function (r) { return '<span class="chip early">' + fmtMin(r.cepat) + '</span>'; }]],
+      ct: function (r) { return ' · ' + fmtMin(r.cepat); },
+      aggL: 'Total lebih cepat', agg: function (a) { return fmtMin(tot(a, 'cepat')); },
+      sum: function (L) { return sumMenit(L, 'cepat', 'Kali pulang cepat'); }
+    },
+    lembur: {
+      t: 'Total lembur', col: '#6366f1', chip: 'ot', vk: 'lembur', vl: 'Lembur terbanyak',
+      d: function () { return 'Hari kerja dihitung dari pukul ' + DB.config.lemburMulai + ' sampai scan pulang. Hari Minggu/libur dihitung dari scan pertama sampai scan terakhir.'; },
+      test: function (r) { return r.lembur > 0; },
+      cols: [['Masuk', 'num', function (r) { return tm(r.masuk); }], ['Pulang', 'num', function (r) { return tm(r.pulang); }],
+             ['Jenis hari', '', function (r) { return r.mg ? 'Hari libur' : r.malam ? 'Shift malam' : 'Hari kerja'; }], ['Lembur', '', function (r) { return '<span class="chip ot">' + fmtMin(r.lembur) + '</span>'; }]],
+      ct: function (r) { return ' · ' + fmtMin(r.lembur); },
+      aggL: 'Total lembur', agg: function (a) { return fmtMin(tot(a, 'lembur')); },
+      sum: function (L) {
+        var t = tot(L, 'lembur');
+        return [['Hari lembur', L.length + ' hari'], ['Total lembur', fmtMin(t)], ['Rata-rata per hari', L.length ? fmtMin(Math.round(t / L.length)) : '–'],
+                ['Terbanyak', recTxt(maxRec(L, 'lembur'), 'lembur')],
+                ['Lembur hari kerja', fmtMin(tot(L.filter(function (r) { return !r.mg && !r.malam; }), 'lembur'))],
+                ['Lembur shift malam', fmtMin(tot(L.filter(function (r) { return !r.mg && r.malam; }), 'lembur'))],
+                ['Lembur hari libur', fmtMin(tot(L.filter(function (r) { return r.mg; }), 'lembur'))]];
+      }
+    }
+  };
+
+  var PMAP = {}, PKEYS = [];
+  function pKey(y, m) { return y + '-' + p2(m); }
+  function tglPendek(t, thn) { var a = t.split('-'); return (+a[2]) + ' ' + BULAN[+a[1] - 1].slice(0, 3) + (thn ? ' ' + a[0] : ''); }
+  function periodeText(k) { return tglPendek(PMAP[k].s, true) + ' – ' + tglPendek(PMAP[k].e, true); }
+  function buildPeriods() {
+    PMAP = {}; PKEYS = [];
+    DB.periods.forEach(function (p) {
+      var sy = p.m === 1 ? p.y - 1 : p.y, sm = p.m === 1 ? 12 : p.m - 1, k = pKey(p.y, p.m);
+      PMAP[k] = { k: k, name: p.name, s: sy + '-' + p2(sm) + '-26', e: p.y + '-' + p2(p.m) + '-25' };
+      PKEYS.push(k);
+    });
+    PKEYS.sort();
+  }
+  function periodeOf(tgl) {
+    var a = tgl.split('-'), y = +a[0], m = +a[1];
+    if (+a[2] >= 26) { m++; if (m > 12) { m = 1; y++; } }
+    var k = pKey(y, m);
+    return PMAP[k] ? k : '';
+  }
+  function isiOpsiPeriode() {
+    var o = '';
+    PKEYS.slice().reverse().forEach(function (k) { o += '<option value="' + k + '">' + periodeText(k) + '</option>'; });
+    $('selPeriode').innerHTML = o;
+  }
+
+  function initPeriode(latest) {
+    buildPeriods();
+    var real = periodeOf(TODAY), cur = real || PKEYS[PKEYS.length - 1];
+    var prev = PKEYS[PKEYS.indexOf(cur) - 1] || '';
+    isiOpsiPeriode();
+
+    var perLast = '';
+    function pilih(v) { S.periode = v; if (v) perLast = v; syncPeriode(); reset(); }
+    $('pmGaji').onclick = function () { if (!S.periode) pilih(perLast || cur); };
+    $('pmKal').onclick = function () { if (S.periode) pilih(''); };
+    $('selPeriode').onchange = function () { var v = this.value; pilih(v === 'cur' ? cur : v === 'prev' ? prev : v); };
+    $('perPrev').onclick = function () { var i = PKEYS.indexOf(S.periode); if (i > 0) pilih(PKEYS[i - 1]); };
+    $('perNext').onclick = function () { var i = PKEYS.indexOf(S.periode); if (i >= 0 && i < PKEYS.length - 1) pilih(PKEYS[i + 1]); };
+
+    S.periode = (latest && periodeOf(latest.tgl)) || cur;
+    perLast = S.periode;
+    syncPeriode();
+  }
+  function syncPeriode() {
+    var k = S.periode, on = !!(k && PMAP[k]), i = PKEYS.indexOf(k);
+    $('selPeriode').value = on ? k : '';
+    $('selTahun').parentNode.hidden = on;
+    $('selBulan').parentNode.hidden = on;
+    document.querySelector('.filters').classList.toggle('per-on', on);
+    $('perGaji').hidden = !on;
+    $('pmGaji').setAttribute('aria-pressed', on);
+    $('pmKal').setAttribute('aria-pressed', !on);
+    $('perPrev').disabled = !on || i <= 0;
+    $('perNext').disabled = !on || i >= PKEYS.length - 1;
+    if (on) {
+      var p = PMAP[k], n = rangeDates(p.s, p.e).length, jalan = TODAY >= p.s && TODAY <= p.e;
+      $('perInfo').innerHTML = '<b>' + n + ' hari</b>' + (jalan ? ' <small>· sedang berjalan</small>' : '');
+    } else {
+      $('perInfo').innerHTML = '';
+    }
+  }
+
+  function periodeLabel() {
+    if (S.periode && PMAP[S.periode]) return 'Periode gaji ' + periodeText(S.periode) + (S.tanggal ? ' · tanggal ' + S.tanggal : '');
+    return (S.tanggal ? 'Tanggal ' + S.tanggal + ' · ' : '') + (S.bulan ? BULAN[S.bulan - 1] : 'Semua bulan') + ' ' + S.tahun;
+  }
+
+  function fillUrut() {
+    var c = CARDS[D.key], o;
+    if (D.view === 'kary') o = [['jml', 'Jumlah terbanyak'], ['nama', 'Nama A–Z']];
+    else {
+      o = [['baru', 'Tanggal terbaru'], ['lama', 'Tanggal terlama']];
+      if (S.mode === 'all') o.push(['nama', 'Nama A–Z']);
+      if (c.vk) o.push(['nilai', c.vl]);
+    }
+    if (!o.some(function (x) { return x[0] === D.urut; })) D.urut = o[0][0];
+    $('dtUrut').innerHTML = o.map(function (x) { return '<option value="' + x[0] + '">' + x[1] + '</option>'; }).join('');
+    $('dtUrut').value = D.urut;
+  }
+
+  function syncView() {
+    var b = $('dtView').querySelectorAll('button');
+    for (var i = 0; i < b.length; i++) b[i].setAttribute('aria-pressed', b[i].getAttribute('data-v') === D.view);
+  }
+
+  function openDetail(k, opener) {
+    var c = CARDS[k];
+    if (!c) return;
+    var all = S.mode === 'all';
+    D.key = k; D.view = 'tgl'; D.cari = ''; D.urut = 'baru'; D.limit = 50; D.opener = opener || null;
+    D.rows = getList().filter(c.test);
+
+    $('dtPanel').style.setProperty('--dt-c', c.col);
+    $('dtTitle').textContent = c.t;
+    $('dtSub').textContent = (all ? 'Semua karyawan' : S.nama) + ' · ' + periodeLabel();
+    $('dtDesc').textContent = typeof c.d === 'function' ? c.d() : c.d;
+    $('dtView').hidden = !all;
+    $('dtCari').hidden = !all;
+    $('dtCari').value = '';
+    syncView(); fillUrut(); renderDetail();
+
+    $('dtBack').hidden = false;
+    $('dtPanel').hidden = false;
+    document.documentElement.style.overflow = 'hidden';
+    $('dtBody').scrollTop = 0;
+    $('dtX').focus();
+  }
+
+  function closeDetail() {
+    $('dtBack').hidden = true;
+    $('dtPanel').hidden = true;
+    document.documentElement.style.overflow = '';
+    if (D.opener) { try { D.opener.focus(); } catch (e) {} }
+  }
+
+  function renderDetail() {
+    var c = CARDS[D.key], all = S.mode === 'all', q = D.cari, st = $('dtBody').scrollTop;
+    var L = D.rows.filter(function (r) { return !q || r.nama.toLowerCase().indexOf(q) >= 0; });
+
+    var tiles = [];
+    if (all) tiles.push(['Karyawan terkait', uniqN(L)]);
+    tiles = tiles.concat(c.sum(L));
+    if (all && D.key !== 'hadir') tiles.push(['Terbanyak', topNama(L)]);
+    $('dtSum').innerHTML = tiles.map(function (t) { return '<div class="dt-t"><span>' + esc(t[0]) + '</span><b>' + esc(t[1]) + '</b></div>'; }).join('');
+
+    var body = $('dtBody'), more = $('dtMore');
+    more.hidden = true;
+    if (!L.length) {
+      body.innerHTML = '<div class="empty">' + (D.rows.length ? 'Tidak ada nama yang cocok dengan pencarian.' : 'Tidak ada data "' + esc(c.t) + '" pada periode ini.') + '</div>';
+      $('dtCount').textContent = '';
+      return;
+    }
+
+    var h, info;
+    if (D.view === 'kary' && all) {
+      var g = {};
+      L.forEach(function (r) { (g[r.nama] || (g[r.nama] = [])).push(r); });
+      var names = Object.keys(g).sort(function (a, b) {
+        return D.urut === 'nama' ? a.localeCompare(b, 'id') : (g[b].length - g[a].length) || a.localeCompare(b, 'id');
+      });
+      h = '<table><thead><tr><th>Nama</th><th class="num">Jumlah</th>' + (c.aggL ? '<th>' + c.aggL + '</th>' : '') + '<th>Tanggal</th></tr></thead><tbody>';
+      names.forEach(function (n) {
+        var a = g[n].slice().sort(function (x, y) { return x.tgl < y.tgl ? -1 : 1; });
+        h += '<tr><td data-label="Nama">' + esc(n) + '</td><td class="num" data-label="Jumlah">' + a.length + '×</td>' +
+          (c.aggL ? '<td data-label="' + c.aggL + '">' + esc(c.agg(a)) + '</td>' : '') +
+          '<td class="tglchips" data-label="Tanggal"><span class="chips">' +
+          a.map(function (r) { return '<span class="chip ' + c.chip + '">' + shortTgl(r) + esc(c.ct(r)) + '</span>'; }).join('') + '</span></td></tr>';
+      });
+      body.innerHTML = h + '</tbody></table>';
+      info = names.length + ' karyawan · ' + L.length + ' kejadian';
+    } else {
+      L = L.slice().sort(function (a, b) {
+        var byTgl = a.tgl > b.tgl ? -1 : a.tgl < b.tgl ? 1 : a.nama.localeCompare(b.nama, 'id');
+        if (D.urut === 'lama') return a.tgl < b.tgl ? -1 : a.tgl > b.tgl ? 1 : a.nama.localeCompare(b.nama, 'id');
+        if (D.urut === 'nama') return a.nama.localeCompare(b.nama, 'id') || (a.tgl < b.tgl ? -1 : 1);
+        if (D.urut === 'nilai' && c.vk) return (b[c.vk] - a[c.vk]) || byTgl;
+        return byTgl;
+      });
+      var shown = L.slice(0, D.limit);
+      h = '<table><thead><tr><th>Tanggal</th>' + (all ? '<th>Nama</th>' : '') +
+        c.cols.map(function (x) { return '<th' + (x[1] ? ' class="' + x[1] + '"' : '') + '>' + x[0] + '</th>'; }).join('') + '</tr></thead><tbody>';
+      shown.forEach(function (r) {
+        h += '<tr><td data-label="Tanggal">' + fmtTgl(r) + '</td>' + (all ? '<td data-label="Nama">' + esc(r.nama) + '</td>' : '') +
+          c.cols.map(function (x) { return '<td' + (x[1] ? ' class="' + x[1] + '"' : '') + ' data-label="' + x[0] + '">' + x[2](r) + '</td>'; }).join('') + '</tr>';
+      });
+      body.innerHTML = h + '</tbody></table>';
+      info = 'Menampilkan ' + shown.length + ' dari ' + L.length + ' baris';
+      if (L.length > shown.length) { more.hidden = false; more.textContent = 'Tampilkan ' + Math.min(50, L.length - shown.length) + ' lagi'; }
+    }
+    $('dtCount').textContent = info;
+    body.scrollTop = st;
+  }
+
+  // Perbaikan: fungsi ekspor CSV dari panel detail
+  function chipsTxt(r) {
+    if (r.st === 'libur') return 'Libur';
+    if (r.st === 'absen') return 'Tidak hadir';
+    if (r.st === 'belum') return 'Belum absen';
+    var out = [];
+    if (r.mg) out.push('Masuk libur');
+    if (r.malam) out.push('Shift malam');
+    if (!r.masuk || !r.pulang) out.push(r.masuk ? 'Belum absen pulang' : 'Belum absen masuk');
+    if (r.telat) out.push('Terlambat ' + fmtMin(r.telat));
+    if (r.cepat) out.push('Pulang cepat ' + fmtMin(r.cepat));
+    if (r.lembur) out.push('Lembur ' + fmtMin(r.lembur));
+    if (!out.length) out.push('Tepat waktu');
+    return out.join('; ');
+  }
+
+  function exportCSV() {
+    var c = CARDS[D.key];
+    if (!c) return;
+    var L = D.rows.filter(function (r) { return !D.cari || r.nama.toLowerCase().indexOf(D.cari) >= 0; });
+    if (!L.length) {
+      alert('Tidak ada data untuk diekspor.');
+      return;
+    }
+    var head = ['Tanggal', 'Nama', 'Jam masuk', 'Jam pulang',
+                'Terlambat (menit)', 'Pulang cepat (menit)', 'Lembur (menit)',
+                'Status', 'Keterangan'];
+    var rows = [head];
+    L.slice().sort(function (a, b) {
+      return a.tgl < b.tgl ? -1 : a.tgl > b.tgl ? 1 : a.nama.localeCompare(b.nama, 'id');
+    }).forEach(function (r) {
+      var statusTxt = r.st === 'hadir' ? (r.mg ? 'Hadir (libur)' : 'Hadir') : (r.st === 'absen' ? 'Tidak hadir' : (r.st === 'belum' ? 'Belum absen' : 'Libur'));
+      rows.push([r.tgl, r.nama, r.masuk || '', r.pulang || '',
+                 r.telat || 0, r.cepat || 0, r.lembur || 0, statusTxt, chipsTxt(r)]);
+    });
+    var csv = rows.map(function (row) {
+      return row.map(function (cell) { return '"' + String(cell).replace(/"/g, '""') + '"'; }).join(',');
+    }).join('\r\n');
+    var blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    var lbl = c.t.replace(/\s+/g, '_') + '_' +
+      (S.periode && PMAP[S.periode]
+        ? periodeText(S.periode).replace(/\s+/g, '_').replace(/–/g, '-')
+        : (S.bulan || 'SemuaBulan') + '-' + S.tahun);
+    a.download = 'Absensi_' + lbl + '.csv';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+  }
+
+  function bindDetail() {
+    $('stats').addEventListener('click', function (e) {
+      var b = e.target.closest ? e.target.closest('[data-card]') : null;
+      if (b) openDetail(b.getAttribute('data-card'), b);
+    });
+    $('dtX').onclick = closeDetail;
+    $('dtClose2').onclick = closeDetail;
+    $('dtBack').onclick = closeDetail;
+    $('dtMore').onclick = function () { D.limit += 50; renderDetail(); };
+    $('dtExport').onclick = exportCSV;
+    $('dtCari').oninput = function () { D.cari = this.value.trim().toLowerCase(); D.limit = 50; renderDetail(); };
+    $('dtUrut').onchange = function () { D.urut = this.value; D.limit = 50; renderDetail(); $('dtBody').scrollTop = 0; };
+    $('dtView').addEventListener('click', function (e) {
+      var b = e.target.closest ? e.target.closest('button[data-v]') : null;
+      if (!b) return;
+      D.view = b.getAttribute('data-v'); D.limit = 50;
+      syncView(); fillUrut(); renderDetail(); $('dtBody').scrollTop = 0;
+    });
+    document.addEventListener('keydown', function (e) {
+      if ($('dtPanel').hidden) return;
+      if (e.key === 'Escape') { closeDetail(); return; }
+      if (e.key === 'Tab') {
+        // hanya elemen yang benar-benar terlihat (tombol "Tutup" bawah disembunyikan CSS di desktop)
+        var f = Array.prototype.filter.call($('dtPanel').querySelectorAll('button, input, select'), function (el) {
+          return !el.hidden && el.getClientRects().length > 0;
+        });
+        if (!f.length) return;
+        var first = f[0], last = f[f.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    });
+  }
+</script>
+</body>
+</html>
