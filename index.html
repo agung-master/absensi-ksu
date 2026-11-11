@@ -993,7 +993,7 @@
   // Tempel URL Web App dari Apps Script di antara tanda kutip.
   // Contoh: 'https://script.google.com/macros/s/XXXX/exec'
   // ============================================================
-  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyXpVju0csp-zGMFjmQyt-T5wf8d67sHv1kpBPmTinJ1tjiQOiD0mlL44kZpLLF43mMJA/exec';
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxoBkCXimnJQx3gYPsCBMSukqGIRQFvcl6McGNm1QrsKsIN0v3s_oRx_VFLB20K1RQmHA/exec';
   // ============================================================
 
   function p2(n) { return (n < 10 ? '0' : '') + n; }
@@ -2663,6 +2663,25 @@
   var PM_MULAI_MIN_HK = '19:00';   // Senin–Sabtu: lembur baru boleh mulai pukul 19:00 ke atas
   var PM_ABS_MASUK = '';           // jam masuk tercatat pada tanggal lembur yang dipilih
   var PM_ABS_PULANG = '';          // jam pulang tercatat pada tanggal lembur yang dipilih
+  var PM_OTO_RES = null, PM_OTO_TGL = '';
+  var PM_OTO = { key: '', mulai: '', selesai: '' };   // isian otomatis terakhir (kunci = nama + tanggal)
+  // Isi jam mulai & selesai dari data absensi. paksa = true: timpa walau sudah terisi (tombol "Isi ulang").
+  function pmIsiOtomatis(res, tgl, paksa) {
+    var key = (res.nama || '') + '|' + tgl;
+    if (!paksa && PM_OTO.key === key) return;            // data nama + tanggal yang sama: jangan timpa ubahan karyawan
+    PM_OTO = { key: key, mulai: res.otoMulai || '', selesai: res.otoSelesai || '' };
+    $('pmMulai').value = PM_OTO.mulai;
+    $('pmSelesai').value = PM_OTO.selesai;
+    pmHitungDurasi(); pmCekMulai(); pmInfoTunda();
+  }
+  // Nama / tanggal berubah dan data tidak tersedia: kosongkan isian yang tadinya terisi otomatis.
+  function pmOtoBersih() {
+    if (!PM_OTO.key) return;
+    if ($('pmMulai').value === PM_OTO.mulai) $('pmMulai').value = '';
+    if ($('pmSelesai').value === PM_OTO.selesai) $('pmSelesai').value = '';
+    PM_OTO = { key: '', mulai: '', selesai: '' };
+    pmHitungDurasi(); pmCekMulai();
+  }
   var PM_TOL_SELESAI = 15;         // menit: toleransi jam selesai lembur melebihi jam pulang tercatat (sama dengan PM.TOL_VERIF di server)
   function pmHariKerja(iso) {
     var p = String(iso || '').split('-');
@@ -2722,7 +2741,7 @@
     var box = $('pmAbsen'), seq = ++PM_ABS_SEQ;
     var nama = $('pmNama').value.trim(), keg = $('pmKeg').value, tgl = $('pmTglL').value;
     PM_ABS_MASUK = ''; PM_ABS_PULANG = '';
-    if (!nama || !keg || !tgl) { box.hidden = true; box.innerHTML = ''; pmCekMulai(); return; }   // belum lengkap: jangan tampilkan apa pun
+    if (!nama || !keg || !tgl) { box.hidden = true; box.innerHTML = ''; pmOtoBersih(); pmCekMulai(); return; }   // belum lengkap: jangan tampilkan apa pun
     box.className = 'pm-absen'; box.hidden = false;
     box.innerHTML = '<div class="pm-ab-t">Memuat data absensi…</div>'; pmCekMulai();
     apiPost({ action: 'absen', nama: nama, tglLembur: tgl }, function (res) {
@@ -2730,15 +2749,15 @@
       if (!res || !res.lengkap) { box.hidden = true; return; }
       var judul = '<div class="pm-ab-t">Data absensi ' + esc(res.nama || nama) + ' — ' + esc(tglPjg(tgl)) + '</div>';
       if (!res.kenal) {
-        box.className = 'pm-absen no';
+        box.className = 'pm-absen no'; pmOtoBersih();
         box.innerHTML = judul + 'Nama tidak ditemukan di data absensi.'; return;
       }
       if (!res.adaSheet) {
-        box.className = 'pm-absen no';
+        box.className = 'pm-absen no'; pmOtoBersih();
         box.innerHTML = judul + 'Belum ada sheet absensi yang memuat tanggal ini.'; return;
       }
       if (!res.masuk && !res.pulang) {
-        box.className = 'pm-absen no';
+        box.className = 'pm-absen no'; pmOtoBersih();
         box.innerHTML = judul + 'Tidak ada data absensi (jam masuk dan jam pulang kosong) pada tanggal ini.' +
           (res.shift ? '<div class="pm-ab-s">Jadwal: ' + esc(res.shift) + '</div>' : ''); return;
       }
@@ -2747,9 +2766,16 @@
         '<div><small>Jam pulang</small><b>' + esc(res.pulang || '–') + '</b></div>' +
         (res.shift ? '<div><small>Jadwal</small><b>' + esc(res.shift) + '</b></div>' : '') + '</div>';
       if (res.status && res.status.length) h += '<div class="pm-ab-s">' + res.status.map(esc).join(' • ') + '</div>';
-      if (!res.pulang) h += '<div class="pm-ab-s">Jam pulang belum tercatat.</div>';
+      if (!res.pulang) h += '<div class="pm-ab-s">Jam pulang belum tercatat. Jam selesai lembur belum bisa terisi otomatis.</div>';
+      if (res.otoKet) {
+        h += '<div class="pm-ab-s pm-ab-oto">⚙️ <b>Jam lembur terisi otomatis.</b> ' + esc(res.otoKet) + ' Anda masih bisa mengubahnya. ' +
+          '<button type="button" class="pm-btn ghost sm" id="pmOtoUlang">Isi ulang otomatis</button></div>';
+      }
       box.className = 'pm-absen'; box.innerHTML = h;
-      PM_ABS_MASUK = res.masuk || ''; PM_ABS_PULANG = res.pulang || ''; pmCekMulai();
+      PM_ABS_MASUK = res.masuk || ''; PM_ABS_PULANG = res.pulang || '';
+      PM_OTO_RES = res; PM_OTO_TGL = tgl;
+      pmIsiOtomatis(res, tgl, false);
+      pmCekMulai();
     }, function (e) {
       if (seq !== PM_ABS_SEQ) return;
       box.className = 'pm-absen no';
@@ -2818,7 +2844,7 @@
     $('pmKeg').value = ''; $('pmJenis').value = '';
     pmErr(''); if (!simpanHasil) $('pmHasil').hidden = true;
     $('pmSaran').hidden = true; PM_SEQ++;
-    $('pmAbsen').hidden = true; $('pmAbsen').innerHTML = ''; PM_ABS_SEQ++; PM_ABS_MASUK = ''; PM_ABS_PULANG = ''; $('pmMulaiWarn').hidden = true;
+    $('pmAbsen').hidden = true; $('pmAbsen').innerHTML = ''; PM_ABS_SEQ++; PM_ABS_MASUK = ''; PM_ABS_PULANG = ''; PM_OTO = { key: '', mulai: '', selesai: '' }; PM_OTO_RES = null; $('pmMulaiWarn').hidden = true;
     pmUbahJenis(); pmUbahKeg(); pmHitungDurasi();
   }
 
@@ -3035,6 +3061,10 @@
     $('pmSaran').addEventListener('click', function (e) {
       var b = e.target.closest ? e.target.closest('#pmPakai') : null;
       if (b) { $('pmJamG').value = b.getAttribute('data-jam'); pmInfoCek(); }
+    });
+    $('pmAbsen').addEventListener('click', function (e) {
+      var b = e.target.closest ? e.target.closest('#pmOtoUlang') : null;
+      if (b && PM_OTO_RES) pmIsiOtomatis(PM_OTO_RES, PM_OTO_TGL, true);
     });
     $('pmKirim').onclick = pmKirim;
     $('pmReset').onclick = function () { pmKosongkan(false); };
