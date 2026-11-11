@@ -568,6 +568,9 @@
   .pm-saran.ok { background: var(--ok-soft); border-color: #86d9b5; color: #064e3b; }
   .pm-saran.no { background: var(--abs-soft); border-color: #f2a9a9; color: #7f1d1d; }
   .pm-saran ul { margin: 4px 0 0 18px; padding: 0; }
+  .pm-saran .pm-warn { margin: 8px 0; padding: 10px 12px; border-radius: 10px; background: #fff7ed; border: 1px solid #fdba74; color: #7c2d12; }
+  .pm-saran .pm-warn ul { margin-bottom: 4px; }
+  .pm-saran .pm-warn li { margin: 3px 0; }
   .pm-saran button { margin-top: 8px; }
   .pm-act { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
   .pm-res { margin-top: 16px; border-radius: 12px; padding: 14px 16px; border: 1px solid; }
@@ -2625,6 +2628,48 @@
   var PM_TMR = null, PM_SEQ = 0;
   function pmInfoTunda() { clearTimeout(PM_TMR); PM_TMR = setTimeout(pmInfoCek, 700); }
   function pmDurTxt(m) { return fmtMin(m); }
+
+  // Peringatan rinci bila jam penggantian yang diisi menyimpang dari batas kuota.
+  // Mengembalikan { html, saran } atau null bila jam sesuai / belum diisi.
+  //  - Pulang cepat : jam di bawah batas paling awal  -> selisihnya dihitung "pulang cepat" di absensi
+  //  - Datang lambat: jam di atas batas paling lambat -> selisihnya dihitung "terlambat" di absensi
+  //  - Jam di luar rentang shift (mis. salah AM/PM)   -> diberi petunjuk koreksi
+  function pmSelisihPeringatan(d, res) {
+    if (!res || !res.kenal || !res.kuota || d.jenis === 'libur' || !d.jamGanti || !res.batasMin || !res.batasMax) return null;
+    var cepat = d.jenis === 'cepat';
+    var jm = toMin(d.jamGanti), lo = toMin(res.batasMin), hi = toMin(res.batasMax), kuota = +res.kuota;
+    var jamShift = cepat ? hi + 1 : lo - 1;                 // jam pulang shift (cepat) / jam masuk shift (lambat)
+    var jamTxt = d.jamGanti, batas = cepat ? res.batasMin : res.batasMax;
+    var saran = batas;
+    function row(a) { return '<li>' + a + '</li>'; }
+
+    if (cepat && jm < lo) {
+      var s = lo - jm, tot = jamShift - jm;
+      return { saran: saran, html: '<b>⚠️ Peringatan: jam pulang ' + esc(jamTxt) + ' lebih awal ' + esc(fmtMin(s)) + ' dari batas yang diizinkan (' + esc(batas) + ').</b><ul>' +
+        row('Lembur terverifikasi Anda hanya ' + esc(fmtMin(kuota)) + ', sehingga paling awal Anda boleh pulang pukul <b>' + esc(batas) + '</b> (' + esc(mnJam(jamShift)) + ' dikurangi ' + esc(fmtMin(kuota)) + ').') +
+        row('Jika Anda tetap memilih pukul ' + esc(jamTxt) + ': dari ' + esc(fmtMin(tot)) + ' yang Anda tinggalkan (' + esc(jamTxt) + '–' + esc(mnJam(jamShift)) + '), hanya ' + esc(fmtMin(kuota)) + ' yang tertutup lembur.') +
+        row('Sisa <b>' + esc(fmtMin(s)) + '</b> tidak punya pengganti, maka di absensi akan dianggap <b>pulang lebih awal ' + esc(fmtMin(s)) + '</b> (tercatat "Pulang cepat ' + esc(fmtMin(s)) + '" dan masuk hitungan pulang cepat Anda).') +
+        row('Permohonan dengan jam ini akan <b>ditolak otomatis</b>. Ubah jam menjadi ' + esc(batas) + ' atau lebih akhir (sebelum ' + esc(mnJam(jamShift)) + ').') + '</ul>' };
+    }
+    if (!cepat && jm > hi) {
+      var g = jm - hi;
+      return { saran: saran, html: '<b>⚠️ Peringatan: jam datang ' + esc(jamTxt) + ' lebih lambat ' + esc(fmtMin(g)) + ' dari batas yang diizinkan (' + esc(batas) + ').</b><ul>' +
+        row('Lembur terverifikasi Anda hanya ' + esc(fmtMin(kuota)) + ', sehingga paling lambat Anda boleh datang pukul <b>' + esc(batas) + '</b> (' + esc(mnJam(jamShift)) + ' ditambah ' + esc(fmtMin(kuota)) + ').') +
+        row('Jika Anda tetap datang pukul ' + esc(jamTxt) + ', kelebihan <b>' + esc(fmtMin(g)) + '</b> tidak tertutup lembur, maka di absensi akan dianggap <b>terlambat ' + esc(fmtMin(g)) + '</b>.') +
+        row('Permohonan dengan jam ini akan <b>ditolak otomatis</b>. Ubah jam menjadi ' + esc(batas) + ' atau lebih awal.') + '</ul>' };
+    }
+    // Di luar rentang shift: tidak bisa dianggap pulang cepat / datang lambat. Paling sering salah AM/PM.
+    if ((cepat && jm > hi) || (!cepat && jm < lo)) {
+      var h12 = jm % 720, ampm = jm >= 720 ? 'PM (siang/malam)' : 'AM (pagi)';
+      var alt = (jm >= 720 ? jm - 720 : jm + 720);
+      var altOk = alt >= lo && alt <= hi;
+      return { saran: saran, html: '<b>⚠️ Peringatan: jam ' + esc(jamTxt) + ' berada di luar jam kerja shift' + (cepat ? ' (setelah jam pulang ' + esc(mnJam(jamShift)) + ')' : ' (sebelum jam masuk ' + esc(mnJam(jamShift)) + ')') + '.</b><ul>' +
+        row('Anda memilih pukul <b>' + esc(jamTxt) + '</b> (' + esc(p2(Math.floor(h12 / 60) || 12) + ':' + p2(h12 % 60) + ' ' + (jm >= 720 ? 'PM' : 'AM')) + '). Periksa pilihan <b>AM/PM</b> pada kolom jam, ' + esc(ampm) + ' mungkin bukan yang Anda maksud.') +
+        (altOk ? row('Apakah maksud Anda pukul <b>' + esc(mnJam(alt)) + '</b>?') : '') +
+        row('Jam yang dapat dipilih: <b>' + esc(res.batasMin) + '–' + esc(res.batasMax) + '</b>. Permohonan dengan jam ini akan <b>ditolak otomatis</b>.') + '</ul>' };
+    }
+    return null;
+  }
   function pmInfoCek() {
     var box = $('pmSaran'), seq = ++PM_SEQ;
     var d = { action: 'info', nama: $('pmNama').value.trim(), jenis: $('pmJenis').value, tglLembur: $('pmTglL').value, mulai: $('pmMulai').value,
@@ -2647,6 +2692,10 @@
       if (res.kenal && res.kuota > 0) h += '<b>Lembur terverifikasi: ' + esc(pmDurTxt(res.kuota)) + '.</b>';
       if (res.jadwal && res.kenal) h += '<div>Jadwal ' + esc(tglPjg(d.tglGanti)) + ': ' + esc(res.jadwal) + '</div>';
       if (res.catatan && res.catatan.length) h += li(res.catatan);
+      var sel = pmSelisihPeringatan(d, res);
+      if (sel) {
+        h += '<div class="pm-warn">' + sel.html + '<button type="button" class="pm-btn ghost sm" id="pmPakai" data-jam="' + esc(sel.saran) + '">Pakai pukul ' + esc(sel.saran) + '</button></div>';
+      }
       if (bad) h += '<b>Perlu diperbaiki sebelum dikirim:</b>' + li(res.tolak);
       else if (res.kenal) h += '<b>✅ Memenuhi syarat.</b>';
       if (res.peringatan && res.peringatan.length) h += '<div><small>Catatan: ' + esc(res.peringatan.join(' ')) + '</small></div>';
