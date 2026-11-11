@@ -808,6 +808,7 @@
           </div>
         </div>
         <div class="pm-absen" id="pmAbsen" aria-live="polite" hidden></div>
+        <div class="pm-saran no" id="pmMulaiWarn" role="alert" hidden></div>
         <p class="pm-hint" id="pmDurasi">Lama lembur akan dihitung otomatis.</p>
       </fieldset>
 
@@ -992,7 +993,7 @@
   // Tempel URL Web App dari Apps Script di antara tanda kutip.
   // Contoh: 'https://script.google.com/macros/s/XXXX/exec'
   // ============================================================
-  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzgdvwi3sR_zbrZFEf-mnc6B36JS8taAdj2OqyOhmsX2S9d9dI0oZ1bnMKeA4RQ2R1jyg/exec';
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxERflv-3onFDqNG3XpVjIirb5PjGQ1JILC4ZhhtT-WMCDaz1lWt2nVGiyax70MZWQ17Q/exec';
   // ============================================================
 
   function p2(n) { return (n < 10 ? '0' : '') + n; }
@@ -2658,15 +2659,45 @@
     }, function () { if (seq === PM_SEQ) box.hidden = true; });
   }
 
+  // ---------- Validasi jam mulai lembur ----------
+  var PM_MULAI_MIN_HK = '19:00';   // Senin–Sabtu: lembur baru boleh mulai pukul 19:00 ke atas
+  var PM_ABS_MASUK = '';           // jam masuk tercatat pada tanggal lembur yang dipilih
+  function pmHariKerja(iso) {
+    var p = String(iso || '').split('-');
+    if (p.length !== 3) return false;
+    return new Date(+p[0], +p[1] - 1, +p[2]).getDay() !== 0;   // Senin–Sabtu
+  }
+  function pmMulaiMasalah() {
+    var tgl = $('pmTglL').value, mulai = $('pmMulai').value, out = [];
+    if (!tgl || !mulai) return out;
+    if (pmHariKerja(tgl) && toMin(mulai) < toMin(PM_MULAI_MIN_HK)) out.push('Pada hari kerja (Senin–Sabtu), jam mulai lembur hanya bisa mulai pukul ' + PM_MULAI_MIN_HK + ' ke atas.');
+    if (PM_ABS_MASUK && toMin(mulai) < toMin(PM_ABS_MASUK)) out.push('Jam mulai lembur (' + mulai + ') tidak boleh lebih kecil dari jam masuk pada data absensi (' + PM_ABS_MASUK + ').');
+    return out;
+  }
+  function pmCekMulai() {
+    var box = $('pmMulaiWarn'), m = pmMulaiMasalah();
+    if (m.length) {
+      box.className = 'pm-saran no';
+      box.innerHTML = m.length === 1 ? '⚠️ ' + esc(m[0]) : '<ul>' + m.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>';
+      box.hidden = false;
+    } else if ($('pmTglL').value && !$('pmMulai').value && pmHariKerja($('pmTglL').value)) {
+      box.className = 'pm-saran';
+      box.textContent = 'ℹ️ Tanggal ini hari kerja (Senin–Sabtu): jam mulai lembur paling awal ' + PM_MULAI_MIN_HK + '.';
+      box.hidden = false;
+    } else box.hidden = true;
+    return m;
+  }
+
   // ---------- Data absensi pada tanggal lembur (tampil setelah nama + jenis kegiatan + tanggal terisi) ----------
   var PM_ABS_TMR = null, PM_ABS_SEQ = 0;
   function pmAbsenTunda() { clearTimeout(PM_ABS_TMR); PM_ABS_TMR = setTimeout(pmAbsenCek, 350); }
   function pmAbsenCek() {
     var box = $('pmAbsen'), seq = ++PM_ABS_SEQ;
     var nama = $('pmNama').value.trim(), keg = $('pmKeg').value, tgl = $('pmTglL').value;
-    if (!nama || !keg || !tgl) { box.hidden = true; box.innerHTML = ''; return; }   // belum lengkap: jangan tampilkan apa pun
+    PM_ABS_MASUK = '';
+    if (!nama || !keg || !tgl) { box.hidden = true; box.innerHTML = ''; pmCekMulai(); return; }   // belum lengkap: jangan tampilkan apa pun
     box.className = 'pm-absen'; box.hidden = false;
-    box.innerHTML = '<div class="pm-ab-t">Memuat data absensi…</div>';
+    box.innerHTML = '<div class="pm-ab-t">Memuat data absensi…</div>'; pmCekMulai();
     apiPost({ action: 'absen', nama: nama, tglLembur: tgl }, function (res) {
       if (seq !== PM_ABS_SEQ) return;   // jawaban lama diabaikan
       if (!res || !res.lengkap) { box.hidden = true; return; }
@@ -2691,6 +2722,7 @@
       if (res.status && res.status.length) h += '<div class="pm-ab-s">' + res.status.map(esc).join(' • ') + '</div>';
       if (!res.pulang) h += '<div class="pm-ab-s">Jam pulang belum tercatat.</div>';
       box.className = 'pm-absen'; box.innerHTML = h;
+      PM_ABS_MASUK = res.masuk || ''; pmCekMulai();
     }, function (e) {
       if (seq !== PM_ABS_SEQ) return;
       box.className = 'pm-absen no';
@@ -2718,6 +2750,8 @@
     if (!d.tglGanti) s.push('tanggal penggantian');
     if (d.jenis && d.jenis !== 'libur' && !d.jamGanti) s.push(PM_J[d.jenis].jam.toLowerCase());
     if (s.length) { pmErr('Lengkapi dulu: ' + s.join(', ') + '.'); return; }
+    var mm = pmCekMulai();
+    if (mm.length) { pmErr(mm.join(' ')); return; }
 
     var btn = $('pmKirim');
     btn.disabled = true; btn.textContent = 'Memeriksa data absensi…';
@@ -2757,7 +2791,7 @@
     $('pmKeg').value = ''; $('pmJenis').value = '';
     pmErr(''); if (!simpanHasil) $('pmHasil').hidden = true;
     $('pmSaran').hidden = true; PM_SEQ++;
-    $('pmAbsen').hidden = true; $('pmAbsen').innerHTML = ''; PM_ABS_SEQ++;
+    $('pmAbsen').hidden = true; $('pmAbsen').innerHTML = ''; PM_ABS_SEQ++; PM_ABS_MASUK = ''; $('pmMulaiWarn').hidden = true;
     pmUbahJenis(); pmUbahKeg(); pmHitungDurasi();
   }
 
@@ -2967,6 +3001,7 @@
       $(id).addEventListener('input', pmInfoTunda); $(id).addEventListener('change', pmInfoTunda);
     });
     $('pmJenis').addEventListener('change', pmInfoTunda);
+    ['pmMulai', 'pmTglL'].forEach(function (id) { $(id).addEventListener('input', pmCekMulai); $(id).addEventListener('change', pmCekMulai); });
     ['pmNama', 'pmKeg', 'pmTglL'].forEach(function (id) {
       $(id).addEventListener('input', pmAbsenTunda); $(id).addEventListener('change', pmAbsenTunda);
     });
