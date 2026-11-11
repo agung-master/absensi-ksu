@@ -760,8 +760,11 @@
         <div class="pm-row">
           <div class="field full">
             <label for="pmNama">Nama lengkap</label>
-            <input id="pmNama" list="pmNamaList" type="text" autocomplete="off" spellcheck="false" placeholder="Ketik atau pilih nama lengkap Anda" maxlength="80">
-            <datalist id="pmNamaList"></datalist>
+            <div class="combo" id="comboPmNama">
+              <input id="pmNama" type="text" role="combobox" aria-expanded="false" aria-controls="listPmNama" aria-autocomplete="list" autocomplete="off" spellcheck="false" placeholder="Ketik atau pilih nama lengkap Anda" maxlength="80">
+              <button type="button" class="combo-arrow" id="arrowPmNama" tabindex="-1" aria-label="Tampilkan daftar nama"></button>
+              <ul class="combo-list" id="listPmNama" role="listbox" hidden></ul>
+            </div>
           </div>
         </div>
       </fieldset>
@@ -979,7 +982,7 @@
   // Tempel URL Web App dari Apps Script di antara tanda kutip.
   // Contoh: 'https://script.google.com/macros/s/XXXX/exec'
   // ============================================================
-  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzIsQQT8Ly8XoRfrI0bQ9TsOVAa-__qG52vpIiGyi4E4jmM_2aGuVZ-LkjAkqlN3uRtUQ/exec';
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxlaZr32ChpRLPbzRkS_NCDGbCJTEpszoFAqvu-JOuBr_DB_3fD1PnO4-l2W_4bGfwMnQ/exec';
   // ============================================================
 
   function p2(n) { return (n < 10 ? '0' : '') + n; }
@@ -1508,6 +1511,7 @@
     $('vRekap').onclick = function () { setView('rekap'); };
 
     initNamaCombo();
+    initPmNamaCombo();
     initStatusFilter();
     bindDetail();
     $('inpCari').oninput = function () { S.cari = this.value.trim().toLowerCase(); reset(); };
@@ -2031,7 +2035,7 @@
       }
       if (isLupa(r)) h += '<div class="kd-note"><b>' + esc(lupaApa(r)) + '.</b> Jika Anda merasa sudah absen, hubungi admin untuk dicek.</div>';
     } else if (r.st === 'libur') {
-      h += '<p class="kd-info">' + (r.dow === 0 ? 'Hari Minggu — libur.' : 'Tidak ada scan dari seluruh karyawan pada hari ini, sehingga dianggap hari libur.') + '</p>';
+      h += '<p class="kd-info">' + (r.adj ? esc(adjTeks(r)) + '.' : r.dow === 0 ? 'Hari Minggu — libur.' : 'Tidak ada scan dari seluruh karyawan pada hari ini, sehingga dianggap hari libur.') + '</p>';
     } else if (r.st === 'absen') {
       h += '<p class="kd-info">Tidak ada scan masuk maupun pulang pada hari kerja ini.</p>' +
            '<div class="kd-note">Jika Anda merasa sudah absen, hubungi admin untuk dicek.</div>';
@@ -2490,9 +2494,65 @@
     }
   }
 
-  function pmIsiNama() {
-    var dl = $('pmNamaList');
-    if (dl) dl.innerHTML = NAMA_LIST.map(function (n) { return '<option value="' + esc(n) + '">'; }).join('');
+  function pmIsiNama() { /* daftar nama dibaca langsung dari NAMA_LIST oleh initPmNamaCombo */ }
+
+  function initPmNamaCombo() {
+    var inp = $('pmNama'), list = $('listPmNama'), items = [], act = -1;
+    if (!inp || !list) return;
+
+    function open() { list.hidden = false; inp.setAttribute('aria-expanded', 'true'); }
+    function close() { list.hidden = true; inp.setAttribute('aria-expanded', 'false'); act = -1; }
+    function setAct(i) {
+      var lis = list.querySelectorAll('li[data-v]');
+      if (!lis.length) return;
+      act = (i + lis.length) % lis.length;
+      for (var k = 0; k < lis.length; k++) lis[k].classList.toggle('active', k === act);
+      lis[act].scrollIntoView({ block: 'nearest' });
+    }
+    function build(q) {
+      q = (q || '').trim().toLowerCase();
+      items = NAMA_LIST.filter(function (n) { return !q || n.toLowerCase().indexOf(q) >= 0; });
+      list.innerHTML = items.length
+        ? items.map(function (n) { return '<li role="option" data-v="' + esc(n) + '"' + (n === inp.value ? ' class="sel"' : '') + '>' + esc(n) + '</li>'; }).join('')
+        : '<li class="none">Nama tidak ditemukan</li>';
+      act = -1;
+    }
+    function pick(n) {
+      var beda = inp.value !== n;
+      inp.value = n;
+      close();
+      if (beda) inp.dispatchEvent(new Event('change', { bubbles: true }));   // memicu pemeriksaan info permohonan
+    }
+
+    inp.addEventListener('focus', function () { inp.select(); build(''); open(); });
+    inp.addEventListener('click', function () { if (list.hidden) { build(''); open(); } });
+    inp.addEventListener('input', function () { build(inp.value); open(); if (items.length) setAct(0); });
+    inp.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowDown') { e.preventDefault(); if (list.hidden) { build(inp.value); open(); } setAct(act + 1); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); setAct(act - 1); }
+      else if (e.key === 'Enter') {
+        if (!list.hidden && items.length) { e.preventDefault(); pick(items[act >= 0 ? act : 0]); }
+      } else if (e.key === 'Escape') { close(); }
+    });
+    inp.addEventListener('blur', function () {
+      setTimeout(function () {
+        close();
+        if (!NAMA_LIST.length) return;                       // daftar belum termuat: biarkan apa adanya
+        var v = inp.value.trim().toLowerCase();
+        var exact = NAMA_LIST.filter(function (n) { return n.toLowerCase() === v; })[0];
+        if (exact) pick(exact);
+        else if (inp.value) { inp.value = ''; inp.dispatchEvent(new Event('change', { bubbles: true })); }
+      }, 120);
+    });
+    list.addEventListener('mousedown', function (e) {
+      var li = e.target.closest ? e.target.closest('li[data-v]') : null;
+      e.preventDefault();
+      if (li) pick(li.getAttribute('data-v'));
+    });
+    $('arrowPmNama').addEventListener('mousedown', function (e) {
+      e.preventDefault();
+      if (list.hidden) { inp.focus(); build(''); open(); } else close();
+    });
   }
 
   function tglPjg(iso) {
