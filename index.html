@@ -395,7 +395,17 @@
   .kal-c.off, .kal-legend i.off { background: var(--off-soft); color: #4a5d80; border-color: #cbd7ea; }
   .kal-c.mg, .kal-legend i.mg { background: var(--brand-soft); color: var(--brand-dark); border-color: #b9cdf0; }
   .kal-c.none, .kal-legend i.none { background: transparent; color: #9aa8c2; border: 1.5px dashed var(--line); }
-  .kal-c.today { box-shadow: 0 0 0 2px var(--brand); }
+  .kal-c { position: relative; }
+  .kal-c.today { box-shadow: 0 0 0 2px var(--brand); z-index: 1; }
+  button.kal-c.today:hover { box-shadow: 0 0 0 2px var(--brand), 0 3px 10px rgba(15, 30, 70, .14); }   /* cincin hari ini tetap tampil saat di-hover */
+  .kal-c.today::after {
+    content: "Hari ini"; position: absolute; top: 5px; right: 6px;
+    padding: 1px 7px; border-radius: 999px; background: var(--brand); color: #fff;
+    font-size: 9.5px; font-weight: 700; line-height: 1.5; letter-spacing: .02em; pointer-events: none;
+  }
+  @media (max-width: 640px) {   /* sel sempit di HP: cukup titik biru */
+    .kal-c.today::after { content: ""; top: 5px; right: 5px; width: 7px; height: 7px; padding: 0; }
+  }
   .kal-c.redup { opacity: .3; }
   .kal-cek { margin-top: 14px; padding: 10px 12px; border-radius: 10px; background: #fffbeb; border: 1px solid #f2d97a; font-size: 13.5px; }
   .kal-cek > b { display: block; margin-bottom: 6px; color: #92400e; }
@@ -430,42 +440,42 @@
   [hidden] { display: none !important; }
 
   /* ---- Kartu "Hadir hari ini" ---- */
-  .today {
+  .hc {
     margin-top: 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
     border-left: 5px solid #22c55e; padding: 14px 18px 12px; box-shadow: 0 2px 8px rgba(29, 95, 240, .07);
   }
-  .today[hidden] { display: none; }
-  .today-top { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
-  .today-id { display: flex; align-items: center; gap: 12px; min-width: 0; }
-  .today-ic { flex: 0 0 auto; width: 44px; height: 44px; border-radius: 12px; background: var(--ok-soft); display: grid; place-items: center; font-size: 22px; }
-  .today-lbl { display: block; font-weight: 700; font-size: 16px; line-height: 1.25; }
-  .today-date { display: block; color: var(--muted); font-size: 13.5px; font-weight: 500; }
-  .today-num { flex: 0 0 auto; text-align: right; line-height: 1.1; }
-  .today-num b { font-size: 36px; font-weight: 700; color: var(--ok); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
-  .today-num span { display: block; margin-top: 2px; color: var(--muted); font-size: 13px; font-weight: 600; }
-  .today-bar { height: 8px; margin-top: 12px; background: var(--off-soft); border-radius: 999px; overflow: hidden; }
-  .today-bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #22c55e, #16a34a); border-radius: 999px; transition: width .5s ease; }
-  .today-sub { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-top: 10px; font-size: 12.5px; color: var(--muted); }
-  .today-sub .chip-t { padding: 2px 10px; border-radius: 999px; font-weight: 700; background: var(--ok-soft); color: var(--ok); font-variant-numeric: tabular-nums; }
-  .today-sub .chip-t.warn { background: #fef3c7; color: #a16207; }
-  .today-sub .sp { flex: 1 1 auto; }
-  .today.off { border-left-color: #94a3b8; }
-  .today.off .today-ic { background: var(--off-soft); }
-  .today.off .today-top { align-items: center; }
+  .hc[hidden] { display: none; }
+  .hc-top { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+  .hc-id { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .hc-ic { flex: 0 0 auto; width: 44px; height: 44px; border-radius: 12px; background: var(--ok-soft); display: grid; place-items: center; font-size: 22px; }
+  .hc-lbl { display: block; font-weight: 700; font-size: 16px; line-height: 1.25; }
+  .hc-date { display: block; color: var(--muted); font-size: 13.5px; font-weight: 500; }
+  .hc-num { flex: 0 0 auto; text-align: right; line-height: 1.1; }
+  .hc-num b { font-size: 36px; font-weight: 700; color: var(--ok); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+  .hc-num span { display: block; margin-top: 2px; color: var(--muted); font-size: 13px; font-weight: 600; }
+  .hc-bar { height: 8px; margin-top: 12px; background: var(--off-soft); border-radius: 999px; overflow: hidden; }
+  .hc-bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #22c55e, #16a34a); border-radius: 999px; transition: width .5s ease; }
+  .hc-sub { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-top: 10px; font-size: 12.5px; color: var(--muted); }
+  .hc-sub .chip-t { padding: 2px 10px; border-radius: 999px; font-weight: 700; background: var(--ok-soft); color: var(--ok); font-variant-numeric: tabular-nums; }
+  .hc-sub .chip-t.warn { background: #fef3c7; color: #a16207; }
+  .hc-sub .sp { flex: 1 1 auto; }
+  .hc.off { border-left-color: #94a3b8; }
+  .hc.off .hc-ic { background: var(--off-soft); }
+  .hc.off .hc-top { align-items: center; }
   @media (max-width: 640px) {
-    .today { padding: 12px 14px 10px; border-radius: 14px; }
-    .today-ic { width: 40px; height: 40px; font-size: 20px; border-radius: 11px; }
-    .today-lbl { font-size: 15px; }
-    .today-date { font-size: 12.5px; }
-    .today-num b { font-size: 32px; }
-    .today-num span { font-size: 12px; }
-    .today-sub .sp { display: none; }
+    .hc { padding: 12px 14px 10px; border-radius: 14px; }
+    .hc-ic { width: 40px; height: 40px; font-size: 20px; border-radius: 11px; }
+    .hc-lbl { font-size: 15px; }
+    .hc-date { font-size: 12.5px; }
+    .hc-num b { font-size: 32px; }
+    .hc-num span { font-size: 12px; }
+    .hc-sub .sp { display: none; }
   }
   @media (max-width: 360px) {
-    .today-top { flex-wrap: wrap; }
-    .today-num { text-align: left; }
+    .hc-top { flex-wrap: wrap; }
+    .hc-num { text-align: left; }
   }
-  @media (prefers-reduced-motion: reduce) { .today-bar i { transition: none; } }
+  @media (prefers-reduced-motion: reduce) { .hc-bar i { transition: none; } }
 </style>
 </head>
 <body>
@@ -480,7 +490,7 @@
   <div id="error" class="error" hidden></div>
 
   <main id="app" hidden>
-    <section class="today" id="today" aria-label="Kehadiran hari ini" hidden></section>
+    <section class="hc" id="hadirCard" aria-label="Kehadiran hari ini" hidden></section>
 
     <section class="panel" aria-label="Filter data">
       <div class="seg" role="group" aria-label="Pilih data">
@@ -858,17 +868,17 @@
   // ---- Kartu "Hadir hari ini" (data dari server: sheet bulanan yang memuat tanggal berjalan) ----
   var HARI_PANJANG = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
   function renderHariIni() {
-    var box = $('today'), d = DB.hariIni;
+    var box = $('hadirCard'), d = DB.hariIni;
     if (!d || d.ok === false || !d.tgl) { box.hidden = true; box.innerHTML = ''; return; }   // gagal dihitung: kartu disembunyikan, data lain tetap tampil
     var pt = d.tgl.split('-'), dt = new Date(+pt[0], +pt[1] - 1, +pt[2]);
     var tglTxt = HARI_PANJANG[dt.getDay()] + ', ' + dt.getDate() + ' ' + BULAN[dt.getMonth()] + ' ' + dt.getFullYear();
-    var ic = '<div class="today-ic" aria-hidden="true">👥</div>';
-    box.className = 'today';
+    var ic = '<div class="hc-ic" aria-hidden="true">👥</div>';
+    box.className = 'hc';
 
     if (d.diLuar) {
-      box.className = 'today off';
-      box.innerHTML = '<div class="today-top"><div class="today-id">' + ic + '<div><span class="today-lbl">Hadir hari ini</span>' +
-        '<span class="today-date">' + esc(tglTxt) + ' · belum ada sheet absensi untuk tanggal ini</span></div></div></div>';
+      box.className = 'hc off';
+      box.innerHTML = '<div class="hc-top"><div class="hc-id">' + ic + '<div><span class="hc-lbl">Hadir hari ini</span>' +
+        '<span class="hc-date">' + esc(tglTxt) + ' · belum ada sheet absensi untuk tanggal ini</span></div></div></div>';
       box.hidden = false;
       return;
     }
@@ -884,11 +894,11 @@
     if (d.jam) sub += '<span>Diperbarui ' + esc(d.jam) + '</span>';
 
     box.innerHTML =
-      '<div class="today-top"><div class="today-id">' + ic +
-        '<div><span class="today-lbl">Hadir hari ini</span><span class="today-date">' + esc(tglTxt) + '</span></div></div>' +
-        '<div class="today-num"><b>' + hadir + '</b><span>' + esc(ket) + '</span></div></div>' +
-      '<div class="today-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + pct + '" aria-label="Persentase kehadiran hari ini"><i style="width:' + pct + '%"></i></div>' +
-      '<div class="today-sub">' + sub + '</div>';
+      '<div class="hc-top"><div class="hc-id">' + ic +
+        '<div><span class="hc-lbl">Hadir hari ini</span><span class="hc-date">' + esc(tglTxt) + '</span></div></div>' +
+        '<div class="hc-num"><b>' + hadir + '</b><span>' + esc(ket) + '</span></div></div>' +
+      '<div class="hc-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + pct + '" aria-label="Persentase kehadiran hari ini"><i style="width:' + pct + '%"></i></div>' +
+      '<div class="hc-sub">' + sub + '</div>';
     box.hidden = false;
   }
 
