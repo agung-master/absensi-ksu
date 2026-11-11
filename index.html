@@ -546,6 +546,15 @@
   .field textarea {
     width: 100%; font: inherit; color: var(--ink); padding: 9px 10px; border: 1px solid #b9cdf0; border-radius: 9px; background: #fff; min-height: 70px; resize: vertical;
   }
+  .pm-absen { margin-top: 12px; border-radius: 10px; padding: 10px 12px; font-size: 14px; background: #fff; border: 1px solid #b9cdf0; color: var(--ink); }
+  .pm-absen[hidden] { display: none; }
+  .pm-absen.no { background: var(--abs-soft); border-color: #f2a9a9; color: #7f1d1d; }
+  .pm-absen .pm-ab-t { font-weight: 700; color: var(--brand-dark); margin-bottom: 6px; }
+  .pm-absen .pm-ab-g { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
+  .pm-absen .pm-ab-g div { background: #f3f7ff; border-radius: 8px; padding: 6px 10px; }
+  .pm-absen .pm-ab-g small { display: block; color: var(--muted); font-size: 12px; }
+  .pm-absen .pm-ab-g b { font-size: 16px; }
+  .pm-absen .pm-ab-s { margin-top: 8px; font-size: 13px; }
   .pm-hint { margin: 6px 0 0; font-size: 12.5px; color: var(--muted); }
   .pm-btn { font: inherit; font-weight: 700; border: 0; border-radius: 10px; padding: 10px 18px; cursor: pointer; color: #fff; background: var(--brand); }
   .pm-btn:hover { filter: brightness(1.07); }
@@ -798,6 +807,7 @@
             <input id="pmSelesai" type="time">
           </div>
         </div>
+        <div class="pm-absen" id="pmAbsen" aria-live="polite" hidden></div>
         <p class="pm-hint" id="pmDurasi">Lama lembur akan dihitung otomatis.</p>
       </fieldset>
 
@@ -982,7 +992,7 @@
   // Tempel URL Web App dari Apps Script di antara tanda kutip.
   // Contoh: 'https://script.google.com/macros/s/XXXX/exec'
   // ============================================================
-  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxlaZr32ChpRLPbzRkS_NCDGbCJTEpszoFAqvu-JOuBr_DB_3fD1PnO4-l2W_4bGfwMnQ/exec';
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzgdvwi3sR_zbrZFEf-mnc6B36JS8taAdj2OqyOhmsX2S9d9dI0oZ1bnMKeA4RQ2R1jyg/exec';
   // ============================================================
 
   function p2(n) { return (n < 10 ? '0' : '') + n; }
@@ -2648,6 +2658,46 @@
     }, function () { if (seq === PM_SEQ) box.hidden = true; });
   }
 
+  // ---------- Data absensi pada tanggal lembur (tampil setelah nama + jenis kegiatan + tanggal terisi) ----------
+  var PM_ABS_TMR = null, PM_ABS_SEQ = 0;
+  function pmAbsenTunda() { clearTimeout(PM_ABS_TMR); PM_ABS_TMR = setTimeout(pmAbsenCek, 350); }
+  function pmAbsenCek() {
+    var box = $('pmAbsen'), seq = ++PM_ABS_SEQ;
+    var nama = $('pmNama').value.trim(), keg = $('pmKeg').value, tgl = $('pmTglL').value;
+    if (!nama || !keg || !tgl) { box.hidden = true; box.innerHTML = ''; return; }   // belum lengkap: jangan tampilkan apa pun
+    box.className = 'pm-absen'; box.hidden = false;
+    box.innerHTML = '<div class="pm-ab-t">Memuat data absensi…</div>';
+    apiPost({ action: 'absen', nama: nama, tglLembur: tgl }, function (res) {
+      if (seq !== PM_ABS_SEQ) return;   // jawaban lama diabaikan
+      if (!res || !res.lengkap) { box.hidden = true; return; }
+      var judul = '<div class="pm-ab-t">Data absensi ' + esc(res.nama || nama) + ' — ' + esc(tglPjg(tgl)) + '</div>';
+      if (!res.kenal) {
+        box.className = 'pm-absen no';
+        box.innerHTML = judul + 'Nama tidak ditemukan di data absensi.'; return;
+      }
+      if (!res.adaSheet) {
+        box.className = 'pm-absen no';
+        box.innerHTML = judul + 'Belum ada sheet absensi yang memuat tanggal ini.'; return;
+      }
+      if (!res.masuk && !res.pulang) {
+        box.className = 'pm-absen no';
+        box.innerHTML = judul + 'Tidak ada data absensi (jam masuk dan jam pulang kosong) pada tanggal ini.' +
+          (res.shift ? '<div class="pm-ab-s">Jadwal: ' + esc(res.shift) + '</div>' : ''); return;
+      }
+      var h = judul + '<div class="pm-ab-g">' +
+        '<div><small>Jam masuk</small><b>' + esc(res.masuk || '–') + '</b></div>' +
+        '<div><small>Jam pulang</small><b>' + esc(res.pulang || '–') + '</b></div>' +
+        (res.shift ? '<div><small>Jadwal</small><b>' + esc(res.shift) + '</b></div>' : '') + '</div>';
+      if (res.status && res.status.length) h += '<div class="pm-ab-s">' + res.status.map(esc).join(' • ') + '</div>';
+      if (!res.pulang) h += '<div class="pm-ab-s">Jam pulang belum tercatat.</div>';
+      box.className = 'pm-absen'; box.innerHTML = h;
+    }, function (e) {
+      if (seq !== PM_ABS_SEQ) return;
+      box.className = 'pm-absen no';
+      box.innerHTML = 'Gagal memuat data absensi: ' + esc(e && e.message ? e.message : String(e));
+    });
+  }
+
   function pmErr(msg) { var e = $('pmErr'); e.hidden = !msg; e.textContent = msg || ''; }
 
   function pmKirim() {
@@ -2707,6 +2757,7 @@
     $('pmKeg').value = ''; $('pmJenis').value = '';
     pmErr(''); if (!simpanHasil) $('pmHasil').hidden = true;
     $('pmSaran').hidden = true; PM_SEQ++;
+    $('pmAbsen').hidden = true; $('pmAbsen').innerHTML = ''; PM_ABS_SEQ++;
     pmUbahJenis(); pmUbahKeg(); pmHitungDurasi();
   }
 
@@ -2916,6 +2967,9 @@
       $(id).addEventListener('input', pmInfoTunda); $(id).addEventListener('change', pmInfoTunda);
     });
     $('pmJenis').addEventListener('change', pmInfoTunda);
+    ['pmNama', 'pmKeg', 'pmTglL'].forEach(function (id) {
+      $(id).addEventListener('input', pmAbsenTunda); $(id).addEventListener('change', pmAbsenTunda);
+    });
     $('pmSaran').addEventListener('click', function (e) {
       var b = e.target.closest ? e.target.closest('#pmPakai') : null;
       if (b) { $('pmJamG').value = b.getAttribute('data-jam'); pmInfoCek(); }
