@@ -528,6 +528,99 @@
     .hd-row { grid-template-columns: 36px minmax(0, 1fr); }
     .hd-tm { grid-column: 2; justify-content: flex-start; text-align: left; }
   }
+
+  /* ===== Permohonan penggantian lembur ===== */
+  .nav { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+  .nav[hidden] { display: none; }
+  .nav button {
+    font: inherit; font-weight: 600; color: var(--brand-dark); background: var(--surface);
+    border: 1px solid var(--line); border-radius: 10px; padding: 9px 16px; cursor: pointer; box-shadow: 0 2px 8px rgba(29, 95, 240, .07);
+  }
+  .nav button[aria-pressed="true"] { background: var(--brand); color: #fff; border-color: var(--brand); }
+  .pm-h { margin: 0 0 4px; font-size: 20px; }
+  .pm-sub { margin: 0 0 12px; color: var(--muted); font-size: 14px; }
+  .pm-grp { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px 14px; margin: 14px 0 0; background: #fafcff; }
+  .pm-grp > legend { padding: 0 8px; font-weight: 700; color: var(--brand-dark); font-size: 14px; }
+  .pm-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-top: 8px; }
+  .pm-row .full { grid-column: 1 / -1; }
+  .field textarea {
+    width: 100%; font: inherit; color: var(--ink); padding: 9px 10px; border: 1px solid #b9cdf0; border-radius: 9px; background: #fff; min-height: 70px; resize: vertical;
+  }
+  .pm-hint { margin: 6px 0 0; font-size: 12.5px; color: var(--muted); }
+  .pm-btn { font: inherit; font-weight: 700; border: 0; border-radius: 10px; padding: 10px 18px; cursor: pointer; color: #fff; background: var(--brand); }
+  .pm-btn:hover { filter: brightness(1.07); }
+  .pm-btn:disabled { opacity: .6; cursor: default; }
+  .pm-btn.ghost { background: var(--brand-soft); color: var(--brand-dark); }
+  .pm-btn.ok { background: #059669; }
+  .pm-btn.no { background: #dc2626; }
+  .pm-btn.sm { padding: 7px 12px; font-size: 13.5px; }
+  .pm-saran { margin-top: 10px; border-radius: 10px; padding: 10px 12px; font-size: 14px; background: #eef4ff; border: 1px solid #b9cdf0; color: #1f3a78; }
+  .pm-saran[hidden] { display: none; }
+  .pm-saran.ok { background: var(--ok-soft); border-color: #86d9b5; color: #064e3b; }
+  .pm-saran.no { background: var(--abs-soft); border-color: #f2a9a9; color: #7f1d1d; }
+  .pm-saran ul { margin: 4px 0 0 18px; padding: 0; }
+  .pm-saran button { margin-top: 8px; }
+  .pm-act { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+  .pm-res { margin-top: 16px; border-radius: 12px; padding: 14px 16px; border: 1px solid; }
+  .pm-res[hidden] { display: none; }
+  .pm-res.ok { background: var(--ok-soft); border-color: #86d9b5; color: #064e3b; }
+  .pm-res.no { background: var(--abs-soft); border-color: #f2a9a9; color: #7f1d1d; }
+  .pm-res h3 { margin: 0 0 6px; font-size: 17px; }
+  .pm-res ul { margin: 6px 0 0 18px; padding: 0; }
+  .pm-res li { margin: 3px 0; }
+  .pm-res .pm-id { display: inline-block; font-weight: 700; background: #fff; border-radius: 8px; padding: 2px 10px; margin-left: 4px; }
+  .pm-res table { min-width: 0; margin-top: 8px; background: #fff; border-radius: 8px; }
+  .pm-res th, .pm-res td { white-space: normal; padding: 6px 10px; font-size: 13.5px; background: transparent; position: static; color: var(--ink); }
+  .pm-res th { width: 38%; color: #3c5185; }
+  .pm-err { color: var(--abs); font-weight: 600; margin-top: 10px; }
+  .pm-login { max-width: 420px; }
+  .pm-top { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
+  .pm-tools { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; align-items: center; }
+  .pm-tools .field { flex: 1 1 160px; }
+  .pm-list { display: grid; gap: 12px; margin-top: 14px; }
+  .pm-it { background: var(--surface); border: 1px solid var(--line); border-left: 5px solid var(--brand); border-radius: 12px; padding: 12px 14px; box-shadow: 0 2px 8px rgba(29, 95, 240, .07); }
+  .pm-it.st-Disetujui { border-left-color: #059669; }
+  .pm-it.st-Ditolak, .pm-it.st-Ditolak-Otomatis { border-left-color: #dc2626; }
+  .pm-it-h { display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center; }
+  .pm-it-h b { font-size: 16px; }
+  .pm-it-id { margin-left: auto; font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .pm-kv { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 4px 18px; margin-top: 8px; font-size: 14px; }
+  .pm-kv div span { display: block; font-size: 12px; color: var(--muted); }
+  .pm-kv div b { font-weight: 600; }
+  .pm-note { margin-top: 8px; font-size: 13px; background: #f3f8ff; border-radius: 8px; padding: 6px 10px; color: #35476f; word-break: break-word; }
+  .pm-note.bad { background: var(--abs-soft); color: #7f1d1d; }
+  .pm-it-a { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .pm-empty { text-align: center; color: var(--muted); padding: 24px 8px; }
+  .pm-back { position: fixed; inset: 0; z-index: 200; background: rgba(15, 30, 70, .5); display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .pm-back[hidden] { display: none; }
+  .pm-dlg { background: #fff; border-radius: 14px; padding: 18px; width: 100%; max-width: 440px; box-shadow: 0 16px 40px rgba(15, 30, 70, .35); }
+  .pm-dlg h3 { margin: 0 0 6px; font-size: 18px; }
+  .pm-dlg p { margin: 0 0 10px; color: var(--muted); font-size: 14px; }
+
+  /* ===== Cetak arsip ===== */
+  #printArea { display: none; }
+  @media print {
+    @page { size: A4; margin: 14mm 14mm 16mm; }
+    body { background: #fff !important; }
+    body > *:not(#printArea) { display: none !important; }
+    #printArea { display: block !important; color: #000; font-family: "Times New Roman", Georgia, serif; font-size: 11.5pt; line-height: 1.4; }
+  }
+  .pr-kop { text-align: center; border-bottom: 3px double #000; padding-bottom: 8px; margin-bottom: 10px; }
+  .pr-kop h1 { margin: 0; font-size: 17pt; letter-spacing: .04em; }
+  .pr-kop h2 { margin: 4px 0 0; font-size: 13pt; }
+  .pr-kop p { margin: 2px 0 0; font-size: 10pt; }
+  .pr-meta { display: flex; justify-content: space-between; gap: 10px; font-size: 10.5pt; margin-bottom: 8px; }
+  .pr-stamp { text-align: center; margin: 6px 0 10px; }
+  .pr-stamp span { display: inline-block; border: 3px solid #000; padding: 3px 22px; font-weight: 700; font-size: 14pt; letter-spacing: .12em; transform: rotate(-2deg); }
+  #printArea h3 { font-size: 11.5pt; margin: 12px 0 4px; padding: 2px 6px; background: #e8e8e8; border: 1px solid #000; page-break-after: avoid; }
+  #printArea table { width: 100%; min-width: 0; border-collapse: collapse; page-break-inside: avoid; }
+  #printArea th, #printArea td { border: 1px solid #000; padding: 4px 8px; text-align: left; vertical-align: top; white-space: normal; background: transparent; position: static; color: #000; font-size: 11pt; }
+  #printArea th { width: 34%; font-weight: 600; background: #f4f4f4; }
+  .pr-sign { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 18px; text-align: center; page-break-inside: avoid; }
+  .pr-sign div { font-size: 10.5pt; }
+  .pr-sign .ttd { height: 62px; border-bottom: 1px solid #000; margin: 4px 6px 4px; }
+  .pr-foot { margin-top: 14px; font-size: 9pt; color: #333; border-top: 1px solid #000; padding-top: 4px; }
+  .pr-log { margin: 0; padding-left: 18px; font-size: 10.5pt; }
 </style>
 </head>
 <body>
@@ -537,6 +630,12 @@
     <p>Lihat kehadiran seluruh karyawan atau data Anda sendiri.</p>
     <button type="button" id="btnReload" class="reload" hidden>↻ Muat ulang data</button>
   </header>
+
+  <nav class="nav" id="nav" aria-label="Menu utama" hidden>
+    <button type="button" id="nvAbs" aria-pressed="true">📊 Absensi</button>
+    <button type="button" id="nvForm" aria-pressed="false">📝 Ajukan Permohonan</button>
+    <button type="button" id="nvAdmin" aria-pressed="false">🔐 Admin</button>
+  </nav>
 
   <div id="loading" class="loading">Memuat data absensi…</div>
   <div id="error" class="error" hidden></div>
@@ -650,7 +749,155 @@
 
     <p class="note" id="note"></p>
   </main>
+
+  <section id="pmView" hidden>
+    <div class="panel">
+      <h2 class="pm-h">Permohonan Penggantian Lembur</h2>
+      <p class="pm-sub">Ajukan lembur Anda untuk diganti dengan pulang cepat, datang lambat, atau libur di hari tertentu. Sistem langsung memeriksa data absensi pada tanggal lembur; jika kosong, permohonan ditolak beserta alasannya.</p>
+
+      <fieldset class="pm-grp">
+        <legend>1. Data diri</legend>
+        <div class="pm-row">
+          <div class="field full">
+            <label for="pmNama">Nama lengkap</label>
+            <input id="pmNama" list="pmNamaList" type="text" autocomplete="off" spellcheck="false" placeholder="Ketik atau pilih nama lengkap Anda" maxlength="80">
+            <datalist id="pmNamaList"></datalist>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="pm-grp">
+        <legend>2. Detail lembur yang sudah dilaksanakan</legend>
+        <div class="pm-row">
+          <div class="field">
+            <label for="pmKeg">Jenis kegiatan</label>
+            <select id="pmKeg">
+              <option value="">Pilih kegiatan…</option>
+              <option value="Event">Event</option>
+              <option value="CFD">CFD</option>
+              <option value="Lainnya">Lainnya</option>
+            </select>
+          </div>
+          <div class="field" id="pmDetailBox">
+            <label for="pmDetail" id="pmDetailLbl">Nama kegiatan (opsional)</label>
+            <input id="pmDetail" type="text" maxlength="120" placeholder="Mis. Event Gathering Mitra">
+          </div>
+          <div class="field">
+            <label for="pmTglL">Tanggal lembur</label>
+            <input id="pmTglL" type="date">
+          </div>
+          <div class="field">
+            <label for="pmMulai">Jam mulai lembur</label>
+            <input id="pmMulai" type="time">
+          </div>
+          <div class="field">
+            <label for="pmSelesai">Jam selesai lembur</label>
+            <input id="pmSelesai" type="time">
+          </div>
+        </div>
+        <p class="pm-hint" id="pmDurasi">Lama lembur akan dihitung otomatis.</p>
+      </fieldset>
+
+      <fieldset class="pm-grp">
+        <legend>3. Ingin diganti dengan</legend>
+        <div class="pm-row">
+          <div class="field">
+            <label for="pmJenis">Jenis penggantian</label>
+            <select id="pmJenis">
+              <option value="">Pilih penggantian…</option>
+              <option value="cepat">Pulang cepat</option>
+              <option value="lambat">Datang lambat</option>
+              <option value="libur">Libur</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="pmTglG">Tanggal penggantian</label>
+            <input id="pmTglG" type="date">
+          </div>
+          <div class="field" id="pmJamBox">
+            <label for="pmJamG" id="pmJamLbl">Jam</label>
+            <input id="pmJamG" type="time">
+          </div>
+        </div>
+        <p class="pm-hint" id="pmJenisInfo">Pilih salah satu jenis penggantian. Kolom isian menyesuaikan pilihan Anda.</p>
+        <div class="pm-saran" id="pmSaran" aria-live="polite" hidden></div>
+        <div class="pm-row">
+          <div class="field full">
+            <label for="pmKet">Keterangan tambahan (opsional)</label>
+            <textarea id="pmKet" maxlength="400" placeholder="Mis. alasan memilih tanggal tersebut"></textarea>
+          </div>
+        </div>
+      </fieldset>
+
+      <div class="pm-act">
+        <button type="button" class="pm-btn" id="pmKirim">Kirim permohonan</button>
+        <button type="button" class="pm-btn ghost" id="pmReset">Kosongkan formulir</button>
+      </div>
+      <div class="pm-err" id="pmErr" hidden></div>
+      <div class="pm-res" id="pmHasil" role="status" aria-live="polite" hidden></div>
+    </div>
+  </section>
+
+  <section id="adView" hidden>
+    <div class="panel pm-login" id="adLogin">
+      <h2 class="pm-h">Masuk Admin</h2>
+      <p class="pm-sub">Khusus admin / HRD untuk menyetujui, menolak, dan mencetak permohonan.</p>
+      <div class="field"><label for="adNama">Nama admin</label><input id="adNama" type="text" maxlength="60" autocomplete="off" placeholder="Nama Anda"></div>
+      <div class="field" style="margin-top:10px"><label for="adPin">PIN admin</label><input id="adPin" type="password" autocomplete="off" placeholder="PIN"></div>
+      <div class="pm-act"><button type="button" class="pm-btn" id="adMasuk">Masuk</button></div>
+      <div class="pm-err" id="adErr" hidden></div>
+    </div>
+
+    <div class="panel" id="adPanel" hidden>
+      <div class="pm-top">
+        <div><h2 class="pm-h">Permohonan Lembur</h2><p class="pm-sub" id="adWho" style="margin:0"></p></div>
+        <div class="pm-act" style="margin:0">
+          <button type="button" class="pm-btn ghost sm" id="adMuat">↻ Muat ulang</button>
+          <button type="button" class="pm-btn ghost sm" id="adKeluar">Keluar</button>
+        </div>
+      </div>
+      <div class="pm-tools">
+        <div class="seg" role="group" aria-label="Daftar permohonan">
+          <button type="button" id="adTMenunggu" aria-pressed="true">Menunggu</button>
+          <button type="button" id="adTRiwayat" aria-pressed="false">Riwayat</button>
+        </div>
+        <div class="field">
+          <select id="adJenis" aria-label="Filter jenis penggantian">
+            <option value="">Semua jenis</option>
+            <option value="Pulang Cepat">Pulang Cepat</option>
+            <option value="Datang Lambat">Datang Lambat</option>
+            <option value="Libur">Libur</option>
+          </select>
+        </div>
+        <div class="field" id="adStWrap" hidden>
+          <select id="adStatus" aria-label="Filter status">
+            <option value="">Semua status</option>
+            <option value="Disetujui">Disetujui</option>
+            <option value="Ditolak">Ditolak admin</option>
+            <option value="Ditolak Otomatis">Ditolak otomatis</option>
+          </select>
+        </div>
+        <div class="field"><input id="adCari" type="search" placeholder="Cari nama / ID" aria-label="Cari nama atau ID"></div>
+      </div>
+      <div class="pm-err" id="adErr2" hidden></div>
+      <div class="pm-list" id="adList"></div>
+    </div>
+  </section>
+
+  <div class="pm-back" id="pmDlgBack" hidden>
+    <div class="pm-dlg" role="dialog" aria-modal="true" aria-labelledby="pmDlgT">
+      <h3 id="pmDlgT"></h3>
+      <p id="pmDlgP"></p>
+      <div class="field"><label for="pmDlgCat" id="pmDlgL">Catatan</label><textarea id="pmDlgCat" maxlength="300"></textarea></div>
+      <div class="pm-err" id="pmDlgErr" hidden></div>
+      <div class="pm-act">
+        <button type="button" class="pm-btn" id="pmDlgOk">Simpan</button>
+        <button type="button" class="pm-btn ghost" id="pmDlgBatal">Batal</button>
+      </div>
+    </div>
+  </div>
 </div>
+<div id="printArea" aria-hidden="true"></div>
 
 <div class="dt-back" id="dtBack" hidden></div>
 <div class="dt" id="dtPanel" role="dialog" aria-modal="true" aria-labelledby="dtTitle" hidden>
@@ -732,7 +979,7 @@
   // Tempel URL Web App dari Apps Script di antara tanda kutip.
   // Contoh: 'https://script.google.com/macros/s/XXXX/exec'
   // ============================================================
-  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbza-H2Xn4fWR5RDCXC8683kYsVSWYhbZZI4E2MqfNEEfjBNXrARDU4bitwntfRUv6Qh-Q/exec';
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxlaZr32ChpRLPbzRkS_NCDGbCJTEpszoFAqvu-JOuBr_DB_3fD1PnO4-l2W_4bGfwMnQ/exec';
   // ============================================================
 
   function p2(n) { return (n < 10 ? '0' : '') + n; }
@@ -741,6 +988,13 @@
 
   var DB = { periods: [], records: [], names: {}, config: null, hariIni: null };
   var LOADED = {};
+  var SESUAI = {};   // penyesuaian disetujui (pengganti lembur): nama|tanggal -> {j: cepat|lambat|libur, m: jam}
+  function nk(n) { return String(n || '').toLowerCase().replace(/\s+/g, ' ').trim(); }
+  function petaSesuai(list) { var m = {}; (list || []).forEach(function (x) { m[nk(x.n) + '|' + x.t] = x; }); return m; }
+  function adjTeks(r) {
+    if (!r.adj) return '';
+    return r.adj.j === 'libur' ? 'Libur pengganti lembur (disetujui)' : (r.adj.j === 'cepat' ? 'Pulang cepat ' : 'Datang lambat ') + r.adj.m + ' disetujui (pengganti lembur)';
+  }
   var SEEN = {};   // nama|tanggal yang sudah masuk DB, mencegah hitungan ganda jika dua sheet tumpang tindih
   var LOADING = false;
   var S = { periode: '', mode: 'me', nama: '', cari: '', tahun: '', bulan: '', tanggal: '', urut: 'baru', status: [], smode: 'or', view: 'harian', tampil: 'kal', page: 1, size: 10 };
@@ -800,14 +1054,20 @@
     return true;
   }
 
+  function mnJam(m) { return p2(Math.floor(m / 60)) + ':' + p2(m % 60); }
   function hitung(r) {
     var c = DB.config;
     if (hitungShiftMalam(r)) return;
-    if (r.masuk && toMin(r.masuk) > toMin(c.jamMasuk) + c.toleransi) r.telat = toMin(r.masuk) - toMin(c.jamMasuk);
+    var adj = r.adj, bebas = !!adj && adj.j === 'libur';
+    var bMasuk = toMin(c.jamMasuk), bPulang = toMin(c.jamPulang);
+    if (adj && adj.j === 'lambat' && adj.m) bMasuk = Math.max(bMasuk, toMin(adj.m));   // datang lambat disetujui
+    if (adj && adj.j === 'cepat' && adj.m) bPulang = Math.min(bPulang, toMin(adj.m));  // pulang cepat disetujui
+    r.bMasuk = mnJam(bMasuk); r.bPulang = mnJam(bPulang);
+    if (!bebas && r.masuk && toMin(r.masuk) > bMasuk + c.toleransi) r.telat = toMin(r.masuk) - bMasuk;
     if (r.pulang) {
       var p = toMin(r.pulang);
       if (p > toMin(c.lemburMulai)) r.lembur = p - toMin(c.lemburMulai);
-      if (p < toMin(c.jamPulang)) r.cepat = toMin(c.jamPulang) - p;
+      if (!bebas && p < bPulang) r.cepat = bPulang - p;
     }
   }
 
@@ -857,14 +1117,15 @@
         if (SEEN[key]) return;
         SEEN[key] = true;
         var row = rec[key];
-        var r = { nama: nama, tgl: tgl, y: y, m: m, d: d, dow: dow, masuk: '', pulang: '', telat: 0, lembur: 0, cepat: 0, st: '', mg: false, malam: false };
+        var r = { nama: nama, tgl: tgl, y: y, m: m, d: d, dow: dow, masuk: '', pulang: '', telat: 0, lembur: 0, cepat: 0, st: '', mg: false, malam: false, adj: SESUAI[nk(nama) + '|' + tgl] || null };
         if (row) {
           r.masuk = row[2]; r.pulang = row[3]; r.st = 'hadir';
           // Satu kali scan yang tercatat di baris Masuk dan Pulang sekaligus (jam sama persis)
           // bukan jam kerja sungguhan: anggap hanya scan masuk, scan pulang belum ada.
           if (r.masuk && r.masuk === r.pulang) r.pulang = '';
           if (dow === 0) hitungMinggu(r); else hitung(r);
-        } else if (dow === 0) r.st = 'libur';
+        } else if (r.adj && r.adj.j === 'libur') r.st = 'libur';   // libur pengganti lembur
+        else if (dow === 0) r.st = 'libur';
         else if (LIBUR_JIKA_SEMUA_KOSONG && !has[tgl]) r.st = 'libur';
         else if (tgl === TODAY) r.st = 'belum';
         else r.st = 'absen';
@@ -891,6 +1152,7 @@
     NAMA_LIST = list;
     if (S.nama && !DB.names[S.nama]) S.nama = '';
     $('selNama').value = S.nama || '';
+    pmIsiNama();
   }
 
   function sheetsFor(tahun, bulan) {
@@ -1125,6 +1387,7 @@
     DB.periods = data.periods || [];
     DB.config = data.config;
     DB.hariIni = data.hariIni || null;
+    SESUAI = petaSesuai(data.sesuai);
 
     if (!DB.periods.length) { showError(new Error('Tidak ada sheet bulanan yang terbaca dari spreadsheet')); return; }
 
@@ -1151,6 +1414,7 @@
     initPeriode(latest);
     $('loading').hidden = true;
     $('app').hidden = false;
+    $('nav').hidden = false;
     $('btnReload').hidden = false;
     renderHariIni();
     refresh();
@@ -1191,6 +1455,7 @@
       DB.periods = data.periods || [];
       DB.config = data.config;
       DB.hariIni = data.hariIni || null;
+      SESUAI = petaSesuai(data.sesuai);
       renderHariIni();
       buildPeriods();
       var perlu = sheetDilihat().filter(function (n) { return !awal[n]; });
@@ -1486,7 +1751,7 @@
   }
 
   function chips(r) {
-    if (r.st === 'libur') return '<span class="chip off">Libur</span>';
+    if (r.st === 'libur') return '<span class="chip off">Libur</span>' + (r.adj ? '<span class="chip ot">' + esc(adjTeks(r)) + '</span>' : '');
     if (r.st === 'absen') return '<span class="chip abs">Tidak hadir</span>';
     if (r.st === 'belum') return '<span class="chip inc">Belum absen</span>';
     var out = [];
@@ -1497,6 +1762,7 @@
     if (r.cepat) out.push('<span class="chip early">Pulang cepat ' + fmtMin(r.cepat) + '</span>');
     if (r.lembur) out.push('<span class="chip ot">Lembur ' + fmtMin(r.lembur) + '</span>');
     if (!out.length) out.push('<span class="chip ok">Tepat waktu</span>');
+    if (r.adj) out.push('<span class="chip ot">' + esc(adjTeks(r)) + '</span>');
     return out.join('');
   }
 
@@ -1758,8 +2024,8 @@
              row('Terlambat / pulang cepat', 'Tidak dihitung') +
              row('Lembur', r.lembur ? esc(fmtMin(r.lembur)) : 'Tidak ada');
       } else {
-        h += row('Terlambat', r.telat ? esc(fmtMin(r.telat)) + ' <small>(batas ' + esc(DB.config.jamMasuk) + ')</small>' : 'Tidak') +
-             row('Pulang cepat', r.cepat ? esc(fmtMin(r.cepat)) + ' <small>(jadwal ' + esc(DB.config.jamPulang) + ')</small>' : 'Tidak') +
+        h += row('Terlambat', r.telat ? esc(fmtMin(r.telat)) + ' <small>(batas ' + esc(r.bMasuk || DB.config.jamMasuk) + (r.adj && r.adj.j === 'lambat' ? ', disetujui' : '') + ')</small>' : 'Tidak') +
+             row('Pulang cepat', r.cepat ? esc(fmtMin(r.cepat)) + ' <small>(batas ' + esc(r.bPulang || DB.config.jamPulang) + (r.adj && r.adj.j === 'cepat' ? ', disetujui' : ', jadwal') + ')</small>' : 'Tidak') +
              row('Lembur', r.lembur ? esc(fmtMin(r.lembur)) : 'Tidak ada');
       }
       if (isLupa(r)) h += '<div class="kd-note"><b>' + esc(lupaApa(r)) + '.</b> Jika Anda merasa sudah absen, hubungi admin untuk dicek.</div>';
@@ -1908,7 +2174,7 @@
       t: 'Terlambat', col: '#f97316', chip: 'late', vk: 'telat', vl: 'Terlambat terlama',
       d: function () { return 'Hari kerja dengan scan masuk setelah pukul ' + DB.config.jamMasuk + (DB.config.toleransi ? ' (toleransi ' + DB.config.toleransi + ' menit)' : ' (tanpa toleransi)') + '.'; },
       test: function (r) { return r.telat > 0; },
-      cols: [['Jam masuk', 'num', function (r) { return tm(r.masuk); }], ['Batas masuk', 'num', function () { return DB.config.jamMasuk; }],
+      cols: [['Jam masuk', 'num', function (r) { return tm(r.masuk); }], ['Batas masuk', 'num', function (r) { return r.bMasuk || DB.config.jamMasuk; }],
              ['Pulang', 'num', function (r) { return tm(r.pulang); }], ['Terlambat', '', function (r) { return '<span class="chip late">' + fmtMin(r.telat) + '</span>'; }]],
       ct: function (r) { return ' · ' + fmtMin(r.telat); },
       aggL: 'Total terlambat', agg: function (a) { return fmtMin(tot(a, 'telat')); },
@@ -1919,7 +2185,7 @@
       d: function () { return 'Hari kerja dengan scan pulang sebelum pukul ' + DB.config.jamPulang + '.'; },
       test: function (r) { return r.cepat > 0; },
       cols: [['Masuk', 'num', function (r) { return tm(r.masuk); }], ['Jam pulang', 'num', function (r) { return tm(r.pulang); }],
-             ['Seharusnya', 'num', function () { return DB.config.jamPulang; }], ['Lebih cepat', '', function (r) { return '<span class="chip early">' + fmtMin(r.cepat) + '</span>'; }]],
+             ['Seharusnya', 'num', function (r) { return r.bPulang || DB.config.jamPulang; }], ['Lebih cepat', '', function (r) { return '<span class="chip early">' + fmtMin(r.cepat) + '</span>'; }]],
       ct: function (r) { return ' · ' + fmtMin(r.cepat); },
       aggL: 'Total lebih cepat', agg: function (a) { return fmtMin(tot(a, 'cepat')); },
       sum: function (L) { return sumMenit(L, 'cepat', 'Kali pulang cepat'); }
@@ -2118,7 +2384,7 @@
 
   // Perbaikan: fungsi ekspor CSV dari panel detail
   function chipsTxt(r) {
-    if (r.st === 'libur') return 'Libur';
+    if (r.st === 'libur') return 'Libur' + (r.adj ? '; ' + adjTeks(r) : '');
     if (r.st === 'absen') return 'Tidak hadir';
     if (r.st === 'belum') return 'Belum absen';
     var out = [];
@@ -2129,6 +2395,7 @@
     if (r.cepat) out.push('Pulang cepat ' + fmtMin(r.cepat));
     if (r.lembur) out.push('Lembur ' + fmtMin(r.lembur));
     if (!out.length) out.push('Tepat waktu');
+    if (r.adj) out.push(adjTeks(r));
     return out.join('; ');
   }
 
@@ -2200,6 +2467,424 @@
       }
     });
   }
+
+  // =====================================================================
+  //  PERMOHONAN PENGGANTIAN LEMBUR: form karyawan, panel admin, cetak arsip
+  // =====================================================================
+  function apiPost(payload, ok, fail) {
+    function hasil(res) {
+      if (res && res.error) { var e = new Error(res.error); e.auth = !!res.auth; fail(e); } else ok(res);
+    }
+    if (APPS_SCRIPT_URL) {
+      fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) })
+        .then(function (r) { return r.json(); }).then(hasil).catch(function (e) {
+          if (e && e.name === 'SyntaxError') e = new Error('Respons server bukan data yang valid. Pastikan Web App sudah di-deploy ulang (versi baru) dengan akses "Anyone"');
+          else if (e && e.name === 'TypeError') e = new Error('Tidak bisa terhubung ke server. Periksa koneksi internet Anda');
+          fail(e);
+        });
+    } else if (window.google && google.script && google.script.run) {
+      google.script.run.withSuccessHandler(hasil).withFailureHandler(fail).pmApi(JSON.stringify(payload));
+    } else {
+      fail(new Error('URL Apps Script belum diisi. Isi APPS_SCRIPT_URL di bagian TEMPEL DISINI'));
+    }
+  }
+
+  function pmIsiNama() {
+    var dl = $('pmNamaList');
+    if (dl) dl.innerHTML = NAMA_LIST.map(function (n) { return '<option value="' + esc(n) + '">'; }).join('');
+  }
+
+  function tglPjg(iso) {
+    var p = String(iso || '').split('-');
+    if (p.length !== 3) return iso || '-';
+    var d = new Date(+p[0], +p[1] - 1, +p[2]);
+    return HARI_PANJANG[d.getDay()] + ', ' + d.getDate() + ' ' + BULAN[d.getMonth()] + ' ' + d.getFullYear();
+  }
+
+  // ---------- Tab ----------
+  var VIEW = 'abs';
+  function tampilView(v) {
+    VIEW = v;
+    $('app').hidden = v !== 'abs';
+    $('pmView').hidden = v !== 'form';
+    $('adView').hidden = v !== 'admin';
+    $('nvAbs').setAttribute('aria-pressed', v === 'abs');
+    $('nvForm').setAttribute('aria-pressed', v === 'form');
+    $('nvAdmin').setAttribute('aria-pressed', v === 'admin');
+    if (v === 'form') pmSiapForm();
+    if (v === 'admin' && AD.token) adMuat();
+    if (v === 'abs') autoRefresh();
+  }
+
+  // ---------- Form karyawan ----------
+  var PM_J = {
+    cepat: { jam: 'Boleh pulang pukul', info: 'Pada tanggal penggantian Anda boleh pulang lebih awal dari jam pulang shift, paling awal pada jam yang Anda isi. Jam harus berada di antara jam masuk dan jam pulang shift.' },
+    lambat: { jam: 'Boleh datang pukul', info: 'Pada tanggal penggantian Anda boleh masuk lebih lambat dari jam masuk shift, paling lambat pada jam yang Anda isi. Jam harus berada di antara jam masuk dan jam pulang shift.' },
+    libur: { jam: '', info: 'Tanggal penggantian dianggap libur: tidak dihitung terlambat, pulang cepat, maupun tidak hadir. Pilih tanggal yang berupa hari kerja.' }
+  };
+
+  function pmSiapForm() {
+    pmIsiNama();
+    $('pmTglL').max = hariIni();
+    $('pmTglG').min = hariIni();
+    pmUbahJenis();
+    pmUbahKeg();
+  }
+  function pmUbahKeg() {
+    var l = $('pmKeg').value === 'Lainnya';
+    $('pmDetailLbl').textContent = l ? 'Nama kegiatan (wajib)' : 'Nama kegiatan (opsional)';
+    $('pmDetail').placeholder = l ? 'Tuliskan kegiatannya' : 'Mis. Event Gathering Mitra';
+  }
+  function pmUbahJenis() {
+    var j = PM_J[$('pmJenis').value];
+    $('pmJamBox').hidden = !j || !j.jam;
+    if (j && j.jam) $('pmJamLbl').textContent = j.jam;
+    $('pmJenisInfo').textContent = j ? j.info : 'Pilih salah satu jenis penggantian. Kolom isian menyesuaikan pilihan Anda.';
+  }
+  function pmHitungDurasi() {
+    var a = $('pmMulai').value, b = $('pmSelesai').value, box = $('pmDurasi');
+    if (!a || !b) { box.textContent = 'Lama lembur akan dihitung otomatis.'; return; }
+    var d = toMin(b) - toMin(a);
+    if (d === 0) { box.textContent = 'Jam mulai dan jam selesai tidak boleh sama.'; return; }
+    if (d < 0) d += 1440;
+    box.textContent = 'Lama lembur: ' + fmtMin(d) + (toMin(b) < toMin(a) ? ' (melewati tengah malam)' : '') + '.';
+  }
+  // ---------- Saran jam (kuota dari lama lembur) ----------
+  var PM_TMR = null, PM_SEQ = 0;
+  function pmInfoTunda() { clearTimeout(PM_TMR); PM_TMR = setTimeout(pmInfoCek, 700); }
+  function pmDurTxt(m) { return fmtMin(m); }
+  function pmInfoCek() {
+    var box = $('pmSaran'), seq = ++PM_SEQ;
+    var d = { action: 'info', nama: $('pmNama').value.trim(), jenis: $('pmJenis').value, tglLembur: $('pmTglL').value, mulai: $('pmMulai').value,
+      selesai: $('pmSelesai').value, tglGanti: $('pmTglG').value, jamGanti: $('pmJamG').value };
+    var jam = PM_J[d.jenis] && PM_J[d.jenis].jam;
+    if (d.mulai && d.selesai && d.mulai !== d.selesai && d.jenis && d.jenis !== 'libur' && !(d.nama && d.tglLembur && d.tglGanti)) {
+      var du = toMin(d.selesai) - toMin(d.mulai); if (du < 0) du += 1440;
+      box.className = 'pm-saran'; box.hidden = false;
+      box.textContent = 'Lembur ' + pmDurTxt(du) + ' berarti ' + (d.jenis === 'cepat' ? 'Anda bisa pulang cepat maksimal ' : 'Anda bisa datang lambat maksimal ') + pmDurTxt(du) +
+        (d.jenis === 'cepat' ? ' sebelum jam pulang shift.' : ' setelah jam masuk shift.') + ' Lengkapi nama dan tanggal untuk melihat jam yang tepat.';
+      return;
+    }
+    if (!d.nama || !d.jenis || !d.tglLembur || !d.mulai || !d.selesai || !d.tglGanti || d.mulai === d.selesai) { box.hidden = true; return; }
+    box.className = 'pm-saran'; box.hidden = false; box.textContent = 'Memeriksa data absensi dan jadwal…';
+    apiPost(d, function (res) {
+      if (seq !== PM_SEQ) return;   // jawaban lama diabaikan
+      if (!res || !res.lengkap) { box.hidden = true; return; }
+      function li(a) { return '<ul>' + a.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>'; }
+      var h = '', bad = res.tolak && res.tolak.length;
+      if (res.kenal && res.kuota > 0) h += '<b>Lembur terverifikasi: ' + esc(pmDurTxt(res.kuota)) + '.</b>';
+      if (res.jadwal && res.kenal) h += '<div>Jadwal ' + esc(tglPjg(d.tglGanti)) + ': ' + esc(res.jadwal) + '</div>';
+      if (res.catatan && res.catatan.length) h += li(res.catatan);
+      if (bad) h += '<b>Perlu diperbaiki sebelum dikirim:</b>' + li(res.tolak);
+      else if (res.kenal) h += '<b>✅ Memenuhi syarat.</b>';
+      if (res.peringatan && res.peringatan.length) h += '<div><small>Catatan: ' + esc(res.peringatan.join(' ')) + '</small></div>';
+      if (!bad && res.kenal && d.jenis !== 'libur' && res.batasMin && res.batasMax && !d.jamGanti) {
+        var pakai = d.jenis === 'cepat' ? res.batasMin : res.batasMax;
+        h += '<button type="button" class="pm-btn ghost sm" id="pmPakai" data-jam="' + esc(pakai) + '">Pakai pukul ' + esc(pakai) + '</button>';
+      }
+      box.className = 'pm-saran ' + (bad ? 'no' : (res.kenal ? 'ok' : ''));
+      box.innerHTML = h; box.hidden = false;
+    }, function () { if (seq === PM_SEQ) box.hidden = true; });
+  }
+
+  function pmErr(msg) { var e = $('pmErr'); e.hidden = !msg; e.textContent = msg || ''; }
+
+  function pmKirim() {
+    pmErr(''); $('pmHasil').hidden = true;
+    var d = {
+      action: 'ajukan', nama: $('pmNama').value.trim(), kegiatan: $('pmKeg').value, detail: $('pmDetail').value.trim(),
+      tglLembur: $('pmTglL').value, mulai: $('pmMulai').value, selesai: $('pmSelesai').value,
+      jenis: $('pmJenis').value, tglGanti: $('pmTglG').value, jamGanti: $('pmJamG').value, ket: $('pmKet').value.trim()
+    };
+    var s = [];
+    if (!d.nama) s.push('nama lengkap');
+    if (!d.kegiatan) s.push('jenis kegiatan');
+    else if (d.kegiatan === 'Lainnya' && !d.detail) s.push('nama kegiatan');
+    if (!d.tglLembur) s.push('tanggal lembur');
+    if (!d.mulai) s.push('jam mulai lembur');
+    if (!d.selesai) s.push('jam selesai lembur');
+    if (!d.jenis) s.push('jenis penggantian');
+    if (!d.tglGanti) s.push('tanggal penggantian');
+    if (d.jenis && d.jenis !== 'libur' && !d.jamGanti) s.push(PM_J[d.jenis].jam.toLowerCase());
+    if (s.length) { pmErr('Lengkapi dulu: ' + s.join(', ') + '.'); return; }
+
+    var btn = $('pmKirim');
+    btn.disabled = true; btn.textContent = 'Memeriksa data absensi…';
+    apiPost(d, function (res) {
+      btn.disabled = false; btn.textContent = 'Kirim permohonan';
+      pmTampilHasil(res);
+    }, function (e) {
+      btn.disabled = false; btn.textContent = 'Kirim permohonan';
+      pmErr(e && e.message ? e.message : String(e));
+    });
+  }
+
+  function pmTampilHasil(res) {
+    var rs = res.ringkasan || {}, ok = res.status === 'diterima', box = $('pmHasil');
+    function li(a) { return a.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join(''); }
+    function tr(l, v) { return v ? '<tr><th>' + l + '</th><td>' + esc(v) + '</td></tr>' : ''; }
+    var h = '<h3>' + (ok ? '✅ Permohonan diterima' : '⛔ Permohonan ditolak') + (res.id ? ' <span class="pm-id">' + esc(res.id) + '</span>' : '') + '</h3><p>' + esc(res.pesan || '') + '</p>';
+    if (res.alasan && res.alasan.length) h += '<b>Alasan penolakan:</b><ul>' + li(res.alasan) + '</ul>';
+    if (res.peringatan && res.peringatan.length) h += '<b>' + (ok ? 'Catatan untuk admin' : 'Catatan tambahan') + ':</b><ul>' + li(res.peringatan) + '</ul>';
+    h += '<table>' +
+      tr('Nama', rs.nama) + tr('Kegiatan', rs.kegiatan) +
+      tr('Lembur', rs.tglLembur ? tglPjg(rs.tglLembur) + ', ' + rs.mulai + '–' + rs.selesai + ' (' + fmtMin(+rs.durasi) + ')' : '') +
+      tr('Absensi tercatat pada tanggal lembur', (rs.masuk || rs.pulang) ? 'Masuk ' + (rs.masuk || '–') + ', pulang ' + (rs.pulang || '–') + (rs.lemburCatat !== '' && rs.lemburCatat !== undefined ? ' (lembur tercatat ' + fmtMin(+rs.lemburCatat) + ')' : '') : 'Tidak ada data') +
+      tr('Lembur terverifikasi (kuota)', rs.kuota ? fmtMin(+rs.kuota) : '') +
+      tr('Jam yang boleh dipilih', rs.batasMin ? rs.batasMin + ' – ' + rs.batasMax : '') +
+      tr('Diganti dengan', rs.jenis ? rs.jenis + ', ' + tglPjg(rs.tglGanti) + (rs.jamGanti ? ' pukul ' + rs.jamGanti : '') : '') +
+      '</table>';
+    box.className = 'pm-res ' + (ok ? 'ok' : 'no');
+    box.innerHTML = h;
+    box.hidden = false;
+    box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    if (ok) pmKosongkan(true);
+  }
+
+  function pmKosongkan(simpanHasil) {
+    ['pmNama', 'pmDetail', 'pmTglL', 'pmMulai', 'pmSelesai', 'pmTglG', 'pmJamG', 'pmKet'].forEach(function (id) { $(id).value = ''; });
+    $('pmKeg').value = ''; $('pmJenis').value = '';
+    pmErr(''); if (!simpanHasil) $('pmHasil').hidden = true;
+    $('pmSaran').hidden = true; PM_SEQ++;
+    pmUbahJenis(); pmUbahKeg(); pmHitungDurasi();
+  }
+
+  // ---------- Admin ----------
+  var AD = { token: '', admin: '', tab: 'menunggu', data: { menunggu: [], riwayat: [] } };
+
+  function adErr(id, msg, ok) { var e = $(id); e.hidden = !msg; e.textContent = msg || ''; e.style.color = ok ? '#047857' : ''; }
+
+  function adMasuk() {
+    var nama = $('adNama').value.trim(), pin = $('adPin').value;
+    if (!nama || !pin) { adErr('adErr', 'Isi nama admin dan PIN.'); return; }
+    var b = $('adMasuk'); b.disabled = true; b.textContent = 'Memeriksa…'; adErr('adErr', '');
+    apiPost({ action: 'login', admin: nama, pin: pin }, function (res) {
+      b.disabled = false; b.textContent = 'Masuk';
+      AD.token = res.token; AD.admin = res.admin; $('adPin').value = '';
+      adTampilPanel(); adMuat();
+    }, function (e) { b.disabled = false; b.textContent = 'Masuk'; adErr('adErr', e.message); });
+  }
+  function adTampilPanel() {
+    $('adLogin').hidden = !!AD.token;
+    $('adPanel').hidden = !AD.token;
+    $('adWho').textContent = AD.admin ? 'Masuk sebagai ' + AD.admin : '';
+  }
+  function adKeluarLokal() { AD.token = ''; AD.admin = ''; AD.data = { menunggu: [], riwayat: [] }; adTampilPanel(); }
+  function adKeluar() {
+    var t = AD.token; adKeluarLokal();
+    if (t) apiPost({ action: 'logout', token: t }, function () {}, function () {});
+  }
+  function adMuat() {
+    if (!AD.token) return;
+    var b = $('adMuat'); b.disabled = true; b.textContent = '↻ Memuat…';
+    apiPost({ action: 'daftar', token: AD.token }, function (res) {
+      b.disabled = false; b.textContent = '↻ Muat ulang';
+      AD.data = res; adErr('adErr2', ''); adRender();
+    }, function (e) {
+      b.disabled = false; b.textContent = '↻ Muat ulang';
+      if (e.auth) { adKeluarLokal(); adErr('adErr', e.message); } else adErr('adErr2', e.message);
+    });
+  }
+
+  function adSetTab(t) {
+    AD.tab = t;
+    $('adTMenunggu').setAttribute('aria-pressed', t === 'menunggu');
+    $('adTRiwayat').setAttribute('aria-pressed', t === 'riwayat');
+    $('adStWrap').hidden = t !== 'riwayat';
+    adRender();
+  }
+
+  function adRender() {
+    var n = (AD.data.menunggu || []).length;
+    $('adTMenunggu').textContent = 'Menunggu (' + n + ')';
+    $('adTRiwayat').textContent = 'Riwayat (' + (AD.data.riwayat || []).length + ')';
+    var jn = $('adJenis').value, st = $('adStatus').value, q = $('adCari').value.trim().toLowerCase();
+    var list = (AD.tab === 'menunggu' ? AD.data.menunggu : AD.data.riwayat) || [];
+    list = list.filter(function (o) {
+      if (jn && o.jenis !== jn) return false;
+      if (AD.tab === 'riwayat' && st && o.status !== st) return false;
+      if (q && (o.nama + ' ' + o.id).toLowerCase().indexOf(q) < 0) return false;
+      return true;
+    });
+    $('adList').innerHTML = list.length ? list.map(adKartu).join('') :
+      '<div class="pm-empty">' + (AD.tab === 'menunggu' ? 'Tidak ada permohonan yang menunggu keputusan.' : 'Belum ada riwayat yang cocok.') + '</div>';
+  }
+
+  function adKartu(o) {
+    var st = o.status || 'Menunggu';
+    var stChip = st === 'Disetujui' ? 'ok' : (st.indexOf('Ditolak') === 0 ? 'abs' : 'inc');
+    var jChip = o.jenis === 'Pulang Cepat' ? 'early' : (o.jenis === 'Datang Lambat' ? 'late' : 'ot');
+    function kv(l, v) { return '<div><span>' + l + '</span><b>' + (v || '–') + '</b></div>'; }
+    var lembur = o.tglLembur ? esc(tglPjg(o.tglLembur)) + '<br>' + esc(o.mulai) + '–' + esc(o.selesai) + ' (' + esc(fmtMin(+o.durasi)) + ')' : '';
+    var absen = (o.masuk || o.pulang) ? 'Masuk ' + esc(o.masuk || '–') + ', pulang ' + esc(o.pulang || '–') +
+      (o.lemburCatat !== '' ? '<br>Lembur tercatat ' + esc(fmtMin(+o.lemburCatat)) : '') : 'Tidak ada data';
+    var ganti = esc(tglPjg(o.tglGanti)) + (o.jamGanti ? '<br>pukul ' + esc(o.jamGanti) : '');
+    var h = '<article class="pm-it st-' + esc(st.replace(/\s+/g, '-')) + '">' +
+      '<div class="pm-it-h"><b>' + esc(o.nama) + '</b><span class="chip ' + jChip + '">' + esc(o.jenis) + '</span><span class="chip ' + stChip + '">' + esc(st) + '</span><span class="pm-it-id">' + esc(o.id) + '</span></div>' +
+      '<div class="pm-kv">' + kv('Kegiatan', esc(o.kegiatan)) + kv('Lembur', lembur) + kv('Absensi pada tanggal lembur', absen) +
+      kv('Diganti dengan', ganti) + kv('Jadwal tanggal penggantian', esc(o.jadwalGanti)) + kv('Diajukan', esc(o.diajukan)) + '</div>';
+    if (o.ket) h += '<div class="pm-note"><b>Keterangan pemohon:</b> ' + esc(o.ket) + '</div>';
+    if (o.verif) h += '<div class="pm-note' + (/^DITOLAK/.test(o.verif) ? ' bad' : '') + '"><b>Verifikasi sistem:</b> ' + esc(o.verif) + '</div>';
+    if (o.oleh) {
+      h += '<div class="pm-note"><b>Keputusan:</b> ' + esc(st) + ' oleh ' + esc(o.oleh) + ' pada ' + esc(o.waktuPutus) +
+        (o.catatan ? '<br><b>Catatan:</b> ' + esc(o.catatan) : '') + (o.penerapan ? '<br><b>Absensi:</b> ' + esc(o.penerapan) : '') + '</div>';
+    }
+    h += '<div class="pm-it-a">';
+    if (st === 'Menunggu') h += '<button type="button" class="pm-btn ok sm" data-a="setuju" data-id="' + esc(o.id) + '">✅ Setujui</button><button type="button" class="pm-btn no sm" data-a="tolak" data-id="' + esc(o.id) + '">❌ Tolak</button>';
+    h += '<button type="button" class="pm-btn ghost sm" data-a="cetak" data-id="' + esc(o.id) + '">🖨 Cetak</button></div></article>';
+    return h;
+  }
+
+  function adCari(id) {
+    var a = (AD.data.menunggu || []).concat(AD.data.riwayat || []);
+    for (var i = 0; i < a.length; i++) if (a[i].id === id) return a[i];
+    return null;
+  }
+
+  // ---------- Dialog keputusan ----------
+  var DLG = null;
+  function pmDialog(judul, teks, label, wajib, tombol, proses) {
+    DLG = { wajib: wajib, proses: proses, tombol: tombol };
+    $('pmDlgT').textContent = judul; $('pmDlgP').textContent = teks; $('pmDlgL').textContent = label;
+    $('pmDlgCat').value = ''; $('pmDlgErr').hidden = true;
+    $('pmDlgOk').textContent = tombol; $('pmDlgOk').disabled = false; $('pmDlgBatal').disabled = false;
+    $('pmDlgBack').hidden = false;
+    $('pmDlgCat').focus();
+  }
+  function pmDlgTutup() { $('pmDlgBack').hidden = true; DLG = null; }
+  function pmDlgOk() {
+    if (!DLG) return;
+    var cat = $('pmDlgCat').value.trim();
+    if (DLG.wajib && !cat) { $('pmDlgErr').hidden = false; $('pmDlgErr').textContent = 'Kolom ini wajib diisi.'; return; }
+    var ok = $('pmDlgOk'), bt = $('pmDlgBatal'), tb = DLG.tombol;
+    ok.disabled = true; bt.disabled = true; ok.textContent = 'Memproses… mohon tunggu';
+    $('pmDlgErr').hidden = true;
+    DLG.proses(cat, function () { pmDlgTutup(); }, function (msg) {
+      ok.disabled = false; bt.disabled = false; ok.textContent = tb;
+      $('pmDlgErr').hidden = false; $('pmDlgErr').textContent = msg;
+    });
+  }
+
+  function adPutuskan(o, setuju) {
+    pmDialog(setuju ? 'Setujui permohonan?' : 'Tolak permohonan?',
+      o.nama + ' · ' + o.jenis + ' · ' + tglPjg(o.tglGanti) + (o.jamGanti ? ' pukul ' + o.jamGanti : '') +
+      (setuju ? '. Setelah disetujui, detail absensi akan diperbarui otomatis (bisa memakan waktu beberapa detik).' : '. Absensi tidak akan diubah.'),
+      setuju ? 'Catatan admin (opsional)' : 'Alasan penolakan (wajib)', !setuju, setuju ? 'Setujui' : 'Tolak',
+      function (cat, selesai, gagal) {
+        apiPost({ action: 'putuskan', token: AD.token, id: o.id, keputusan: setuju ? 'setuju' : 'tolak', catatan: cat }, function (res) {
+          selesai();
+          adErr('adErr2', res.id + ': ' + res.status + '. ' + (res.penerapan || ''), !/GAGAL/.test(res.penerapan || ''));
+          if (/GAGAL/.test(res.penerapan || '')) $('adErr2').style.color = '';
+          adMuat();
+        }, function (e) {
+          if (e.auth) { selesai(); adKeluarLokal(); adErr('adErr', e.message); } else gagal(e.message);
+        });
+      });
+  }
+
+  // ---------- Cetak arsip ----------
+  function cetakPermohonan(o) {
+    var st = o.status || 'Menunggu';
+    function v(x) { x = (x === undefined || x === null) ? '' : String(x).trim(); return x ? esc(x) : '–'; }
+    function tr(l, val) { return '<tr><th>' + l + '</th><td>' + val + '</td></tr>'; }
+    var stempel = st === 'Menunggu' ? 'MENUNGGU KEPUTUSAN' : st.toUpperCase();
+    var verifLines = String(o.verif || '').split(/\s*\|\|\s*|\s*\|\s*/).filter(Boolean);
+    var jamLbl = o.jenis === 'Pulang Cepat' ? 'Jam pulang yang disetujui (paling awal)' : (o.jenis === 'Datang Lambat' ? 'Jam datang yang disetujui (paling lambat)' : 'Jam');
+    var now = new Date();
+    var cetakTxt = now.getDate() + ' ' + BULAN[now.getMonth()] + ' ' + now.getFullYear() + ' ' + p2(now.getHours()) + ':' + p2(now.getMinutes());
+
+    var h = '<div class="pr-kop"><h1>ABSENSI KSU</h1><h2>FORMULIR PERMOHONAN PENGGANTIAN LEMBUR</h2><p>Arsip hard file kantor</p></div>' +
+      '<div class="pr-meta"><div><b>No. Dokumen:</b> ' + v(o.id) + '</div><div><b>Dicetak:</b> ' + esc(cetakTxt) + (AD.admin ? ' oleh ' + esc(AD.admin) : '') + '</div></div>' +
+      '<div class="pr-stamp"><span>' + esc(stempel) + '</span></div>' +
+
+      '<h3>A. DATA PEMOHON</h3><table>' + tr('Nama lengkap', v(o.nama)) + tr('Tanggal &amp; waktu pengajuan', v(o.diajukan)) + '</table>' +
+
+      '<h3>B. DETAIL LEMBUR YANG DILAKSANAKAN</h3><table>' +
+      tr('Kegiatan', v(o.kegiatan)) + tr('Tanggal lembur', v(o.tglLembur ? tglPjg(o.tglLembur) : '')) +
+      tr('Jam lembur (diajukan)', v(o.mulai) + ' s/d ' + v(o.selesai)) +
+      tr('Lama lembur (diajukan)', o.durasi ? esc(fmtMin(+o.durasi)) + ' (' + esc(o.durasi) + ' menit)' : '–') + '</table>' +
+
+      '<h3>C. HASIL PEMERIKSAAN DATA ABSENSI</h3><table>' +
+      tr('Shift terjadwal pada tanggal lembur', v(o.shiftLembur)) + tr('Jam masuk tercatat', v(o.masuk)) + tr('Jam pulang tercatat', v(o.pulang)) +
+      tr('Lembur tercatat menurut absensi', o.lemburCatat !== '' && o.lemburCatat !== undefined ? esc(fmtMin(+o.lemburCatat)) + ' (' + esc(o.lemburCatat) + ' menit)' : '–') +
+      tr('Hasil verifikasi sistem', verifLines.length ? '<ul class="pr-log">' + verifLines.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' : '–') + '</table>' +
+
+      '<h3>D. PERMOHONAN PENGGANTIAN</h3><table>' +
+      tr('Diganti dengan', v(o.jenis)) + tr('Tanggal penggantian', v(o.tglGanti ? tglPjg(o.tglGanti) : '')) +
+      (o.jenis !== 'Libur' ? tr(jamLbl, v(o.jamGanti)) : '') +
+      tr('Jadwal kerja pada tanggal penggantian', v(o.jadwalGanti)) + tr('Keterangan pemohon', v(o.ket)) + '</table>' +
+
+      '<h3>E. KEPUTUSAN</h3><table>' +
+      tr('Status', st === 'Menunggu' ? '&#9744; Disetujui &nbsp;&nbsp;&nbsp; &#9744; Ditolak' : '<b>' + esc(st) + '</b>') +
+      tr('Diputuskan oleh', v(o.oleh)) + tr('Waktu keputusan', v(o.waktuPutus)) +
+      tr('Catatan / alasan', st === 'Menunggu' ? '<br><br>' : v(o.catatan)) +
+      tr('Penerapan ke detail absensi', st === 'Menunggu' ? 'Belum diterapkan (menunggu keputusan)' : v(o.penerapan)) + tr('Waktu penerapan', v(o.waktuTerap)) + '</table>' +
+
+      '<h3>F. RIWAYAT PROSES</h3><ol class="pr-log">' +
+      '<li>' + v(o.diajukan) + ': permohonan diajukan oleh ' + v(o.nama) + '.</li>' +
+      '<li>' + v(o.diajukan) + ': ' + (/^DITOLAK/.test(o.verif || '') ? 'verifikasi sistem: ditolak otomatis.' : 'verifikasi sistem: data absensi tanggal lembur ditemukan.') + '</li>' +
+      (o.oleh ? '<li>' + v(o.waktuPutus) + ': ' + esc(st) + ' oleh ' + v(o.oleh) + '.</li>' : '<li>Menunggu keputusan admin.</li>') +
+      (o.waktuTerap ? '<li>' + v(o.waktuTerap) + ': ' + v(o.penerapan) + '.</li>' : '') + '</ol>' +
+
+      '<div class="pr-sign">' +
+      '<div>Pemohon<div class="ttd"></div>(' + v(o.nama) + ')</div>' +
+      '<div>Atasan Langsung<div class="ttd"></div>(……………………)</div>' +
+      '<div>Admin / HRD<div class="ttd"></div>(' + (o.oleh ? v(o.oleh) : '……………………') + ')</div>' +
+      '<div>Mengetahui<div class="ttd"></div>(……………………)</div></div>' +
+      '<div class="pr-foot">Dokumen ini dicetak dari aplikasi Absensi KSU sebagai arsip. No. dokumen ' + v(o.id) + '. Tanggal, jam, dan hasil pemeriksaan diambil otomatis dari data sistem pada saat permohonan diproses.</div>';
+
+    $('printArea').innerHTML = h;
+    var judul = document.title;
+    document.title = 'Permohonan ' + o.id + ' - ' + o.nama;
+    var kembali = function () { document.title = judul; window.removeEventListener('afterprint', kembali); };
+    window.addEventListener('afterprint', kembali);
+    window.print();
+  }
+
+  // ---------- Pemasangan ----------
+  (function bindPermohonan() {
+    $('nvAbs').onclick = function () { tampilView('abs'); };
+    $('nvForm').onclick = function () { tampilView('form'); };
+    $('nvAdmin').onclick = function () { tampilView('admin'); adTampilPanel(); };
+
+    $('pmKeg').addEventListener('change', pmUbahKeg);
+    $('pmJenis').addEventListener('change', pmUbahJenis);
+    $('pmMulai').addEventListener('input', pmHitungDurasi);
+    $('pmSelesai').addEventListener('input', pmHitungDurasi);
+    ['pmNama', 'pmTglL', 'pmMulai', 'pmSelesai', 'pmTglG', 'pmJamG'].forEach(function (id) {
+      $(id).addEventListener('input', pmInfoTunda); $(id).addEventListener('change', pmInfoTunda);
+    });
+    $('pmJenis').addEventListener('change', pmInfoTunda);
+    $('pmSaran').addEventListener('click', function (e) {
+      var b = e.target.closest ? e.target.closest('#pmPakai') : null;
+      if (b) { $('pmJamG').value = b.getAttribute('data-jam'); pmInfoCek(); }
+    });
+    $('pmKirim').onclick = pmKirim;
+    $('pmReset').onclick = function () { pmKosongkan(false); };
+
+    $('adMasuk').onclick = adMasuk;
+    $('adPin').addEventListener('keydown', function (e) { if (e.key === 'Enter') adMasuk(); });
+    $('adMuat').onclick = adMuat;
+    $('adKeluar').onclick = adKeluar;
+    $('adTMenunggu').onclick = function () { adSetTab('menunggu'); };
+    $('adTRiwayat').onclick = function () { adSetTab('riwayat'); };
+    $('adJenis').addEventListener('change', adRender);
+    $('adStatus').addEventListener('change', adRender);
+    $('adCari').addEventListener('input', adRender);
+    $('adList').addEventListener('click', function (e) {
+      var b = e.target.closest ? e.target.closest('button[data-a]') : null;
+      if (!b) return;
+      var o = adCari(b.getAttribute('data-id'));
+      if (!o) return;
+      var a = b.getAttribute('data-a');
+      if (a === 'cetak') cetakPermohonan(o);
+      else if (a === 'setuju') adPutuskan(o, true);
+      else if (a === 'tolak') adPutuskan(o, false);
+    });
+    $('pmDlgOk').onclick = pmDlgOk;
+    $('pmDlgBatal').onclick = pmDlgTutup;
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && DLG && !$('pmDlgBatal').disabled) pmDlgTutup(); });
+  })();
 </script>
 </body>
 </html>
