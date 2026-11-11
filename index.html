@@ -316,6 +316,7 @@
   .stat.forgot { border-top-color: #eab308; }
   .stat.forgot b { color: #a16207; }
   .chip.forgot { background: #fef3c7; color: #92400e; }
+  .chip.viol { background: #dc2626; color: #fff; font-weight: 700; }   /* melanggar jam izin yang sudah disetujui */
   .chip.night { background: #dbe4ff; color: #1e3a8a; }
 
   .dt-back { position: fixed; inset: 0; z-index: 200; background: rgba(15, 30, 70, .5); }
@@ -392,6 +393,7 @@
   .kal-c.ok, .kal-legend i.ok { background: var(--ok-soft); color: var(--ok); border-color: #a8e3c6; }
   .kal-c.warn, .kal-legend i.warn { background: #fef3c7; color: #92400e; border-color: #f2d97a; }
   .kal-c.abs, .kal-legend i.abs { background: var(--abs-soft); color: var(--abs); border-color: #f5b5b5; }
+  .kal-c.viol, .kal-legend i.viol { background: #dc2626; color: #fff; border-color: #991b1b; }
   .kal-c.off, .kal-legend i.off { background: var(--off-soft); color: #4a5d80; border-color: #cbd7ea; }
   .kal-c.mg, .kal-legend i.mg { background: var(--brand-soft); color: var(--brand-dark); border-color: #b9cdf0; }
   .kal-c.none, .kal-legend i.none { background: transparent; color: #9aa8c2; border: 1.5px dashed var(--line); }
@@ -996,7 +998,7 @@
   // Tempel URL Web App dari Apps Script di antara tanda kutip.
   // Contoh: 'https://script.google.com/macros/s/XXXX/exec'
   // ============================================================
-  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxoBkCXimnJQx3gYPsCBMSukqGIRQFvcl6McGNm1QrsKsIN0v3s_oRx_VFLB20K1RQmHA/exec';
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwHiQntxBowqUf327fJIbx91CPITUZxPAEOU5afQJDbTTOW8W5aezUKOT91z9h8MgtDIg/exec';
   // ============================================================
 
   function p2(n) { return (n < 10 ? '0' : '') + n; }
@@ -1080,11 +1082,17 @@
     if (adj && adj.j === 'lambat' && adj.m) bMasuk = Math.max(bMasuk, toMin(adj.m));   // datang lambat disetujui
     if (adj && adj.j === 'cepat' && adj.m) bPulang = Math.min(bPulang, toMin(adj.m));  // pulang cepat disetujui
     r.bMasuk = mnJam(bMasuk); r.bPulang = mnJam(bPulang);
-    if (!bebas && r.masuk && toMin(r.masuk) > bMasuk + c.toleransi) r.telat = toMin(r.masuk) - bMasuk;
+    if (!bebas && r.masuk && toMin(r.masuk) > bMasuk + c.toleransi) {
+      r.telat = toMin(r.masuk) - bMasuk;
+      if (adj && adj.j === 'lambat' && adj.m && bMasuk > toMin(c.jamMasuk)) r.langgar = 'lambat';   // masuk lebih lambat dari jam yang disetujui
+    }
     if (r.pulang) {
       var p = toMin(r.pulang);
       if (p > toMin(c.lemburMulai)) r.lembur = p - toMin(c.lemburMulai);
-      if (!bebas && p < bPulang) r.cepat = bPulang - p;
+      if (!bebas && p < bPulang) {
+        r.cepat = bPulang - p;
+        if (adj && adj.j === 'cepat' && adj.m && bPulang < toMin(c.jamPulang)) r.langgar = 'cepat';   // pulang lebih awal dari jam yang disetujui
+      }
     }
   }
 
@@ -1325,9 +1333,9 @@
         var c = '';
         if (x.s) c += '<span class="chip inc">' + esc(x.s) + '</span>';
         if (x.x) c += '<span class="chip forgot">Tanpa jadwal</span>';
-        if (x.t) c += '<span class="chip late">Terlambat ' + esc(fmtMin(x.t)) + '</span>';
+        if (x.t) c += x.g === 't' ? '<span class="chip viol">Melanggar izin datang lambat ' + esc(fmtMin(x.t)) + '</span>' : '<span class="chip late">Terlambat ' + esc(fmtMin(x.t)) + '</span>';
         else if (x.m && x.s) c += '<span class="chip ok">Tepat waktu</span>';
-        if (x.c) c += '<span class="chip early">Pulang cepat ' + esc(fmtMin(x.c)) + '</span>';
+        if (x.c) c += x.g === 'c' ? '<span class="chip viol">Melanggar izin pulang cepat ' + esc(fmtMin(x.c)) + '</span>' : '<span class="chip early">Pulang cepat ' + esc(fmtMin(x.c)) + '</span>';
         if (x.l) c += '<span class="chip ot">Lembur ' + esc(fmtMin(x.l)) + '</span>';
         if (!x.m) c += '<span class="chip inc">Belum absen masuk</span>';
         else if (!x.p) c += '<span class="chip inc">Belum absen pulang</span>';
@@ -1777,8 +1785,12 @@
     if (r.mg) out.push('<span class="chip off">Libur (masuk)</span>');
     if (r.malam) out.push('<span class="chip night">Shift malam</span>');
     if (!r.masuk || !r.pulang) out.push('<span class="chip inc">' + (r.masuk ? 'Belum absen pulang' : 'Belum absen masuk') + '</span>');
-    if (r.telat) out.push('<span class="chip late">Terlambat ' + fmtMin(r.telat) + '</span>');
-    if (r.cepat) out.push('<span class="chip early">Pulang cepat ' + fmtMin(r.cepat) + '</span>');
+    if (r.telat) out.push(r.langgar === 'lambat'
+      ? '<span class="chip viol">Melanggar izin datang lambat ' + fmtMin(r.telat) + ' (izin ' + esc(r.bMasuk) + ')</span>'
+      : '<span class="chip late">Terlambat ' + fmtMin(r.telat) + '</span>');
+    if (r.cepat) out.push(r.langgar === 'cepat'
+      ? '<span class="chip viol">Melanggar izin pulang cepat ' + fmtMin(r.cepat) + ' (izin ' + esc(r.bPulang) + ')</span>'
+      : '<span class="chip early">Pulang cepat ' + fmtMin(r.cepat) + '</span>');
     if (r.lembur) out.push('<span class="chip ot">Lembur ' + fmtMin(r.lembur) + '</span>');
     if (!out.length) out.push('<span class="chip ok">Tepat waktu</span>');
     if (r.adj) out.push('<span class="chip ot">' + esc(adjTeks(r)) + '</span>');
@@ -1892,14 +1904,15 @@
 
   var HARI_PJG = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
   var KAL = { recs: {}, tgl: '', buka: false };
-  var KAL_LBL = { ok: 'Tepat waktu', warn: 'Terlambat / belum lengkap', abs: 'Tidak hadir', off: 'Libur', mg: 'Masuk saat libur', none: 'Belum ada data' };
-  var KAL_WARNA = { ok: '#10b981', warn: '#eab308', abs: '#ef4444', off: '#94a3b8', mg: '#1d5ff0', none: '#94a3b8' };
+  var KAL_LBL = { ok: 'Tepat waktu', warn: 'Terlambat / belum lengkap', abs: 'Tidak hadir', viol: 'Melanggar jam izin', off: 'Libur', mg: 'Masuk saat libur', none: 'Belum ada data' };
+  var KAL_WARNA = { ok: '#10b981', warn: '#eab308', abs: '#ef4444', viol: '#dc2626', off: '#94a3b8', mg: '#1d5ff0', none: '#94a3b8' };
 
   function kalKelas(r) {
     if (!r) return 'none';
     if (r.st === 'libur') return 'off';
     if (r.st === 'absen') return 'abs';
     if (r.st === 'belum') return 'warn';
+    if (r.langgar) return 'viol';
     if (r.telat > 0 || r.cepat > 0 || isLupa(r)) return 'warn';
     return r.mg ? 'mg' : 'ok';
   }
@@ -1942,7 +1955,7 @@
     KAL.recs = recs;
 
     var dates = rangeDates(rg.s, rg.e);
-    var c = { ok: 0, warn: 0, abs: 0, off: 0, mg: 0, none: 0 }, cek = [];
+    var c = { ok: 0, warn: 0, abs: 0, viol: 0, off: 0, mg: 0, none: 0 }, cek = [];
     var a0 = dates[0].split('-');
     var lead = (new Date(+a0[0], +a0[1] - 1, +a0[2]).getDay() + 6) % 7;
 
@@ -1989,7 +2002,7 @@
       '<button type="button" data-nav="-1" aria-label="Sebelumnya"' + (prevOk ? '' : ' disabled') + '>‹</button>' +
       '<button type="button" data-nav="1" aria-label="Berikutnya"' + (nextOk ? '' : ' disabled') + '>›</button></div></div>';
 
-    h += '<div class="kal-legend">' + ['ok', 'warn', 'abs', 'off', 'mg', 'none'].filter(function (k) {
+    h += '<div class="kal-legend">' + ['ok', 'warn', 'viol', 'abs', 'off', 'mg', 'none'].filter(function (k) {
       return c[k] > 0 || k === 'ok' || k === 'warn' || k === 'abs' || k === 'off';
     }).map(function (k) {
       return '<span><i class="' + k + '"></i>' + KAL_LBL[k] + ' <b>' + c[k] + '</b></span>';
@@ -2043,8 +2056,8 @@
              row('Terlambat / pulang cepat', 'Tidak dihitung') +
              row('Lembur', r.lembur ? esc(fmtMin(r.lembur)) : 'Tidak ada');
       } else {
-        h += row('Terlambat', r.telat ? esc(fmtMin(r.telat)) + ' <small>(batas ' + esc(r.bMasuk || DB.config.jamMasuk) + (r.adj && r.adj.j === 'lambat' ? ', disetujui' : '') + ')</small>' : 'Tidak') +
-             row('Pulang cepat', r.cepat ? esc(fmtMin(r.cepat)) + ' <small>(batas ' + esc(r.bPulang || DB.config.jamPulang) + (r.adj && r.adj.j === 'cepat' ? ', disetujui' : ', jadwal') + ')</small>' : 'Tidak') +
+        h += row('Terlambat', r.telat ? esc(fmtMin(r.telat)) + ' <small>(batas ' + esc(r.bMasuk || DB.config.jamMasuk) + (r.adj && r.adj.j === 'lambat' ? ', disetujui' : '') + ')</small>' + (r.langgar === 'lambat' ? ' <span class="chip viol">Melanggar izin</span>' : '') : 'Tidak') +
+             row('Pulang cepat', r.cepat ? esc(fmtMin(r.cepat)) + ' <small>(batas ' + esc(r.bPulang || DB.config.jamPulang) + (r.adj && r.adj.j === 'cepat' ? ', disetujui' : ', jadwal') + ')</small>' + (r.langgar === 'cepat' ? ' <span class="chip viol">Melanggar izin</span>' : '') : 'Tidak') +
              row('Lembur', r.lembur ? esc(fmtMin(r.lembur)) : 'Tidak ada');
       }
       if (isLupa(r)) h += '<div class="kd-note"><b>' + esc(lupaApa(r)) + '.</b> Jika Anda merasa sudah absen, hubungi admin untuk dicek.</div>';
