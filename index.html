@@ -428,6 +428,44 @@
     .kd .dt-foot { padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
   }
   [hidden] { display: none !important; }
+
+  /* ---- Kartu "Hadir hari ini" ---- */
+  .today {
+    margin-top: 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+    border-left: 5px solid #22c55e; padding: 14px 18px 12px; box-shadow: 0 2px 8px rgba(29, 95, 240, .07);
+  }
+  .today[hidden] { display: none; }
+  .today-top { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+  .today-id { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .today-ic { flex: 0 0 auto; width: 44px; height: 44px; border-radius: 12px; background: var(--ok-soft); display: grid; place-items: center; font-size: 22px; }
+  .today-lbl { display: block; font-weight: 700; font-size: 16px; line-height: 1.25; }
+  .today-date { display: block; color: var(--muted); font-size: 13.5px; font-weight: 500; }
+  .today-num { flex: 0 0 auto; text-align: right; line-height: 1.1; }
+  .today-num b { font-size: 36px; font-weight: 700; color: var(--ok); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+  .today-num span { display: block; margin-top: 2px; color: var(--muted); font-size: 13px; font-weight: 600; }
+  .today-bar { height: 8px; margin-top: 12px; background: var(--off-soft); border-radius: 999px; overflow: hidden; }
+  .today-bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #22c55e, #16a34a); border-radius: 999px; transition: width .5s ease; }
+  .today-sub { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-top: 10px; font-size: 12.5px; color: var(--muted); }
+  .today-sub .chip-t { padding: 2px 10px; border-radius: 999px; font-weight: 700; background: var(--ok-soft); color: var(--ok); font-variant-numeric: tabular-nums; }
+  .today-sub .chip-t.warn { background: #fef3c7; color: #a16207; }
+  .today-sub .sp { flex: 1 1 auto; }
+  .today.off { border-left-color: #94a3b8; }
+  .today.off .today-ic { background: var(--off-soft); }
+  .today.off .today-top { align-items: center; }
+  @media (max-width: 640px) {
+    .today { padding: 12px 14px 10px; border-radius: 14px; }
+    .today-ic { width: 40px; height: 40px; font-size: 20px; border-radius: 11px; }
+    .today-lbl { font-size: 15px; }
+    .today-date { font-size: 12.5px; }
+    .today-num b { font-size: 32px; }
+    .today-num span { font-size: 12px; }
+    .today-sub .sp { display: none; }
+  }
+  @media (max-width: 360px) {
+    .today-top { flex-wrap: wrap; }
+    .today-num { text-align: left; }
+  }
+  @media (prefers-reduced-motion: reduce) { .today-bar i { transition: none; } }
 </style>
 </head>
 <body>
@@ -442,6 +480,8 @@
   <div id="error" class="error" hidden></div>
 
   <main id="app" hidden>
+    <section class="today" id="today" aria-label="Kehadiran hari ini" hidden></section>
+
     <section class="panel" aria-label="Filter data">
       <div class="seg" role="group" aria-label="Pilih data">
         <button type="button" id="mMe" aria-pressed="true">Data saya</button>
@@ -614,14 +654,14 @@
   // Tempel URL Web App dari Apps Script di antara tanda kutip.
   // Contoh: 'https://script.google.com/macros/s/XXXX/exec'
   // ============================================================
-  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxkwwWnxJuy2GN8tYoBInO_g_AB5nRWy8Cn8xuusfGEcAdxcSQLrE5VpnLVV9HP-Qg3Pw/exec';
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwCCsr6Pc3Tq_K54AHidYCuPQbFyQy4uclOSmPurm_CHIqaW467O_yXsZ1rgBhGDDc4fQ/exec';
   // ============================================================
 
   function p2(n) { return (n < 10 ? '0' : '') + n; }
   function hariIni() { var n = new Date(); return n.getFullYear() + '-' + p2(n.getMonth() + 1) + '-' + p2(n.getDate()); }
   var TODAY = hariIni();
 
-  var DB = { periods: [], records: [], names: {}, config: null };
+  var DB = { periods: [], records: [], names: {}, config: null, hariIni: null };
   var LOADED = {};
   var SEEN = {};   // nama|tanggal yang sudah masuk DB, mencegah hitungan ganda jika dua sheet tumpang tindih
   var LOADING = false;
@@ -814,9 +854,48 @@
     $('selTahun').innerHTML = yl.map(function (y) { return '<option value="' + y + '">' + y + '</option>'; }).join('');
   }
 
+
+  // ---- Kartu "Hadir hari ini" (data dari server: sheet bulanan yang memuat tanggal berjalan) ----
+  var HARI_PANJANG = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+  function renderHariIni() {
+    var box = $('today'), d = DB.hariIni;
+    if (!d || d.ok === false || !d.tgl) { box.hidden = true; box.innerHTML = ''; return; }   // gagal dihitung: kartu disembunyikan, data lain tetap tampil
+    var pt = d.tgl.split('-'), dt = new Date(+pt[0], +pt[1] - 1, +pt[2]);
+    var tglTxt = HARI_PANJANG[dt.getDay()] + ', ' + dt.getDate() + ' ' + BULAN[dt.getMonth()] + ' ' + dt.getFullYear();
+    var ic = '<div class="today-ic" aria-hidden="true">👥</div>';
+    box.className = 'today';
+
+    if (d.diLuar) {
+      box.className = 'today off';
+      box.innerHTML = '<div class="today-top"><div class="today-id">' + ic + '<div><span class="today-lbl">Hadir hari ini</span>' +
+        '<span class="today-date">' + esc(tglTxt) + ' · belum ada sheet absensi untuk tanggal ini</span></div></div></div>';
+      box.hidden = false;
+      return;
+    }
+
+    var hadir = +d.hadir || 0, jadwal = d.jadwal, dasar = (jadwal !== null && jadwal !== undefined) ? +jadwal : (+d.total || 0);
+    var pct = dasar > 0 ? Math.min(100, Math.round(hadir * 100 / dasar)) : 0;
+    var ket = (jadwal !== null && jadwal !== undefined) ? 'dari ' + jadwal + ' terjadwal' : 'karyawan';
+
+    var sub = '';
+    if (dasar > 0) sub += '<span class="chip-t">' + pct + '% hadir</span>';
+    if (d.belum !== null && d.belum !== undefined && +d.belum > 0) sub += '<span class="chip-t warn">' + d.belum + ' belum absen</span>';
+    sub += '<span class="sp"></span>';
+    if (d.jam) sub += '<span>Diperbarui ' + esc(d.jam) + '</span>';
+
+    box.innerHTML =
+      '<div class="today-top"><div class="today-id">' + ic +
+        '<div><span class="today-lbl">Hadir hari ini</span><span class="today-date">' + esc(tglTxt) + '</span></div></div>' +
+        '<div class="today-num"><b>' + hadir + '</b><span>' + esc(ket) + '</span></div></div>' +
+      '<div class="today-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + pct + '" aria-label="Persentase kehadiran hari ini"><i style="width:' + pct + '%"></i></div>' +
+      '<div class="today-sub">' + sub + '</div>';
+    box.hidden = false;
+  }
+
   function init(data) {
     DB.periods = data.periods || [];
     DB.config = data.config;
+    DB.hariIni = data.hariIni || null;
 
     if (!DB.periods.length) { showError(new Error('Tidak ada sheet bulanan yang terbaca dari spreadsheet')); return; }
 
@@ -844,6 +923,7 @@
     $('loading').hidden = true;
     $('app').hidden = false;
     $('btnReload').hidden = false;
+    renderHariIni();
     refresh();
   }
 
@@ -881,6 +961,8 @@
       var awal = data.sheets || {};
       DB.periods = data.periods || [];
       DB.config = data.config;
+      DB.hariIni = data.hariIni || null;
+      renderHariIni();
       buildPeriods();
       var perlu = sheetDilihat().filter(function (n) { return !awal[n]; });
 
