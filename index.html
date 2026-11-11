@@ -732,7 +732,7 @@
   // Tempel URL Web App dari Apps Script di antara tanda kutip.
   // Contoh: 'https://script.google.com/macros/s/XXXX/exec'
   // ============================================================
-  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxrUBkssal5Wwx2kRh4QQdI_ENsPyeDlpXNbzMiMNbMhI_zfsO7YMRbqeDMmcRd-DNjwQ/exec';
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbza-H2Xn4fWR5RDCXC8683kYsVSWYhbZZI4E2MqfNEEfjBNXrARDU4bitwntfRUv6Qh-Q/exec';
   // ============================================================
 
   function p2(n) { return (n < 10 ? '0' : '') + n; }
@@ -984,6 +984,11 @@
     if (!p.length) return '?';
     return (p[0].charAt(0) + (p.length > 1 ? p[p.length - 1].charAt(0) : '')).toUpperCase();
   }
+  // jam masuk = jam pulang persis -> satu scan ganda: baru absen masuk, pulang dikosongkan (sama seperti kalender)
+  function rapikanScanGanda(x) {
+    if (x.m && x.m === x.p) { x.p = ''; x.c = 0; x.l = 0; }
+    return x;
+  }
   function hdTglTeks(d) {
     var pt = d.tgl.split('-'), dt = new Date(+pt[0], +pt[1] - 1, +pt[2]);
     return HARI_PANJANG[dt.getDay()] + ', ' + dt.getDate() + ' ' + BULAN[dt.getMonth()] + ' ' + dt.getFullYear();
@@ -999,6 +1004,7 @@
     HD.urut = jenis === 'hadir' ? 'jam' : 'jadwal';
 
     var hadirList = d.hadirList || [], belumList = d.belumList || [];
+    hadirList.forEach(rapikanScanGanda);
     $('hdPanel').style.setProperty('--hd-c', jenis === 'hadir' ? '#22c55e' : '#eab308');
     $('hdTitle').textContent = jenis === 'hadir' ? 'Hadir hari ini' : 'Belum absen hari ini';
     $('hdSub').textContent = hdTglTeks(d) + (d.jam ? ' · diperbarui ' + d.jam : '');
@@ -1028,7 +1034,7 @@
     var out = '', tampil = 0, total = 0;
 
     if (HD.jenis === 'hadir') {
-      var L = (d.hadirList || []).slice();
+      var L = (d.hadirList || []).map(rapikanScanGanda);
       total = L.length;
       L = L.filter(function (x) { return hdCocok(x.n); });
       if (HD.urut === 'nama') L.sort(hdUrutNama);
