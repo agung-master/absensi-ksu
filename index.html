@@ -475,7 +475,59 @@
     .hc-top { flex-wrap: wrap; }
     .hc-num { text-align: left; }
   }
-  @media (prefers-reduced-motion: reduce) { .hc-bar i { transition: none; } }
+  @media (prefers-reduced-motion: reduce) { .hc-bar i { transition: none; } .hc-sub button.chip-t { transition: none; } }
+
+  /* chip di kartu "Hadir hari ini" bisa diklik */
+  .hc-sub button.chip-t { font: inherit; font-size: 12.5px; font-weight: 700; border: 0; cursor: pointer; display: inline-flex; align-items: center; gap: 3px;
+    transition: transform .1s, box-shadow .1s, filter .1s; -webkit-appearance: none; appearance: none; }
+  .hc-sub button.chip-t::after { content: "›"; font-size: 16px; line-height: 1; margin-left: 2px; opacity: .65; }
+  .hc-sub button.chip-t:hover { filter: brightness(.96); transform: translateY(-1px); box-shadow: 0 3px 8px rgba(15, 30, 70, .14); }
+  .hc-sub button.chip-t:active { transform: translateY(0); box-shadow: none; }
+  .hc-sub button.chip-t:focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; }
+
+  /* panel detail hadir / belum absen */
+  .hd {
+    position: fixed; z-index: 201; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    width: min(540px, calc(100vw - 24px)); max-height: calc(var(--app-h) - 32px);
+    display: flex; flex-direction: column; background: #fff; border-radius: 16px; overflow: hidden;
+    border-top: 5px solid var(--hd-c, #22c55e); box-shadow: 0 20px 50px rgba(15, 30, 70, .35);
+  }
+  .hd .dt-head, .hd .dt-sum, .hd .dt-tools, .hd .dt-foot { flex: 0 0 auto; }
+  .hd-body { overflow: auto; flex: 1 1 auto; min-height: 120px; padding: 0 18px; border-top: 1px solid var(--line); -webkit-overflow-scrolling: touch; }
+  .hd-list { list-style: none; margin: 0; padding: 0; }
+  .hd-row { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .hd-row:last-child { border-bottom: 0; }
+  .hd-av { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; font-weight: 700; background: var(--ok-soft); color: var(--ok); letter-spacing: .02em; }
+  .hd-row.wait .hd-av { background: #fef3c7; color: #92400e; }
+  .hd-row.ket .hd-av { background: var(--off-soft); color: #4a5d80; }
+  .hd-nm { font-weight: 700; font-size: 14.5px; line-height: 1.3; overflow-wrap: anywhere; }
+  .hd-meta { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+  .hd-meta .chip { font-size: 11.5px; padding: 1px 8px; }
+  .hd-tm { display: flex; gap: 14px; text-align: right; }
+  .hd-tm span { display: block; }
+  .hd-tm i { display: block; font-style: normal; font-size: 11px; font-weight: 600; color: var(--muted); }
+  .hd-tm b { font-size: 14.5px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .hd-gh { padding: 14px 0 4px; font-size: 11.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: #6a7fa8; border-bottom: 1px solid var(--line); }
+  .hd-empty { padding: 36px 8px; text-align: center; color: var(--muted); }
+  @media (max-width: 640px) {
+    .hd { top: auto; bottom: 0; left: 0; transform: none; width: 100%; height: auto; max-height: calc(var(--app-h) - 24px); border-radius: 16px 16px 0 0; }
+    .hd .dt-head { position: static; border-top: 0; padding-top: 12px; padding-bottom: 8px; border-bottom: 0; }
+    .hd .dt-foot { padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
+    .hd-body { padding: 0 14px; }
+    .hd-row { grid-template-columns: 36px minmax(0, 1fr) auto; gap: 9px; }
+    .hd-av { width: 36px; height: 36px; }
+    .hc-sub button.chip-t { padding: 7px 13px; font-size: 13px; }
+    .hd .dt-sum { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; padding-bottom: 8px; }
+    .hd .dt-t { padding: 6px 8px; }
+    .hd .dt-t span { font-size: 11px; }
+    .hd .dt-t b { font-size: 15px; }
+    .hd .dt-tools { gap: 6px; padding-bottom: 8px; }
+    .hd .dt-tools input, .hd .dt-tools select { flex: 1 1 100%; padding: 8px 10px; }
+  }
+  @media (max-width: 360px) {
+    .hd-row { grid-template-columns: 36px minmax(0, 1fr); }
+    .hd-tm { grid-column: 2; justify-content: flex-start; text-align: left; }
+  }
 </style>
 </head>
 <body>
@@ -625,6 +677,22 @@
   </div>
 </div>
 
+
+<div class="dt-back" id="hdBack" hidden></div>
+<div class="hd" id="hdPanel" role="dialog" aria-modal="true" aria-labelledby="hdTitle" hidden>
+  <div class="dt-head">
+    <div><h2 id="hdTitle"></h2><p id="hdSub"></p></div>
+    <button type="button" class="dt-x" id="hdX" aria-label="Tutup">×</button>
+  </div>
+  <div class="dt-sum" id="hdSum"></div>
+  <div class="dt-tools">
+    <input id="hdCari" type="search" placeholder="Cari nama karyawan" aria-label="Cari nama karyawan" autocomplete="off">
+    <select id="hdUrut" aria-label="Urutkan"></select>
+  </div>
+  <div class="hd-body" id="hdBody"></div>
+  <div class="dt-foot"><span id="hdCount"></span><button type="button" class="dt-close2" id="hdClose2">Tutup</button></div>
+</div>
+
 <div class="dt-back" id="kdBack" hidden></div>
 <div class="kd" id="kdPanel" role="dialog" aria-modal="true" aria-labelledby="kdTitle" hidden>
   <div class="dt-head">
@@ -664,7 +732,7 @@
   // Tempel URL Web App dari Apps Script di antara tanda kutip.
   // Contoh: 'https://script.google.com/macros/s/XXXX/exec'
   // ============================================================
-  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwCCsr6Pc3Tq_K54AHidYCuPQbFyQy4uclOSmPurm_CHIqaW467O_yXsZ1rgBhGDDc4fQ/exec';
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxrUBkssal5Wwx2kRh4QQdI_ENsPyeDlpXNbzMiMNbMhI_zfsO7YMRbqeDMmcRd-DNjwQ/exec';
   // ============================================================
 
   function p2(n) { return (n < 10 ? '0' : '') + n; }
@@ -887,9 +955,15 @@
     var pct = dasar > 0 ? Math.min(100, Math.round(hadir * 100 / dasar)) : 0;
     var ket = (jadwal !== null && jadwal !== undefined) ? 'dari ' + jadwal + ' terjadwal' : 'karyawan';
 
+    var bisaKlik = Array.isArray(d.hadirList);   // server lama belum mengirim daftar nama: chip tampil biasa
+    function chipT(k, teks, cls, label) {
+      return bisaKlik
+        ? '<button type="button" class="chip-t' + cls + '" data-hd="' + k + '" aria-haspopup="dialog" aria-label="' + label + '">' + teks + '</button>'
+        : '<span class="chip-t' + cls + '">' + teks + '</span>';
+    }
     var sub = '';
-    if (dasar > 0) sub += '<span class="chip-t">' + pct + '% hadir</span>';
-    if (d.belum !== null && d.belum !== undefined && +d.belum > 0) sub += '<span class="chip-t warn">' + d.belum + ' belum absen</span>';
+    if (dasar > 0) sub += chipT('hadir', pct + '% hadir', '', 'Lihat daftar karyawan yang hadir hari ini');
+    if (d.belum !== null && d.belum !== undefined && +d.belum > 0) sub += chipT('belum', d.belum + ' belum absen', ' warn', 'Lihat daftar karyawan yang belum absen hari ini');
     sub += '<span class="sp"></span>';
     if (d.jam) sub += '<span>Diperbarui ' + esc(d.jam) + '</span>';
 
@@ -901,6 +975,145 @@
       '<div class="hc-sub">' + sub + '</div>';
     box.hidden = false;
   }
+
+
+  // ---- Panel detail: daftar karyawan hadir / belum absen hari ini ----
+  var HD = { buka: false, jenis: '', cari: '', urut: 'jam', opener: null };
+  function inisialNama(n) {
+    var p = String(n).trim().split(/\s+/).filter(Boolean);
+    if (!p.length) return '?';
+    return (p[0].charAt(0) + (p.length > 1 ? p[p.length - 1].charAt(0) : '')).toUpperCase();
+  }
+  function hdTglTeks(d) {
+    var pt = d.tgl.split('-'), dt = new Date(+pt[0], +pt[1] - 1, +pt[2]);
+    return HARI_PANJANG[dt.getDay()] + ', ' + dt.getDate() + ' ' + BULAN[dt.getMonth()] + ' ' + dt.getFullYear();
+  }
+  function hdTile(l, v) { return '<div class="dt-t"><span>' + esc(l) + '</span><b>' + esc(v) + '</b></div>'; }
+  function hdCocok(n) { return !HD.cari || String(n).toLowerCase().indexOf(HD.cari) >= 0; }
+  function hdUrutNama(a, b) { return String(a.n).localeCompare(String(b.n), 'id'); }
+
+  function bukaHadir(jenis, opener) {
+    var d = DB.hariIni;
+    if (!d || !Array.isArray(d.hadirList)) return;
+    HD.buka = true; HD.jenis = jenis; HD.cari = ''; HD.opener = opener || null;
+    HD.urut = jenis === 'hadir' ? 'jam' : 'jadwal';
+
+    var hadirList = d.hadirList || [], belumList = d.belumList || [];
+    $('hdPanel').style.setProperty('--hd-c', jenis === 'hadir' ? '#22c55e' : '#eab308');
+    $('hdTitle').textContent = jenis === 'hadir' ? 'Hadir hari ini' : 'Belum absen hari ini';
+    $('hdSub').textContent = hdTglTeks(d) + (d.jam ? ' · diperbarui ' + d.jam : '');
+
+    if (jenis === 'hadir') {
+      var telatN = hadirList.filter(function (x) { return x.t > 0; }).length;
+      var blmPulang = hadirList.filter(function (x) { return x.m && !x.p; }).length;
+      $('hdSum').innerHTML = hdTile('Hadir', hadirList.length + (d.jadwal != null ? ' dari ' + d.jadwal : '')) + hdTile('Terlambat', telatN) + hdTile('Belum pulang', blmPulang);
+      $('hdUrut').innerHTML = '<option value="jam">Jam masuk (paling awal)</option><option value="nama">Nama A–Z</option><option value="telat">Terlambat terbanyak</option>';
+    } else {
+      $('hdSum').innerHTML = hdTile('Belum absen', belumList.length) + hdTile('Terjadwal', d.jadwal != null ? d.jadwal : '–') + hdTile('Sudah hadir', hadirList.length);
+      $('hdUrut').innerHTML = '<option value="jadwal">Jadwal masuk (paling awal)</option><option value="nama">Nama A–Z</option>';
+    }
+    $('hdUrut').value = HD.urut;
+    $('hdCari').value = '';
+
+    renderDaftarHadir();
+    $('hdBack').hidden = false;
+    $('hdPanel').hidden = false;
+    document.documentElement.style.overflow = 'hidden';
+    $('hdBody').scrollTop = 0;
+    $('hdX').focus();
+  }
+
+  function renderDaftarHadir() {
+    var d = DB.hariIni; if (!d) return;
+    var out = '', tampil = 0, total = 0;
+
+    if (HD.jenis === 'hadir') {
+      var L = (d.hadirList || []).slice();
+      total = L.length;
+      L = L.filter(function (x) { return hdCocok(x.n); });
+      if (HD.urut === 'nama') L.sort(hdUrutNama);
+      else if (HD.urut === 'telat') L.sort(function (a, b) { return (b.t - a.t) || hdUrutNama(a, b); });
+      else L.sort(function (a, b) { return (a.m || '99:99').localeCompare(b.m || '99:99') || hdUrutNama(a, b); });
+      tampil = L.length;
+      out = L.map(function (x) {
+        var c = '';
+        if (x.s) c += '<span class="chip inc">' + esc(x.s) + '</span>';
+        if (x.x) c += '<span class="chip forgot">Tanpa jadwal</span>';
+        if (x.t) c += '<span class="chip late">Terlambat ' + esc(fmtMin(x.t)) + '</span>';
+        else if (x.m && x.s) c += '<span class="chip ok">Tepat waktu</span>';
+        if (x.c) c += '<span class="chip early">Pulang cepat ' + esc(fmtMin(x.c)) + '</span>';
+        if (x.l) c += '<span class="chip ot">Lembur ' + esc(fmtMin(x.l)) + '</span>';
+        if (!x.m) c += '<span class="chip inc">Belum absen masuk</span>';
+        else if (!x.p) c += '<span class="chip inc">Belum absen pulang</span>';
+        return '<li class="hd-row"><span class="hd-av" aria-hidden="true">' + esc(inisialNama(x.n)) + '</span>' +
+          '<div><div class="hd-nm">' + esc(x.n) + '</div><div class="hd-meta">' + c + '</div></div>' +
+          '<div class="hd-tm"><span><i>Masuk</i><b>' + (x.m ? esc(x.m) : '–') + '</b></span><span><i>Pulang</i><b>' + (x.p ? esc(x.p) : '–') + '</b></span></div></li>';
+      }).join('');
+      if (!out) out = '<div class="hd-empty">' + (total ? 'Tidak ada nama yang cocok dengan pencarian.' : 'Belum ada karyawan yang absen hari ini.') + '</div>';
+      else out = '<ul class="hd-list">' + out + '</ul>';
+    } else {
+      var B = (d.belumList || []).slice(), K = (d.ketList || []).slice();
+      total = B.length + K.length;
+      B = B.filter(function (x) { return hdCocok(x.n); });
+      K = K.filter(function (x) { return hdCocok(x.n); });
+      if (HD.urut === 'nama') B.sort(hdUrutNama);
+      else B.sort(function (a, b) { return (a.j || '99:99').localeCompare(b.j || '99:99') || hdUrutNama(a, b); });
+      K.sort(hdUrutNama);
+      tampil = B.length + K.length;
+      if (B.length) {
+        out += '<ul class="hd-list">' + B.map(function (x) {
+          return '<li class="hd-row wait"><span class="hd-av" aria-hidden="true">' + esc(inisialNama(x.n)) + '</span>' +
+            '<div><div class="hd-nm">' + esc(x.n) + '</div><div class="hd-meta">' + (x.s ? '<span class="chip inc">' + esc(x.s) + '</span>' : '') + '<span class="chip forgot">Belum ada scan</span></div></div>' +
+            '<div class="hd-tm"><span><i>Jadwal</i><b>' + esc(x.j) + '–' + esc(x.jp) + '</b></span></div></li>';
+        }).join('') + '</ul>';
+      }
+      if (K.length) {
+        out += '<div class="hd-gh">Keterangan hari ini (' + K.length + ')</div><ul class="hd-list">' + K.map(function (x) {
+          var t = String(x.k || '').toLowerCase();
+          var cls = /^(sakit|izin|ijin|cuti)/.test(t) ? 'abs' : 'off';
+          return '<li class="hd-row ket"><span class="hd-av" aria-hidden="true">' + esc(inisialNama(x.n)) + '</span>' +
+            '<div><div class="hd-nm">' + esc(x.n) + '</div></div><div><span class="chip ' + cls + '">' + esc(x.k || '–') + '</span></div></li>';
+        }).join('') + '</ul>';
+      }
+      if (!out) out = '<div class="hd-empty">' + (total ? 'Tidak ada nama yang cocok dengan pencarian.' : 'Semua karyawan terjadwal sudah absen.') + '</div>';
+    }
+    $('hdBody').innerHTML = out;
+    $('hdCount').textContent = HD.cari ? 'Menampilkan ' + tampil + ' dari ' + total + ' karyawan' : total + ' karyawan';
+  }
+
+  function tutupHadir() {
+    if (!HD.buka) return;
+    HD.buka = false;
+    $('hdBack').hidden = true;
+    $('hdPanel').hidden = true;
+    document.documentElement.style.overflow = '';
+    var el = HD.opener;
+    if (el && document.body.contains(el)) { try { el.focus(); } catch (e) {} }
+    else { var b = document.querySelector('#hadirCard button[data-hd]'); if (b) { try { b.focus(); } catch (e2) {} } }
+  }
+
+  (function bindHadir() {
+    $('hadirCard').addEventListener('click', function (e) {
+      var t = e.target.closest ? e.target.closest('[data-hd]') : null;
+      if (t) bukaHadir(t.getAttribute('data-hd'), t);
+    });
+    $('hdX').onclick = tutupHadir;
+    $('hdClose2').onclick = tutupHadir;
+    $('hdBack').onclick = tutupHadir;
+    $('hdCari').addEventListener('input', function () { HD.cari = this.value.trim().toLowerCase(); renderDaftarHadir(); $('hdBody').scrollTop = 0; });
+    $('hdUrut').addEventListener('change', function () { HD.urut = this.value; renderDaftarHadir(); $('hdBody').scrollTop = 0; });
+    document.addEventListener('keydown', function (e) {
+      if (!HD.buka) return;
+      if (e.key === 'Escape') { tutupHadir(); return; }
+      if (e.key === 'Tab') {
+        var f = [$('hdX'), $('hdCari'), $('hdUrut'), $('hdClose2')].filter(function (x) { return x.offsetParent !== null; });
+        if (!f.length) return;
+        var i = f.indexOf(document.activeElement);
+        if (e.shiftKey && i <= 0) { e.preventDefault(); f[f.length - 1].focus(); }
+        else if (!e.shiftKey && (i === f.length - 1)) { e.preventDefault(); f[0].focus(); }
+      }
+    });
+  })();
 
   function init(data) {
     DB.periods = data.periods || [];
@@ -1003,7 +1216,7 @@
   // Auto-refresh: saat tab kembali aktif dan secara berkala, selama tidak ada dialog terbuka
   function autoRefresh() {
     if (document.hidden || LOADING || $('app').hidden) return;
-    if (!$('dtPanel').hidden || !$('kdPanel').hidden || !$('sfPanel').hidden) return;
+    if (!$('dtPanel').hidden || !$('kdPanel').hidden || !$('sfPanel').hidden || !$('hdPanel').hidden) return;
     if (Date.now() - LAST_LOAD < AUTO_MIN_JEDA) return;
     muatUlang(true);
   }
