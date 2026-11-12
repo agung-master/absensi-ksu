@@ -316,7 +316,7 @@
   .stat.forgot { border-top-color: #eab308; }
   .stat.forgot b { color: #a16207; }
   .chip.forgot { background: #fef3c7; color: #92400e; }
-  .chip.viol { background: #dc2626; color: #fff; font-weight: 700; }   /* melanggar jam izin yang sudah disetujui */
+  .chip.viol { background: #dc2626; color: #fff; font-weight: 700; }
   .chip.night { background: #dbe4ff; color: #1e3a8a; }
 
   .dt-back { position: fixed; inset: 0; z-index: 200; background: rgba(15, 30, 70, .5); }
@@ -399,13 +399,13 @@
   .kal-c.none, .kal-legend i.none { background: transparent; color: #9aa8c2; border: 1.5px dashed var(--line); }
   .kal-c { position: relative; }
   .kal-c.today { box-shadow: 0 0 0 2px var(--brand); z-index: 1; }
-  button.kal-c.today:hover { box-shadow: 0 0 0 2px var(--brand), 0 3px 10px rgba(15, 30, 70, .14); }   /* cincin hari ini tetap tampil saat di-hover */
+  button.kal-c.today:hover { box-shadow: 0 0 0 2px var(--brand), 0 3px 10px rgba(15, 30, 70, .14); }
   .kal-c.today::after {
     content: "Hari ini"; position: absolute; top: 5px; right: 6px;
     padding: 1px 7px; border-radius: 999px; background: var(--brand); color: #fff;
     font-size: 9.5px; font-weight: 700; line-height: 1.5; letter-spacing: .02em; pointer-events: none;
   }
-  @media (max-width: 640px) {   /* sel sempit di HP: cukup titik biru */
+  @media (max-width: 640px) {
     .kal-c.today::after { content: ""; top: 5px; right: 5px; width: 7px; height: 7px; padding: 0; }
   }
   .kal-c.redup { opacity: .3; }
@@ -479,7 +479,6 @@
   }
   @media (prefers-reduced-motion: reduce) { .hc-bar i { transition: none; } .hc-sub button.chip-t { transition: none; } }
 
-  /* chip di kartu "Hadir hari ini" bisa diklik */
   .hc-sub button.chip-t { font: inherit; font-size: 12.5px; font-weight: 700; border: 0; cursor: pointer; display: inline-flex; align-items: center; gap: 3px;
     transition: transform .1s, box-shadow .1s, filter .1s; -webkit-appearance: none; appearance: none; }
   .hc-sub button.chip-t::after { content: "›"; font-size: 16px; line-height: 1; margin-left: 2px; opacity: .65; }
@@ -487,7 +486,6 @@
   .hc-sub button.chip-t:active { transform: translateY(0); box-shadow: none; }
   .hc-sub button.chip-t:focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; }
 
-  /* panel detail hadir / belum absen */
   .hd {
     position: fixed; z-index: 201; left: 50%; top: 50%; transform: translate(-50%, -50%);
     width: min(540px, calc(100vw - 24px)); max-height: calc(var(--app-h) - 32px);
@@ -557,6 +555,7 @@
   .pm-absen .pm-ab-g small { display: block; color: var(--muted); font-size: 12px; }
   .pm-absen .pm-ab-g b { font-size: 16px; }
   .pm-absen .pm-ab-s { margin-top: 8px; font-size: 13px; }
+  .pm-absen .pm-ab-oto { background: #fffbeb; border-left: 3px solid #f59e0b; padding: 6px 10px; border-radius: 6px; }
   .pm-hint { margin: 6px 0 0; font-size: 12.5px; color: var(--muted); }
   .pm-hint[hidden] { display: none; }
   .pm-bukti { margin-top: 14px; padding: 12px; border: 1px dashed #b9cdf0; border-radius: 10px; background: #f6f9ff; color: var(--ink); }
@@ -565,13 +564,11 @@
   .pm-bukti-row input { flex: 1 1 220px; min-width: 0; font: inherit; padding: 9px 10px; border: 1px solid #b9cdf0; border-radius: 9px; background: #fff; color: var(--ink); }
   .pm-bukti-msg { margin-top: 8px; font-size: 13px; }
   .pm-bukti-msg.ok { color: #047857; } .pm-bukti-msg.no { color: #b91c1c; }
-  /* bagian yang belum boleh diisi (abu-abu) */
   .pm-grp:disabled { background: #eef1f6; border-color: #d5dbe6; }
   .pm-grp:disabled > legend { color: #8a9ab8; }
   .pm-grp:disabled label { color: #98a4ba; }
   .pm-grp:disabled input, .pm-grp:disabled select, .pm-grp:disabled textarea { background: #e4e8f0; color: #8a9ab8; border-color: #d5dbe6; cursor: not-allowed; }
   .pm-grp:disabled .pm-saran { opacity: .5; }
-  /* jam lembur yang dikunci (tidak bisa diisi manual) */
   #pmMulai:disabled, #pmSelesai:disabled { background: #e4e8f0; color: #8a9ab8; border-color: #d5dbe6; cursor: not-allowed; }
   .pm-btn:disabled { cursor: not-allowed; }
   .pm-btn { font: inherit; font-weight: 700; border: 0; border-radius: 10px; padding: 10px 18px; cursor: pointer; color: #fff; background: var(--brand); }
@@ -663,9 +660,9 @@
 
   <nav class="nav" id="nav" aria-label="Menu utama" hidden>
     <button type="button" id="nvAbs" aria-pressed="true">📊 Absensi</button>
-    <button type="button" hidden id="nvForm" aria-pressed="false">📝 Ajukan Permohonan</button>
-    <button type="button" hidden id="nvIzin" aria-pressed="false">🗓 Ajukan Izin</button>
-    <button type="button" hidden id="nvAdmin" aria-pressed="false">🔐 Admin</button>
+    <button type="button" id="nvForm" aria-pressed="false">📝 Ajukan Permohonan</button>
+    <button type="button" id="nvIzin" aria-pressed="false">🗓 Ajukan Izin</button>
+    <button type="button" id="nvAdmin" aria-pressed="false">🔐 Admin</button>
   </nav>
 
   <div id="loading" class="loading">Memuat data absensi…</div>
@@ -1161,18 +1158,16 @@
 
   var LIBUR_JIKA_SEMUA_KOSONG = true;
 
-  // Shift malam hari kerja: masuk sore/malam lalu pulang keesokan paginya, tercatat di satu kolom tanggal
-  // dengan jam pulang lebih kecil dari jam masuk (mis. masuk 20:00, pulang 06:00).
   var SHIFT_MALAM_AKTIF = true;
-  var SHIFT_MALAM_MASUK_MIN = '12:00';  // masuk minimal jam ini baru dianggap shift malam
-  var SHIFT_MALAM_MAKS_JAM = 16;        // lama kerja maksimal; lebih dari ini dianggap salah catat
+  var SHIFT_MALAM_MASUK_MIN = '12:00';
+  var SHIFT_MALAM_MAKS_JAM = 16;
 
   // ============================================================
   // >>>>>>>>>>>>>>>>>>>>>  TEMPEL DISINI  <<<<<<<<<<<<<<<<<<<<<<
   // Tempel URL Web App dari Apps Script di antara tanda kutip.
   // Contoh: 'https://script.google.com/macros/s/XXXX/exec'
   // ============================================================
-  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxciUbUPLV4qpWRmkDUd68fLWHsuM6MvJt7xQRmiA6kMfnL82r7ALdTQjeWscaFxfb6zg/exec';
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxLqalCfvECnS_NXm96bY98zDYivUbpARRde2wpl788xn85ZkYGIlqXVUvkmlGOOynQbg/exec';
   // ============================================================
 
   function p2(n) { return (n < 10 ? '0' : '') + n; }
@@ -1181,10 +1176,9 @@
 
   var DB = { periods: [], records: [], names: {}, config: null, hariIni: null };
   var LOADED = {};
-  var SESUAI = {};   // penyesuaian disetujui (pengganti lembur): nama|tanggal -> {j: cepat|lambat|libur, m: jam}
+  var SESUAI = {};
   function nk(n) { return String(n || '').toLowerCase().replace(/\s+/g, ' ').trim(); }
   function petaSesuai(list) { var m = {}; (list || []).forEach(function (x) { m[nk(x.n) + '|' + x.t] = x; (m['@' + x.t] = m['@' + x.t] || []).push(x); }); return m; }
-  // nama sama persis, atau semua kata nama yang lebih pendek ada di nama yang lebih panjang ("Prima" = "Prima Aditya")
   function namaKata(a, b) {
     var x = nk(a), y = nk(b);
     if (!x || !y) return false;
@@ -1204,7 +1198,7 @@
     if (!r.adj) return '';
     return r.adj.j === 'libur' ? 'Libur pengganti lembur (disetujui)' : (r.adj.j === 'cepat' ? 'Pulang cepat ' : 'Datang lambat ') + r.adj.m + ' disetujui (pengganti lembur)';
   }
-  var SEEN = {};   // nama|tanggal yang sudah masuk DB, mencegah hitungan ganda jika dua sheet tumpang tindih
+  var SEEN = {};
   var LOADING = false;
   var S = { periode: '', mode: 'me', nama: '', cari: '', tahun: '', bulan: '', tanggal: '', urut: 'baru', status: [], smode: 'or', view: 'harian', tampil: 'kal', page: 1, size: 10 };
 
@@ -1250,9 +1244,6 @@
 
   api('init', null, init, showError);
 
-  // Shift malam hari kerja. Jadwal kantor (masuk 08:00, pulang 17:00) tidak berlaku, jadi tidak ada
-  // terlambat/pulang cepat. Lembur = waktu kerja sejak LEMBUR_MULAI (atau jam masuk, bila lebih malam)
-  // sampai jam pulang keesokan harinya. Mengembalikan true jika catatan ini shift malam.
   function hitungShiftMalam(r) {
     if (!SHIFT_MALAM_AKTIF || !r.masuk || !r.pulang) return false;
     var m = toMin(r.masuk), p = toMin(r.pulang);
@@ -1269,24 +1260,23 @@
     if (hitungShiftMalam(r)) return;
     var adj = r.adj, bebas = !!adj && adj.j === 'libur';
     var bMasuk = toMin(c.jamMasuk), bPulang = toMin(c.jamPulang);
-    if (adj && adj.j === 'lambat' && adj.m) bMasuk = Math.max(bMasuk, toMin(adj.m));   // datang lambat disetujui
-    if (adj && adj.j === 'cepat' && adj.m) bPulang = Math.min(bPulang, toMin(adj.m));  // pulang cepat disetujui
+    if (adj && adj.j === 'lambat' && adj.m) bMasuk = Math.max(bMasuk, toMin(adj.m));
+    if (adj && adj.j === 'cepat' && adj.m) bPulang = Math.min(bPulang, toMin(adj.m));
     r.bMasuk = mnJam(bMasuk); r.bPulang = mnJam(bPulang);
     if (!bebas && r.masuk && toMin(r.masuk) > bMasuk + c.toleransi) {
       r.telat = toMin(r.masuk) - bMasuk;
-      if (adj && adj.j === 'lambat' && adj.m && bMasuk > toMin(c.jamMasuk)) r.langgar = 'lambat';   // masuk lebih lambat dari jam yang disetujui
+      if (adj && adj.j === 'lambat' && adj.m && bMasuk > toMin(c.jamMasuk)) r.langgar = 'lambat';
     }
     if (r.pulang) {
       var p = toMin(r.pulang);
       if (p > toMin(c.lemburMulai)) r.lembur = p - toMin(c.lemburMulai);
       if (!bebas && p < bPulang) {
         r.cepat = bPulang - p;
-        if (adj && adj.j === 'cepat' && adj.m && bPulang < toMin(c.jamPulang)) r.langgar = 'cepat';   // pulang lebih awal dari jam yang disetujui
+        if (adj && adj.j === 'cepat' && adj.m && bPulang < toMin(c.jamPulang)) r.langgar = 'cepat';
       }
     }
   }
 
-  // Perbaikan: dukung lembur lintas tengah malam (shift malam akhir pekan)
   function hitungMinggu(r) {
     var t = [r.masuk, r.pulang].filter(Boolean);
     r.mg = true;
@@ -1314,7 +1304,7 @@
 
   function buildRows(data) {
     var rec = {}, has = {}, maxD = '', lib = {};
-    (data.l || []).forEach(function (k) { lib[k] = true; });   // hari libur menurut jadwal (Shift Aktif / Tukar Shift) tetapi karyawan masuk
+    (data.l || []).forEach(function (k) { lib[k] = true; });
     data.k.forEach(function (n) { DB.names[n] = true; });
     data.r.forEach(function (row) {
       rec[row[0] + '|' + row[1]] = row;
@@ -1336,11 +1326,9 @@
         var r = { nama: nama, tgl: tgl, y: y, m: m, d: d, dow: dow, masuk: '', pulang: '', telat: 0, lembur: 0, cepat: 0, st: '', mg: false, malam: false, adj: cariSesuai(nama, tgl) };
         if (row) {
           r.masuk = row[2]; r.pulang = row[3]; r.st = 'hadir';
-          // Satu kali scan yang tercatat di baris Masuk dan Pulang sekaligus (jam sama persis)
-          // bukan jam kerja sungguhan: anggap hanya scan masuk, scan pulang belum ada.
           if (r.masuk && r.masuk === r.pulang) r.pulang = '';
-          if (dow === 0 || (lib[key] && !r.adj)) hitungMinggu(r); else hitung(r);   // hari libur: tidak ada terlambat / pulang cepat
-        } else if (r.adj && r.adj.j === 'libur') r.st = 'libur';   // libur pengganti lembur
+          if (dow === 0 || (lib[key] && !r.adj)) hitungMinggu(r); else hitung(r);
+        } else if (r.adj && r.adj.j === 'libur') r.st = 'libur';
         else if (dow === 0) r.st = 'libur';
         else if (LIBUR_JIKA_SEMUA_KOSONG && !has[tgl]) r.st = 'libur';
         else if (tgl === TODAY) r.st = 'belum';
@@ -1368,7 +1356,6 @@
     NAMA_LIST = list;
     if (S.nama && !DB.names[S.nama]) S.nama = '';
     $('selNama').value = S.nama || '';
-    pmIsiNama();
   }
 
   function sheetsFor(tahun, bulan) {
@@ -1411,11 +1398,10 @@
   }
 
 
-  // ---- Kartu "Hadir hari ini" (data dari server: sheet bulanan yang memuat tanggal berjalan) ----
   var HARI_PANJANG = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
   function renderHariIni() {
     var box = $('hadirCard'), d = DB.hariIni;
-    if (!d || d.ok === false || !d.tgl) { box.hidden = true; box.innerHTML = ''; return; }   // gagal dihitung: kartu disembunyikan, data lain tetap tampil
+    if (!d || d.ok === false || !d.tgl) { box.hidden = true; box.innerHTML = ''; return; }
     var pt = d.tgl.split('-'), dt = new Date(+pt[0], +pt[1] - 1, +pt[2]);
     var tglTxt = HARI_PANJANG[dt.getDay()] + ', ' + dt.getDate() + ' ' + BULAN[dt.getMonth()] + ' ' + dt.getFullYear();
     var ic = '<div class="hc-ic" aria-hidden="true">👥</div>';
@@ -1433,7 +1419,7 @@
     var pct = dasar > 0 ? Math.min(100, Math.round(hadir * 100 / dasar)) : 0;
     var ket = (jadwal !== null && jadwal !== undefined) ? 'dari ' + jadwal + ' terjadwal' : 'karyawan';
 
-    var bisaKlik = Array.isArray(d.hadirList);   // server lama belum mengirim daftar nama: chip tampil biasa
+    var bisaKlik = Array.isArray(d.hadirList);
     function chipT(k, teks, cls, label) {
       return bisaKlik
         ? '<button type="button" class="chip-t' + cls + '" data-hd="' + k + '" aria-haspopup="dialog" aria-label="' + label + '">' + teks + '</button>'
@@ -1455,14 +1441,12 @@
   }
 
 
-  // ---- Panel detail: daftar karyawan hadir / belum absen hari ini ----
   var HD = { buka: false, jenis: '', cari: '', urut: 'jam', opener: null };
   function inisialNama(n) {
     var p = String(n).trim().split(/\s+/).filter(Boolean);
     if (!p.length) return '?';
     return (p[0].charAt(0) + (p.length > 1 ? p[p.length - 1].charAt(0) : '')).toUpperCase();
   }
-  // jam masuk = jam pulang persis -> satu scan ganda: baru absen masuk, pulang dikosongkan (sama seperti kalender)
   function rapikanScanGanda(x) {
     if (x.m && x.m === x.p) { x.p = ''; x.c = 0; x.l = 0; }
     return x;
@@ -1637,19 +1621,14 @@
   }
 
   var LAST_LOAD = Date.now();
-  var AUTO_MIN_JEDA = 60 * 1000;      // jangan muat ulang otomatis lebih sering dari 1 menit
-  var AUTO_INTERVAL = 5 * 60 * 1000;  // muat ulang otomatis tiap 5 menit saat tab terlihat
+  var AUTO_MIN_JEDA = 60 * 1000;
+  var AUTO_INTERVAL = 5 * 60 * 1000;
 
-  // Sheet yang sedang dilihat pengguna (berdasarkan periode gaji atau tahun/bulan terpilih)
   function sheetDilihat() {
     if (S.periode && PMAP[S.periode]) return [PMAP[S.periode].name];
     return sheetsFor(S.tahun, S.bulan);
   }
 
-  // silent = true  : muat ulang otomatis di latar belakang, memakai cache server (maks. 1 menit),
-  //                  tanpa pesan error dan tanpa menyentuh tombol.
-  // silent = false : tombol "Muat ulang data", melewati cache server agar data benar-benar terbaru.
-  // Data lama tetap tampil sampai data baru lengkap, lalu layar diganti sekali saja (tanpa kedip).
   function muatUlang(silent) {
     var btn = $('btnReload');
     if (LOADING) return;
@@ -1663,7 +1642,7 @@
     }
     function gagal(e) {
       selesai();
-      if (fresh) showError(e);   // gagal saat auto-refresh: diam saja, data lama tetap tampil
+      if (fresh) showError(e);
     }
 
     api('init', null, function (data) {
@@ -1700,7 +1679,6 @@
     }, gagal, fresh);
   }
 
-  // Auto-refresh: saat tab kembali aktif dan secara berkala, selama tidak ada dialog terbuka
   function autoRefresh() {
     if (document.hidden || LOADING || $('app').hidden) return;
     if (!$('dtPanel').hidden || !$('kdPanel').hidden || !$('sfPanel').hidden || !$('hdPanel').hidden) return;
@@ -2160,7 +2138,6 @@
       var r = recs[tgl], k = kalKelas(r);
       c[k]++;
       var lbl = (idx === 0 || d === 1) ? d + ' ' + BULAN[m - 1].slice(0, 3) : String(d);
-      // Perbaikan: redupkan tanggal yang tidak cocok dengan filter tanggal
       var dimTgl = S.tanggal && String(d) !== String(S.tanggal);
       var cls = 'kal-c ' + k + (tgl === TODAY ? ' today' : '') +
                 ((S.status.length && r && !filterStatus([r]).length) || dimTgl ? ' redup' : '');
@@ -2169,7 +2146,6 @@
       var isi;
       if (r.st === 'libur') isi = '<span class="kal-s">Libur</span>';
       else if (r.st === 'absen') isi = '<span class="kal-s">Absen</span>';
-      // Perbaikan: label diseragamkan "Belum absen"
       else if (r.st === 'belum') isi = '<span class="kal-s">Belum absen</span>';
       else isi = '<span class="kal-t">' + (r.masuk || '–') + '</span><span class="kal-t">' + (r.pulang || '–') + '</span>';
 
@@ -2607,7 +2583,6 @@
     body.scrollTop = st;
   }
 
-  // Perbaikan: fungsi ekspor CSV dari panel detail
   function chipsTxt(r) {
     if (r.st === 'libur') return 'Libur' + (r.adj ? '; ' + adjTeks(r) : '');
     if (r.st === 'absen') return 'Tidak hadir';
@@ -2681,7 +2656,6 @@
       if ($('dtPanel').hidden) return;
       if (e.key === 'Escape') { closeDetail(); return; }
       if (e.key === 'Tab') {
-        // hanya elemen yang benar-benar terlihat (tombol "Tutup" bawah disembunyikan CSS di desktop)
         var f = Array.prototype.filter.call($('dtPanel').querySelectorAll('button, input, select'), function (el) {
           return !el.hidden && el.getClientRects().length > 0;
         });
@@ -2694,7 +2668,7 @@
   }
 
   // =====================================================================
-  //  PERMOHONAN PENGGANTIAN LEMBUR: form karyawan, panel admin, cetak arsip
+  //  PERMOHONAN PENGGANTIAN LEMBUR
   // =====================================================================
   function apiPost(payload, ok, fail) {
     function hasil(res) {
@@ -2713,8 +2687,6 @@
       fail(new Error('URL Apps Script belum diisi. Isi APPS_SCRIPT_URL di bagian TEMPEL DISINI'));
     }
   }
-
-  function pmIsiNama() { /* daftar nama dibaca langsung dari NAMA_LIST oleh initPmNamaCombo */ }
 
   function initPmNamaCombo(inpId, listId, arrowId) {
     var inp = $(inpId || 'pmNama'), list = $(listId || 'listPmNama'), items = [], act = -1;
@@ -2741,7 +2713,7 @@
       var beda = inp.value !== n;
       inp.value = n;
       close();
-      if (beda) inp.dispatchEvent(new Event('change', { bubbles: true }));   // memicu pemeriksaan info permohonan
+      if (beda) inp.dispatchEvent(new Event('change', { bubbles: true }));
     }
 
     inp.addEventListener('focus', function () { inp.select(); build(''); open(); });
@@ -2757,7 +2729,7 @@
     inp.addEventListener('blur', function () {
       setTimeout(function () {
         close();
-        if (!NAMA_LIST.length) return;                       // daftar belum termuat: biarkan apa adanya
+        if (!NAMA_LIST.length) return;
         var v = inp.value.trim().toLowerCase();
         var exact = NAMA_LIST.filter(function (n) { return n.toLowerCase() === v; })[0];
         if (exact) pick(exact);
@@ -2782,7 +2754,6 @@
     return HARI_PANJANG[d.getDay()] + ', ' + d.getDate() + ' ' + BULAN[d.getMonth()] + ' ' + d.getFullYear();
   }
 
-  // ---------- Tab ----------
   var VIEW = 'abs';
   function tampilView(v) {
     VIEW = v;
@@ -2800,7 +2771,6 @@
     if (v === 'abs') autoRefresh();
   }
 
-  // ---------- Form karyawan ----------
   var PM_J = {
     cepat: { jam: 'Boleh pulang pukul', info: 'Pada tanggal penggantian Anda boleh pulang lebih awal dari jam pulang shift, paling awal pada jam yang Anda isi. Jam harus berada di antara jam masuk dan jam pulang shift.' },
     lambat: { jam: 'Boleh datang pukul', info: 'Pada tanggal penggantian Anda boleh masuk lebih lambat dari jam masuk shift, paling lambat pada jam yang Anda isi. Jam harus berada di antara jam masuk dan jam pulang shift.' },
@@ -2808,7 +2778,6 @@
   };
 
   function pmSiapForm() {
-    pmIsiNama();
     $('pmTglL').max = hariIni();
     $('pmTglG').min = hariIni();
     pmUbahJenis();
@@ -2820,8 +2789,6 @@
     $('pmDetailLbl').textContent = l ? 'Nama kegiatan (wajib)' : 'Nama kegiatan (opsional)';
     $('pmDetail').placeholder = l ? 'Tuliskan kegiatannya' : 'Mis. Event Gathering Mitra';
   }
-  // Jenis penggantian yang diizinkan admin untuk karyawan ini (dari sheet Shift Aktif, blok Aturan Pertukaran Lembur).
-  // null = belum diketahui (semua pilihan tampil; server tetap memeriksa).
   var PM_IZIN = null;
   var PM_JENIS_NAMA = [['cepat', 'Pulang cepat'], ['lambat', 'Datang lambat'], ['libur', 'Libur']];
   function pmIsiJenis() {
@@ -2852,21 +2819,15 @@
     if (d < 0) d += 1440;
     box.textContent = 'Lama lembur: ' + fmtMin(d) + (toMin(b) < toMin(a) ? ' (melewati tengah malam)' : '') + '.';
   }
-  // ---------- Saran jam (kuota dari lama lembur) ----------
   var PM_TMR = null, PM_SEQ = 0;
   function pmInfoTunda() { clearTimeout(PM_TMR); PM_TMR = setTimeout(pmInfoCek, 700); }
   function pmDurTxt(m) { return fmtMin(m); }
 
-  // Peringatan rinci bila jam penggantian yang diisi menyimpang dari batas kuota.
-  // Mengembalikan { html, saran } atau null bila jam sesuai / belum diisi.
-  //  - Pulang cepat : jam di bawah batas paling awal  -> selisihnya dihitung "pulang cepat" di absensi
-  //  - Datang lambat: jam di atas batas paling lambat -> selisihnya dihitung "terlambat" di absensi
-  //  - Jam di luar rentang shift (mis. salah AM/PM)   -> diberi petunjuk koreksi
   function pmSelisihPeringatan(d, res) {
     if (!res || !res.kenal || !res.kuota || d.jenis === 'libur' || !d.jamGanti || !res.batasMin || !res.batasMax) return null;
     var cepat = d.jenis === 'cepat';
     var jm = toMin(d.jamGanti), lo = toMin(res.batasMin), hi = toMin(res.batasMax), kuota = +res.kuota;
-    var jamShift = cepat ? hi + 1 : lo - 1;                 // jam pulang shift (cepat) / jam masuk shift (lambat)
+    var jamShift = cepat ? hi + 1 : lo - 1;
     var jamTxt = d.jamGanti, batas = cepat ? res.batasMin : res.batasMax;
     var saran = batas;
     function row(a) { return '<li>' + a + '</li>'; }
@@ -2886,7 +2847,6 @@
         row('Jika Anda tetap datang pukul ' + esc(jamTxt) + ', kelebihan <b>' + esc(fmtMin(g)) + '</b> tidak tertutup lembur, maka di absensi akan dianggap <b>terlambat ' + esc(fmtMin(g)) + '</b>.') +
         row('Permohonan dengan jam ini akan <b>ditolak otomatis</b>. Ubah jam menjadi ' + esc(batas) + ' atau lebih awal.') + '</ul>' };
     }
-    // Di luar rentang shift: tidak bisa dianggap pulang cepat / datang lambat. Paling sering salah AM/PM.
     if ((cepat && jm > hi) || (!cepat && jm < lo)) {
       var h12 = jm % 720, ampm = jm >= 720 ? 'PM (siang/malam)' : 'AM (pagi)';
       var alt = (jm >= 720 ? jm - 720 : jm + 720);
@@ -2913,7 +2873,7 @@
     if (!d.nama || !d.jenis || !d.tglLembur || !d.mulai || !d.selesai || !d.tglGanti || d.mulai === d.selesai) { box.hidden = true; return; }
     box.className = 'pm-saran'; box.hidden = false; box.textContent = 'Memeriksa data absensi dan jadwal…';
     apiPost(d, function (res) {
-      if (seq !== PM_SEQ) return;   // jawaban lama diabaikan
+      if (seq !== PM_SEQ) return;
       if (!res || !res.lengkap) { box.hidden = true; return; }
       function li(a) { return '<ul>' + a.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>'; }
       var h = '', bad = res.tolak && res.tolak.length;
@@ -2936,22 +2896,18 @@
     }, function () { if (seq === PM_SEQ) box.hidden = true; });
   }
 
-  // ---------- Validasi jam mulai lembur ----------
-  var PM_MULAI_MIN_HK = '19:00';   // Senin–Sabtu: lembur baru boleh mulai pukul 19:00 ke atas
-  var PM_ABS_MASUK = '';           // jam masuk tercatat pada tanggal lembur yang dipilih
-  var PM_ABS_PULANG = '';          // jam pulang tercatat pada tanggal lembur yang dipilih
+  var PM_MULAI_MIN_HK = '19:00';
+  var PM_ABS_MASUK = '';
+  var PM_ABS_PULANG = '';
   var PM_OTO_RES = null, PM_OTO_TGL = '';
-  var PM_OTO = { key: '', mulai: '', selesai: '' };   // isian otomatis terakhir (kunci = nama + tanggal)
-  var PM_KUNCI = '';        // tidak kosong = jam mulai otomatis tidak valid; jam mulai & selesai dikosongkan dan dikunci (isinya: alasan)
-  var PM_ABS_OK = false;    // true bila data absensi pada tanggal lembur ditemukan
-  function pmKunciJam() { $('pmMulai').disabled = true; $('pmSelesai').disabled = true; }   // selalu terkunci: jam lembur hanya terisi otomatis dari absensi
-  // Masalah pada jam mulai otomatis (dihitung dari data absensi hasil pencarian, bukan dari isi kolom)
+  var PM_OTO = { key: '', mulai: '', selesai: '' };
+  var PM_KUNCI = '';
+  var PM_ABS_OK = false;
+  function pmKunciJam() { $('pmMulai').disabled = true; $('pmSelesai').disabled = true; }
   function pmOtoMasalah(res, tgl) {
     if (!res || !res.otoMulai) return [];
     return pmMulaiMasalahDari(tgl, res.otoMulai, res.masuk || '', res.pulang || '');
   }
-  // Isi jam mulai & selesai dari data absensi. paksa = true: timpa walau sudah terisi (tombol "Isi ulang").
-  // Jika jam mulai otomatis tidak valid (mis. sudah pulang sebelum jam mulai), kedua kolom dikosongkan dan dikunci.
   function pmIsiOtomatis(res, tgl, paksa) {
     var key = (res.nama || '') + '|' + tgl;
     var masalah = pmOtoMasalah(res, tgl);
@@ -2964,13 +2920,12 @@
       return;
     }
     PM_KUNCI = ''; pmKunciJam(false);
-    if (!paksa && PM_OTO.key === key) { pmCekMulai(); return; }   // data nama + tanggal yang sama: jangan timpa ubahan karyawan
+    if (!paksa && PM_OTO.key === key) { pmCekMulai(); return; }
     PM_OTO = { key: key, mulai: res.otoMulai || '', selesai: res.otoSelesai || '' };
     $('pmMulai').value = PM_OTO.mulai;
     $('pmSelesai').value = PM_OTO.selesai;
     pmHitungDurasi(); pmCekMulai(); pmInfoTunda();
   }
-  // Nama / tanggal berubah dan data tidak tersedia: kosongkan isian yang tadinya terisi otomatis.
   function pmOtoBersih() {
     if (!PM_OTO.key) return;
     if ($('pmMulai').value === PM_OTO.mulai) $('pmMulai').value = '';
@@ -2978,11 +2933,11 @@
     PM_OTO = { key: '', mulai: '', selesai: '' };
     pmHitungDurasi(); pmCekMulai();
   }
-  var PM_TOL_SELESAI = 15;         // menit: toleransi jam selesai lembur melebihi jam pulang tercatat (sama dengan PM.TOL_VERIF di server)
+  var PM_TOL_SELESAI = 15;
   function pmHariKerja(iso) {
     var p = String(iso || '').split('-');
     if (p.length !== 3) return false;
-    return new Date(+p[0], +p[1] - 1, +p[2]).getDay() !== 0;   // Senin–Sabtu
+    return new Date(+p[0], +p[1] - 1, +p[2]).getDay() !== 0;
   }
   function pmMulaiMasalahDari(tgl, mulai, masuk, pulang) {
     var out = [];
@@ -2994,19 +2949,17 @@
     return out;
   }
   function pmMulaiMasalah() { return pmMulaiMasalahDari($('pmTglL').value, $('pmMulai').value, PM_ABS_MASUK, PM_ABS_PULANG); }
-  // true jika jam (HH:MM) sama dengan / sesudah jam pulang tercatat. Pulang melewati tengah malam (pulang < masuk) tidak diperiksa di sini; server yang menilai.
   function pmSetelahPulang(jam, masuk, pulang) {
     if (!pulang || !jam) return false;
     if (masuk && toMin(pulang) < toMin(masuk)) return false;
     return toMin(jam) >= toMin(pulang);
   }
-  // peringatan (tidak memblokir): jam selesai melewati jam pulang tercatat -> hanya sampai jam pulang yang dihitung
   function pmSelesaiPeringatan() {
     var mulai = $('pmMulai').value, selesai = $('pmSelesai').value;
     if (!PM_ABS_PULANG || !mulai || !selesai || mulai === selesai) return '';
     if (PM_ABS_MASUK && toMin(PM_ABS_PULANG) < toMin(PM_ABS_MASUK)) return '';
     var s = toMin(selesai), m = toMin(mulai), p = toMin(PM_ABS_PULANG);
-    if (s <= m) return '';                                   // lembur melewati tengah malam: dinilai server
+    if (s <= m) return '';
     if (s - p > PM_TOL_SELESAI && p > m) {
       return 'Jam selesai lembur (' + selesai + ') melewati jam pulang tercatat (' + PM_ABS_PULANG + '). Yang diverifikasi hanya ' + fmtMin(p - m) +
         ' (' + mulai + '–' + PM_ABS_PULANG + '), jadi waktu pengganti dihitung dari lama itu.';
@@ -3015,7 +2968,7 @@
   }
   function pmCekMulai() {
     var box = $('pmMulaiWarn');
-    if (PM_KUNCI) {   // jam mulai otomatis tidak valid: kolom dikunci
+    if (PM_KUNCI) {
       box.className = 'pm-saran no';
       box.innerHTML = '⚠️ ' + esc(PM_KUNCI) + ' Jam mulai dan jam selesai lembur dikosongkan dan tidak dapat diisi manual.';
       box.hidden = false;
@@ -3040,7 +2993,6 @@
     return m;
   }
 
-  // ---------- Gerbang pengisian: bagian 3 dan tombol kirim ----------
   var PM_KIRIM_JALAN = false;
   function pmBagian2Siap() {
     if (PM_KUNCI || !PM_ABS_OK) return false;
@@ -3065,18 +3017,17 @@
     $('pmKirimInfo').textContent = b2 ? 'Tombol kirim terbuka setelah bagian 3 terisi lengkap.' : 'Tombol kirim terbuka setelah bagian 2 dan bagian 3 terisi dengan benar.';
   }
 
-  // ---------- Data absensi pada tanggal lembur (tampil setelah nama + jenis kegiatan + tanggal terisi) ----------
   var PM_ABS_TMR = null, PM_ABS_SEQ = 0;
   function pmAbsenTunda() { clearTimeout(PM_ABS_TMR); PM_ABS_TMR = setTimeout(pmAbsenCek, 350); }
   function pmAbsenCek() {
     var box = $('pmAbsen'), seq = ++PM_ABS_SEQ;
     var nama = $('pmNama').value.trim(), keg = $('pmKeg').value, tgl = $('pmTglL').value;
     PM_ABS_MASUK = ''; PM_ABS_PULANG = ''; PM_ABS_OK = false; PM_KUNCI = ''; pmKunciJam(false);
-    if (!nama || !keg || !tgl) { box.hidden = true; box.innerHTML = ''; pmOtoBersih(); PM_IZIN = null; pmIsiJenis(); pmCekMulai(); return; }   // belum lengkap: jangan tampilkan apa pun
+    if (!nama || !keg || !tgl) { box.hidden = true; box.innerHTML = ''; pmOtoBersih(); PM_IZIN = null; pmIsiJenis(); pmCekMulai(); return; }
     box.className = 'pm-absen'; box.hidden = false;
     box.innerHTML = '<div class="pm-ab-t">Memuat data absensi…</div>'; pmCekMulai();
     apiPost({ action: 'absen', nama: nama, tglLembur: tgl }, function (res) {
-      if (seq !== PM_ABS_SEQ) return;   // jawaban lama diabaikan
+      if (seq !== PM_ABS_SEQ) return;
       if (!res || !res.lengkap) { box.hidden = true; PM_IZIN = null; pmIsiJenis(); pmGerbang(); return; }
       var judul = '<div class="pm-ab-t">Data absensi ' + esc(res.nama || nama) + ' — ' + esc(tglPjg(tgl)) + '</div>';
       if (!res.kenal) {
@@ -3100,7 +3051,7 @@
         '<div><small>Jam masuk</small><b>' + esc(res.masuk || '–') + '</b></div>' +
         '<div><small>Jam pulang</small><b>' + esc(res.pulang || '–') + '</b></div>' +
         (res.shift ? '<div><small>Jadwal</small><b>' + esc(res.shift) + '</b></div>' : '') + '</div>';
-      var stTampil = (res.status || []).filter(function (x) { return !/^Lembur/i.test(x); });   // lembur mentah disembunyikan: yang berlaku hanya "Lama lembur" hasil hitungan jam mulai-selesai
+      var stTampil = (res.status || []).filter(function (x) { return !/^Lembur/i.test(x); });
       if (stTampil.length) h += '<div class="pm-ab-s">' + stTampil.map(esc).join(' • ') + '</div>';
       if (!res.pulang) h += '<div class="pm-ab-s">Jam pulang belum tercatat. Jam selesai lembur belum bisa terisi otomatis.</div>';
       if (kunci.length) {
@@ -3155,7 +3106,7 @@
     });
   }
 
-  var PM_BUKTI = null;   // { id, token } pengajuan terakhir, dipakai untuk kirim bukti ke email
+  var PM_BUKTI = null;
   function pmKirimBukti() {
     var inp = $('pmBuktiEmail'), msg = $('pmBuktiMsg'), btn = $('pmBuktiKirim');
     if (!PM_BUKTI || !inp) return;
@@ -3211,7 +3162,6 @@
     PM_IZIN = null; pmIsiJenis(); pmUbahKeg(); pmHitungDurasi(); pmGerbang();
   }
 
-  // ---------- Form pengajuan izin ----------
   var IZ_INFO = {
     pulang: 'Jam pulang TIDAK perlu diisi: akan terisi otomatis dari data absensi (jam Pulang) setelah admin memperbarui data dari mesin finger print.',
     terlambat: 'Jam datang TIDAK perlu diisi: akan terisi otomatis dari data absensi (jam Masuk) setelah admin memperbarui data dari mesin finger print.',
@@ -3263,7 +3213,6 @@
     });
   }
 
-  // ---------- Admin: input pertukaran lembur langsung ----------
   var PMA_JALAN = false;
   function pmaUbah() {
     var l = $('pmaKeg').value === 'Lainnya';
@@ -3310,7 +3259,6 @@
     });
   }
 
-  // ---------- Admin: input izin langsung ----------
   var IZA_JALAN = false;
   function izaUbahJenis() {
     var j = $('izaJenis').value;
@@ -3355,7 +3303,6 @@
     });
   }
 
-  // ---------- Admin ----------
   var AD = { token: '', admin: '', tab: 'menunggu', mode: 'lembur', data: { menunggu: [], riwayat: [] }, iz: { menunggu: [], riwayat: [] } };
 
   function adErr(id, msg, ok) { var e = $(id); e.hidden = !msg; e.textContent = msg || ''; e.style.color = ok ? '#047857' : ''; }
@@ -3500,7 +3447,6 @@
     return null;
   }
 
-  // ---------- Dialog keputusan ----------
   var DLG = null;
   function pmDialog(judul, teks, label, wajib, tombol, proses) {
     DLG = { wajib: wajib, proses: proses, tombol: tombol };
@@ -3541,7 +3487,6 @@
       });
   }
 
-  // ---------- Cetak arsip ----------
   function cetakPermohonan(o) {
     var st = o.status || 'Menunggu';
     function v(x) { x = (x === undefined || x === null) ? '' : String(x).trim(); return x ? esc(x) : '–'; }
@@ -3600,7 +3545,6 @@
     window.print();
   }
 
-  // ---------- Pemasangan ----------
   (function bindPermohonan() {
     $('nvAbs').onclick = function () { tampilView('abs'); };
     $('nvForm').onclick = function () { tampilView('form'); };
@@ -3632,10 +3576,6 @@
       var b = e.target.closest ? e.target.closest('#pmPakai') : null;
       if (b) { $('pmJamG').value = b.getAttribute('data-jam'); pmInfoCek(); pmGerbang(); }
     });
-    $('pmAbsen').addEventListener('click', function (e) {
-      var b = e.target.closest ? e.target.closest('#pmOtoUlang') : null;
-      if (b && PM_OTO_RES) pmIsiOtomatis(PM_OTO_RES, PM_OTO_TGL, true);
-    });
     ['pmNama', 'pmKeg', 'pmDetail', 'pmTglL', 'pmMulai', 'pmSelesai', 'pmJenis', 'pmTglG', 'pmJamG'].forEach(function (id) {
       $(id).addEventListener('input', pmGerbang); $(id).addEventListener('change', pmGerbang);
     });
@@ -3645,7 +3585,6 @@
     });
     $('pmKirim').onclick = pmKirim;
     pmGerbang();
-    // Refresh biasa / tombol kembali: browser sering memulihkan isian lama. Formulir selalu dimulai kosong.
     window.addEventListener('pageshow', function () { setTimeout(function () { pmKosongkan(false); }, 0); });
     $('pmReset').onclick = function () { pmKosongkan(false); };
 
