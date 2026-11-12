@@ -971,6 +971,7 @@
           <button type="button" id="adMLembur" aria-pressed="true">Permohonan Lembur</button>
           <button type="button" id="adMIzin" aria-pressed="false">Pengajuan Izin</button>
         </div>
+        <button type="button" class="pm-btn sm" id="adIzBaru" hidden>➕ Input izin langsung</button>
       </div>
       <div class="pm-tools">
         <div class="seg" role="group" aria-label="Daftar permohonan">
@@ -999,6 +1000,43 @@
       <div class="pm-list" id="adList"></div>
     </div>
   </section>
+
+  <div class="pm-back" id="izaBack" hidden>
+    <div class="pm-dlg" role="dialog" aria-modal="true" aria-labelledby="izaT" style="max-height:90vh;overflow:auto">
+      <h3 id="izaT">Input izin karyawan (admin)</h3>
+      <p class="pm-sub" style="margin-top:0">Izin langsung berstatus <b>Disetujui</b>, dicatat di sheet absensi, dan tetap masuk Riwayat dengan keterangan “Diinput langsung oleh admin”.</p>
+      <div class="field">
+        <label for="izaNama">Nama karyawan</label>
+        <div class="combo" id="comboIzaNama">
+          <input id="izaNama" type="text" role="combobox" aria-expanded="false" aria-controls="listIzaNama" aria-autocomplete="list" autocomplete="off" spellcheck="false" placeholder="Ketik atau pilih nama karyawan" maxlength="80">
+          <button type="button" class="combo-arrow" id="arrowIzaNama" tabindex="-1" aria-label="Tampilkan daftar nama"></button>
+          <ul class="combo-list" id="listIzaNama" role="listbox" hidden></ul>
+        </div>
+      </div>
+      <div class="field" style="margin-top:10px">
+        <label for="izaJenis">Jenis izin</label>
+        <select id="izaJenis" autocomplete="off">
+          <option value="">Pilih jenis izin…</option>
+          <option value="pulang">Ijin Pulang (pulang lebih awal)</option>
+          <option value="terlambat">Absensi Terlambat (datang terlambat)</option>
+          <option value="keluar">Ijin Keluar (keluar sebentar)</option>
+          <option value="tidakmasuk">Ijin Tidak Masuk</option>
+          <option value="dinas">Dinas</option>
+        </select>
+      </div>
+      <div class="field" style="margin-top:10px"><label for="izaTgl">Tanggal</label><input id="izaTgl" type="date" autocomplete="off"></div>
+      <div class="field" id="izaAkhirBox" style="margin-top:10px" hidden><label for="izaAkhir">Sampai tanggal (opsional)</label><input id="izaAkhir" type="date" autocomplete="off"></div>
+      <div class="field" id="izaJam1Box" style="margin-top:10px" hidden><label for="izaJam1">Jam keluar</label><input id="izaJam1" type="time" autocomplete="off"></div>
+      <div class="field" id="izaJam2Box" style="margin-top:10px" hidden><label for="izaJam2">Jam kembali</label><input id="izaJam2" type="time" autocomplete="off"></div>
+      <div class="field" style="margin-top:10px"><label for="izaKet">Alasan / keterangan</label><textarea id="izaKet" maxlength="300" placeholder="Mis. kontrol kandungan"></textarea></div>
+      <p class="pm-hint" id="izaInfo">Pilih jenis izin terlebih dahulu.</p>
+      <div class="pm-err" id="izaErr" hidden></div>
+      <div class="pm-act">
+        <button type="button" class="pm-btn" id="izaSimpan" disabled>Simpan &amp; catat</button>
+        <button type="button" class="pm-btn ghost" id="izaBatal">Batal</button>
+      </div>
+    </div>
+  </div>
 
   <div class="pm-back" id="pmDlgBack" hidden>
     <div class="pm-dlg" role="dialog" aria-modal="true" aria-labelledby="pmDlgT">
@@ -1095,7 +1133,7 @@
   // Tempel URL Web App dari Apps Script di antara tanda kutip.
   // Contoh: 'https://script.google.com/macros/s/XXXX/exec'
   // ============================================================
-  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzfVL7kQ35TT-GX8goG715Pqx3CZAKQUgxeoxSIq8maDLURAZwns9V5tL6LEjaQufoZkQ/exec';
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzALPhaYbF1uYuna4xhICOYsgCLVNHfWQtyl7NJTxOFlBLNlj1Z7fnxdpFCFdN86A2MAA/exec';
   // ============================================================
 
   function p2(n) { return (n < 10 ? '0' : '') + n; }
@@ -1648,6 +1686,7 @@
     initNamaCombo();
     initPmNamaCombo();
     initPmNamaCombo('izNama', 'listIzNama', 'arrowIzNama');
+    initPmNamaCombo('izaNama', 'listIzaNama', 'arrowIzaNama');
     initStatusFilter();
     bindDetail();
     $('inpCari').oninput = function () { S.cari = this.value.trim().toLowerCase(); reset(); };
@@ -3184,6 +3223,51 @@
     });
   }
 
+  // ---------- Admin: input izin langsung ----------
+  var IZA_JALAN = false;
+  function izaUbahJenis() {
+    var j = $('izaJenis').value;
+    $('izaAkhirBox').hidden = !(j === 'tidakmasuk' || j === 'dinas');
+    $('izaJam1Box').hidden = j !== 'keluar';
+    $('izaJam2Box').hidden = j !== 'keluar';
+    $('izaInfo').textContent = IZ_INFO[j] || 'Pilih jenis izin terlebih dahulu.';
+    izaGerbang();
+  }
+  function izaGerbang() {
+    var j = $('izaJenis').value, ok = !!$('izaNama').value.trim() && !!j && !!$('izaTgl').value && $('izaKet').value.trim().length >= 3;
+    if (j === 'keluar' && (!$('izaJam1').value || !$('izaJam2').value)) ok = false;
+    if ($('izaAkhir').value && $('izaAkhir').value < $('izaTgl').value) ok = false;
+    $('izaSimpan').disabled = !ok || IZA_JALAN;
+  }
+  function izaBuka() {
+    ['izaNama', 'izaJenis', 'izaTgl', 'izaAkhir', 'izaJam1', 'izaJam2', 'izaKet'].forEach(function (id) { $(id).value = ''; });
+    $('izaErr').hidden = true; IZA_JALAN = false; $('izaSimpan').textContent = 'Simpan & catat'; $('izaBatal').disabled = false;
+    izaUbahJenis();
+    $('izaBack').hidden = false;
+    $('izaNama').focus();
+  }
+  function izaTutup() { if (!IZA_JALAN) $('izaBack').hidden = true; }
+  function izaSimpan() {
+    if (IZA_JALAN || !AD.token) return;
+    IZA_JALAN = true;
+    var btn = $('izaSimpan'); btn.disabled = true; btn.textContent = 'Memproses… mohon tunggu'; $('izaBatal').disabled = true;
+    $('izaErr').hidden = true;
+    apiPost({ action: 'izInput', token: AD.token, nama: $('izaNama').value.trim(), jenis: $('izaJenis').value, tgl: $('izaTgl').value,
+      tglAkhir: $('izaAkhir').value, jam1: $('izaJam1').value, jam2: $('izaJam2').value, ket: $('izaKet').value.trim() }, function (res) {
+      IZA_JALAN = false; btn.textContent = 'Simpan & catat'; $('izaBatal').disabled = false;
+      $('izaBack').hidden = true;
+      adErr('adErr2', res.id + ' · ' + res.nama + ' · ' + res.jenis + ': ' + res.status + ' (input admin). ' + (res.penerapan || ''), !/GAGAL/.test(res.penerapan || ''));
+      if (/GAGAL/.test(res.penerapan || '')) $('adErr2').style.color = '';
+      AD.tab = 'riwayat'; adSetTab('riwayat');
+      adMuat();
+    }, function (e) {
+      IZA_JALAN = false; btn.textContent = 'Simpan & catat'; $('izaBatal').disabled = false;
+      if (e.auth) { $('izaBack').hidden = true; adKeluarLokal(); adErr('adErr', e.message); return; }
+      $('izaErr').hidden = false; $('izaErr').textContent = e.message;
+      izaGerbang();
+    });
+  }
+
   // ---------- Admin ----------
   var AD = { token: '', admin: '', tab: 'menunggu', mode: 'lembur', data: { menunggu: [], riwayat: [] }, iz: { menunggu: [], riwayat: [] } };
 
@@ -3236,6 +3320,7 @@
     $('adMLembur').setAttribute('aria-pressed', m === 'lembur');
     $('adMIzin').setAttribute('aria-pressed', m === 'izin');
     $('adJudul').textContent = m === 'izin' ? 'Pengajuan Izin' : 'Permohonan Lembur';
+    $('adIzBaru').hidden = m !== 'izin';
     $('adJenis').innerHTML = m === 'izin'
       ? '<option value="">Semua jenis</option><option value="Ijin Pulang">Ijin Pulang</option><option value="Absensi Terlambat">Absensi Terlambat</option><option value="Ijin Keluar">Ijin Keluar</option><option value="Ijin Tidak Masuk">Ijin Tidak Masuk</option><option value="Dinas">Dinas</option>'
       : '<option value="">Semua jenis</option><option value="Pulang Cepat">Pulang Cepat</option><option value="Datang Lambat">Datang Lambat</option><option value="Libur">Libur</option>';
@@ -3271,7 +3356,7 @@
     var jam = o.jenis === 'Ijin Keluar' ? 'Keluar ' + esc(o.jam1 || '–') + ', kembali ' + esc(o.jam2 || '–')
       : (o.jenis === 'Ijin Pulang' ? 'Jam pulang diambil dari data absensi' : (o.jenis === 'Absensi Terlambat' ? 'Jam masuk diambil dari data absensi' : ''));
     var h = '<article class="pm-it st-' + esc(st.replace(/\s+/g, '-')) + '">' +
-      '<div class="pm-it-h"><b>' + esc(o.nama) + '</b><span class="chip ot">' + esc(o.jenis) + '</span><span class="chip ' + stChip + '">' + esc(st) + '</span><span class="pm-it-id">' + esc(o.id) + '</span></div>' +
+      '<div class="pm-it-h"><b>' + esc(o.nama) + '</b><span class="chip ot">' + esc(o.jenis) + '</span><span class="chip ' + stChip + '">' + esc(st) + '</span>' + (String(o.catatan || '').indexOf('Diinput langsung') === 0 ? '<span class="chip inc">Input admin</span>' : '') + '<span class="pm-it-id">' + esc(o.id) + '</span></div>' +
       '<div class="pm-kv">' + kv('Tanggal', tgl) + kv('Jam', jam) + kv('Diajukan', esc(o.diajukan)) + '</div>';
     if (o.ket) h += '<div class="pm-note"><b>Keterangan pemohon:</b> ' + esc(o.ket) + '</div>';
     if (o.oleh) h += '<div class="pm-note"><b>Keputusan:</b> ' + esc(st) + ' oleh ' + esc(o.oleh) + ' pada ' + esc(o.waktu) + (o.catatan ? '<br><b>Catatan:</b> ' + esc(o.catatan) : '') + '</div>';
@@ -3479,6 +3564,13 @@
     $('adMasuk').onclick = adMasuk;
     $('adPin').addEventListener('keydown', function (e) { if (e.key === 'Enter') adMasuk(); });
     $('adMuat').onclick = adMuat;
+    $('adIzBaru').onclick = izaBuka;
+    $('izaBatal').onclick = izaTutup;
+    $('izaSimpan').onclick = izaSimpan;
+    $('izaJenis').addEventListener('change', izaUbahJenis);
+    ['izaNama', 'izaTgl', 'izaAkhir', 'izaJam1', 'izaJam2', 'izaKet'].forEach(function (id) {
+      $(id).addEventListener('input', izaGerbang); $(id).addEventListener('change', izaGerbang);
+    });
     $('adKeluar').onclick = adKeluar;
     $('adTMenunggu').onclick = function () { adSetTab('menunggu'); };
     $('adTRiwayat').onclick = function () { adSetTab('riwayat'); };
