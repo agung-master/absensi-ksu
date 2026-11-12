@@ -804,7 +804,7 @@
         <div class="pm-row">
           <div class="field">
             <label for="pmKeg">Jenis kegiatan</label>
-            <select id="pmKeg">
+            <select id="pmKeg" autocomplete="off">
               <option value="">Pilih kegiatan…</option>
               <option value="Event">Event</option>
               <option value="CFD">CFD</option>
@@ -813,19 +813,19 @@
           </div>
           <div class="field" id="pmDetailBox">
             <label for="pmDetail" id="pmDetailLbl">Nama kegiatan (opsional)</label>
-            <input id="pmDetail" type="text" maxlength="120" placeholder="Mis. Event Gathering Mitra">
+            <input id="pmDetail" type="text" maxlength="120" placeholder="Mis. Event Gathering Mitra" autocomplete="off">
           </div>
           <div class="field">
             <label for="pmTglL">Tanggal lembur</label>
-            <input id="pmTglL" type="date">
+            <input id="pmTglL" type="date" autocomplete="off">
           </div>
           <div class="field">
             <label for="pmMulai">Jam mulai lembur</label>
-            <input id="pmMulai" type="time" disabled>
+            <input id="pmMulai" type="time" disabled autocomplete="off">
           </div>
           <div class="field">
             <label for="pmSelesai">Jam selesai lembur</label>
-            <input id="pmSelesai" type="time" disabled>
+            <input id="pmSelesai" type="time" disabled autocomplete="off">
           </div>
         </div>
         <div class="pm-absen" id="pmAbsen" aria-live="polite" hidden></div>
@@ -839,7 +839,7 @@
         <div class="pm-row">
           <div class="field">
             <label for="pmJenis">Jenis penggantian</label>
-            <select id="pmJenis">
+            <select id="pmJenis" autocomplete="off">
               <option value="">Pilih penggantian…</option>
               <option value="cepat">Pulang cepat</option>
               <option value="lambat">Datang lambat</option>
@@ -848,11 +848,11 @@
           </div>
           <div class="field">
             <label for="pmTglG">Tanggal penggantian</label>
-            <input id="pmTglG" type="date">
+            <input id="pmTglG" type="date" autocomplete="off">
           </div>
           <div class="field" id="pmJamBox">
             <label for="pmJamG" id="pmJamLbl">Jam</label>
-            <input id="pmJamG" type="time">
+            <input id="pmJamG" type="time" autocomplete="off">
           </div>
         </div>
         <p class="pm-hint" id="pmJenisInfo">Pilih salah satu jenis penggantian. Kolom isian menyesuaikan pilihan Anda.</p>
@@ -860,7 +860,7 @@
         <div class="pm-row">
           <div class="field full">
             <label for="pmKet">Keterangan tambahan (opsional)</label>
-            <textarea id="pmKet" maxlength="400" placeholder="Mis. alasan memilih tanggal tersebut"></textarea>
+            <textarea id="pmKet" maxlength="400" placeholder="Mis. alasan memilih tanggal tersebut" autocomplete="off"></textarea>
           </div>
         </div>
       </fieldset>
@@ -1016,7 +1016,7 @@
   // Tempel URL Web App dari Apps Script di antara tanda kutip.
   // Contoh: 'https://script.google.com/macros/s/XXXX/exec'
   // ============================================================
-  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbym0uLFT0yHG5mZHr0qwF46M0WOU-Lh_LF-tdk7B87kz8TAzd4XNhvebC1GzrrDm979cA/exec';
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwHiQntxBowqUf327fJIbx91CPITUZxPAEOU5afQJDbTTOW8W5aezUKOT91z9h8MgtDIg/exec';
   // ============================================================
 
   function p2(n) { return (n < 10 ? '0' : '') + n; }
@@ -3260,6 +3260,8 @@
     });
     $('pmKirim').onclick = pmKirim;
     pmGerbang();
+    // Refresh biasa / tombol kembali: browser sering memulihkan isian lama. Formulir selalu dimulai kosong.
+    window.addEventListener('pageshow', function () { setTimeout(function () { pmKosongkan(false); }, 0); });
     $('pmReset').onclick = function () { pmKosongkan(false); };
 
     $('adMasuk').onclick = adMasuk;
