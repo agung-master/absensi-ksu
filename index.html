@@ -559,6 +559,12 @@
   .pm-absen .pm-ab-s { margin-top: 8px; font-size: 13px; }
   .pm-hint { margin: 6px 0 0; font-size: 12.5px; color: var(--muted); }
   .pm-hint[hidden] { display: none; }
+  .pm-bukti { margin-top: 14px; padding: 12px; border: 1px dashed #b9cdf0; border-radius: 10px; background: #f6f9ff; color: var(--ink); }
+  .pm-bukti p { margin: 4px 0 8px; font-size: 13px; color: var(--muted); }
+  .pm-bukti-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .pm-bukti-row input { flex: 1 1 220px; min-width: 0; font: inherit; padding: 9px 10px; border: 1px solid #b9cdf0; border-radius: 9px; background: #fff; color: var(--ink); }
+  .pm-bukti-msg { margin-top: 8px; font-size: 13px; }
+  .pm-bukti-msg.ok { color: #047857; } .pm-bukti-msg.no { color: #b91c1c; }
   /* bagian yang belum boleh diisi (abu-abu) */
   .pm-grp:disabled { background: #eef1f6; border-color: #d5dbe6; }
   .pm-grp:disabled > legend { color: #8a9ab8; }
@@ -1010,7 +1016,7 @@
   // Tempel URL Web App dari Apps Script di antara tanda kutip.
   // Contoh: 'https://script.google.com/macros/s/XXXX/exec'
   // ============================================================
-  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwHiQntxBowqUf327fJIbx91CPITUZxPAEOU5afQJDbTTOW8W5aezUKOT91z9h8MgtDIg/exec';
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxksv9PmSaHF8sryi_cGvwi24Nb2i8OYKpV550l7HwbBFPcYk_KIspN72uLUEt6znw64Q/exec';
   // ============================================================
 
   function p2(n) { return (n < 10 ? '0' : '') + n; }
@@ -2951,6 +2957,22 @@
     });
   }
 
+  var PM_BUKTI = null;   // { id, token } pengajuan terakhir, dipakai untuk kirim bukti ke email
+  function pmKirimBukti() {
+    var inp = $('pmBuktiEmail'), msg = $('pmBuktiMsg'), btn = $('pmBuktiKirim');
+    if (!PM_BUKTI || !inp) return;
+    var em = inp.value.trim();
+    function tampil(t, ok) { msg.textContent = t; msg.className = 'pm-bukti-msg ' + (ok ? 'ok' : 'no'); }
+    if (!/^[^\s@,;<>"']+@[^\s@,;<>"']+\.[^\s@,;<>"']{2,}$/.test(em)) { tampil('Alamat email tidak valid.', false); return; }
+    btn.disabled = true; btn.textContent = 'Mengirim…'; tampil('', true);
+    apiPost({ action: 'kirimBukti', id: PM_BUKTI.id, token: PM_BUKTI.token, email: em }, function (res) {
+      btn.disabled = false; btn.textContent = 'Kirim ulang';
+      tampil('✅ Bukti telah dikirim ke ' + (res && res.email ? res.email : em) + '. Jika tidak muncul di kotak masuk, periksa folder spam.', true);
+    }, function (e) {
+      btn.disabled = false; btn.textContent = 'Kirim bukti';
+      tampil(e && e.message ? e.message : String(e), false);
+    });
+  }
   function pmTampilHasil(res) {
     var rs = res.ringkasan || {}, ok = res.status === 'diterima', box = $('pmHasil');
     function li(a) { return a.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join(''); }
@@ -2966,6 +2988,14 @@
       tr('Jam yang boleh dipilih', rs.batasMin ? rs.batasMin + ' – ' + rs.batasMax : '') +
       tr('Diganti dengan', rs.jenis ? rs.jenis + ', ' + tglPjg(rs.tglGanti) + (rs.jamGanti ? ' pukul ' + rs.jamGanti : '') : '') +
       '</table>';
+    PM_BUKTI = (res.id && res.token) ? { id: res.id, token: res.token } : null;
+    if (PM_BUKTI) {
+      h += '<div class="pm-bukti"><b>📧 Kirim bukti pengajuan ke email Anda (disarankan)</b>' +
+        '<p>Bukti ini berguna jika suatu saat data permohonan di sistem hilang. Bukti dikirim sebagai lampiran PDF berisi nomor ID, waktu pengajuan, dan rincian permohonan. Opsi ini tersedia 6 jam setelah pengajuan.</p>' +
+        '<div class="pm-bukti-row"><input type="email" id="pmBuktiEmail" placeholder="nama@email.com" autocomplete="email" maxlength="120" aria-label="Alamat email penerima bukti">' +
+        '<button type="button" class="pm-btn sm" id="pmBuktiKirim">Kirim bukti</button></div>' +
+        '<div class="pm-bukti-msg" id="pmBuktiMsg" role="status" aria-live="polite"></div></div>';
+    }
     box.className = 'pm-res ' + (ok ? 'ok' : 'no');
     box.innerHTML = h;
     box.hidden = false;
@@ -3203,6 +3233,10 @@
     });
     ['pmNama', 'pmKeg', 'pmDetail', 'pmTglL', 'pmMulai', 'pmSelesai', 'pmJenis', 'pmTglG', 'pmJamG'].forEach(function (id) {
       $(id).addEventListener('input', pmGerbang); $(id).addEventListener('change', pmGerbang);
+    });
+    $('pmHasil').addEventListener('click', function (e) {
+      var b = e.target.closest ? e.target.closest('#pmBuktiKirim') : null;
+      if (b) pmKirimBukti();
     });
     $('pmKirim').onclick = pmKirim;
     pmGerbang();
