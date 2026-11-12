@@ -1095,7 +1095,7 @@
   // Tempel URL Web App dari Apps Script di antara tanda kutip.
   // Contoh: 'https://script.google.com/macros/s/XXXX/exec'
   // ============================================================
-  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx6bzspxIkDGjL6w63wFnWX44McIpSNQH6Mc3KbXgvdbzW0lPXzkKfrqZ_0jQzKdzitRA/exec';
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxJ4D9wGlLzv5edHzuqXmS5L81lVRHQGgR122lpQNO-Xo5pRPRtQ47Q1M_dpwkzmLh6FQ/exec';
   // ============================================================
 
   function p2(n) { return (n < 10 ? '0' : '') + n; }
@@ -1106,7 +1106,23 @@
   var LOADED = {};
   var SESUAI = {};   // penyesuaian disetujui (pengganti lembur): nama|tanggal -> {j: cepat|lambat|libur, m: jam}
   function nk(n) { return String(n || '').toLowerCase().replace(/\s+/g, ' ').trim(); }
-  function petaSesuai(list) { var m = {}; (list || []).forEach(function (x) { m[nk(x.n) + '|' + x.t] = x; }); return m; }
+  function petaSesuai(list) { var m = {}; (list || []).forEach(function (x) { m[nk(x.n) + '|' + x.t] = x; (m['@' + x.t] = m['@' + x.t] || []).push(x); }); return m; }
+  // nama sama persis, atau semua kata nama yang lebih pendek ada di nama yang lebih panjang ("Prima" = "Prima Aditya")
+  function namaKata(a, b) {
+    var x = nk(a), y = nk(b);
+    if (!x || !y) return false;
+    if (x === y) return true;
+    var tx = x.split(' '), ty = y.split(' ');
+    var kecil = tx.length <= ty.length ? tx : ty, besar = tx.length <= ty.length ? ty : tx;
+    return kecil.every(function (k) { return besar.indexOf(k) >= 0; });
+  }
+  function cariSesuai(nama, tgl) {
+    var p = SESUAI[nk(nama) + '|' + tgl];
+    if (p) return p;
+    var l = SESUAI['@' + tgl] || [];
+    for (var i = 0; i < l.length; i++) if (namaKata(l[i].n, nama)) return l[i];
+    return null;
+  }
   function adjTeks(r) {
     if (!r.adj) return '';
     return r.adj.j === 'libur' ? 'Libur pengganti lembur (disetujui)' : (r.adj.j === 'cepat' ? 'Pulang cepat ' : 'Datang lambat ') + r.adj.m + ' disetujui (pengganti lembur)';
@@ -1240,7 +1256,7 @@
         if (SEEN[key]) return;
         SEEN[key] = true;
         var row = rec[key];
-        var r = { nama: nama, tgl: tgl, y: y, m: m, d: d, dow: dow, masuk: '', pulang: '', telat: 0, lembur: 0, cepat: 0, st: '', mg: false, malam: false, adj: SESUAI[nk(nama) + '|' + tgl] || null };
+        var r = { nama: nama, tgl: tgl, y: y, m: m, d: d, dow: dow, masuk: '', pulang: '', telat: 0, lembur: 0, cepat: 0, st: '', mg: false, malam: false, adj: cariSesuai(nama, tgl) };
         if (row) {
           r.masuk = row[2]; r.pulang = row[3]; r.st = 'hadir';
           // Satu kali scan yang tercatat di baris Masuk dan Pulang sekaligus (jam sama persis)
