@@ -664,6 +664,7 @@
   <nav class="nav" id="nav" aria-label="Menu utama" hidden>
     <button type="button" id="nvAbs" aria-pressed="true">📊 Absensi</button>
     <button type="button" id="nvForm" aria-pressed="false">📝 Ajukan Permohonan</button>
+    <button type="button" id="nvIzin" aria-pressed="false">🗓 Ajukan Izin</button>
     <button type="button" id="nvAdmin" aria-pressed="false">🔐 Admin</button>
   </nav>
 
@@ -875,6 +876,78 @@
     </div>
   </section>
 
+  <section id="izView" hidden>
+    <div class="panel">
+      <h2 class="pm-h">Pengajuan Izin</h2>
+      <p class="pm-sub">Ajukan izin pulang, datang terlambat, keluar, tidak masuk, atau dinas. Pengajuan akan dicek admin lebih dulu; setelah disetujui, izin tercatat otomatis di sheet absensi bulan terkait.</p>
+
+      <fieldset class="pm-grp">
+        <legend>1. Data diri</legend>
+        <div class="pm-row">
+          <div class="field full">
+            <label for="izNama">Nama lengkap</label>
+            <div class="combo" id="comboIzNama">
+              <input id="izNama" type="text" role="combobox" aria-expanded="false" aria-controls="listIzNama" aria-autocomplete="list" autocomplete="off" spellcheck="false" placeholder="Ketik atau pilih nama lengkap Anda" maxlength="80">
+              <button type="button" class="combo-arrow" id="arrowIzNama" tabindex="-1" aria-label="Tampilkan daftar nama"></button>
+              <ul class="combo-list" id="listIzNama" role="listbox" hidden></ul>
+            </div>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="pm-grp">
+        <legend>2. Jenis dan waktu izin</legend>
+        <div class="pm-row">
+          <div class="field">
+            <label for="izJenis">Jenis izin</label>
+            <select id="izJenis" autocomplete="off">
+              <option value="">Pilih jenis izin…</option>
+              <option value="pulang">Ijin Pulang (pulang lebih awal)</option>
+              <option value="terlambat">Absensi Terlambat (datang terlambat)</option>
+              <option value="keluar">Ijin Keluar (keluar sebentar)</option>
+              <option value="tidakmasuk">Ijin Tidak Masuk</option>
+              <option value="dinas">Dinas</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="izTgl" id="izTglLbl">Tanggal</label>
+            <input id="izTgl" type="date" autocomplete="off">
+          </div>
+          <div class="field" id="izAkhirBox" hidden>
+            <label for="izAkhir">Sampai tanggal (opsional)</label>
+            <input id="izAkhir" type="date" autocomplete="off">
+          </div>
+          <div class="field" id="izJam1Box" hidden>
+            <label for="izJam1">Jam keluar</label>
+            <input id="izJam1" type="time" autocomplete="off">
+          </div>
+          <div class="field" id="izJam2Box" hidden>
+            <label for="izJam2">Jam kembali</label>
+            <input id="izJam2" type="time" autocomplete="off">
+          </div>
+        </div>
+        <p class="pm-hint" id="izInfo">Pilih jenis izin terlebih dahulu.</p>
+      </fieldset>
+
+      <fieldset class="pm-grp">
+        <legend>3. Keterangan</legend>
+        <div class="pm-row">
+          <div class="field full">
+            <label for="izKet">Alasan / keterangan</label>
+            <textarea id="izKet" maxlength="300" placeholder="Mis. mengantar keluarga ke dokter" autocomplete="off"></textarea>
+          </div>
+        </div>
+      </fieldset>
+
+      <div class="pm-act">
+        <button type="button" class="pm-btn" id="izKirim" disabled>Kirim pengajuan izin</button>
+        <button type="button" class="pm-btn ghost" id="izReset">Kosongkan formulir</button>
+      </div>
+      <div class="pm-err" id="izErr" hidden></div>
+      <div class="pm-res" id="izHasil" role="status" aria-live="polite" hidden></div>
+    </div>
+  </section>
+
   <section id="adView" hidden>
     <div class="panel pm-login" id="adLogin">
       <h2 class="pm-h">Masuk Admin</h2>
@@ -887,10 +960,16 @@
 
     <div class="panel" id="adPanel" hidden>
       <div class="pm-top">
-        <div><h2 class="pm-h">Permohonan Lembur</h2><p class="pm-sub" id="adWho" style="margin:0"></p></div>
+        <div><h2 class="pm-h" id="adJudul">Permohonan Lembur</h2><p class="pm-sub" id="adWho" style="margin:0"></p></div>
         <div class="pm-act" style="margin:0">
           <button type="button" class="pm-btn ghost sm" id="adMuat">↻ Muat ulang</button>
           <button type="button" class="pm-btn ghost sm" id="adKeluar">Keluar</button>
+        </div>
+      </div>
+      <div class="pm-tools">
+        <div class="seg" role="group" aria-label="Jenis pengajuan">
+          <button type="button" id="adMLembur" aria-pressed="true">Permohonan Lembur</button>
+          <button type="button" id="adMIzin" aria-pressed="false">Pengajuan Izin</button>
         </div>
       </div>
       <div class="pm-tools">
@@ -1016,7 +1095,7 @@
   // Tempel URL Web App dari Apps Script di antara tanda kutip.
   // Contoh: 'https://script.google.com/macros/s/XXXX/exec'
   // ============================================================
-  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyThpOpLOqKEvtMa9hJC_-BPshPHVLjqa8GxnHmvkxqZ9JEjmvCYiKKHFzHxKeQz1u60A/exec';
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbya3Tr4mKyZfptylIV9zrVeC3XD8_WvoQYHuCf8rg-oUR3H4GZBK1UL3JQoD3NXIJYn2w/exec';
   // ============================================================
 
   function p2(n) { return (n < 10 ? '0' : '') + n; }
@@ -1552,6 +1631,7 @@
 
     initNamaCombo();
     initPmNamaCombo();
+    initPmNamaCombo('izNama', 'listIzNama', 'arrowIzNama');
     initStatusFilter();
     bindDetail();
     $('inpCari').oninput = function () { S.cari = this.value.trim().toLowerCase(); reset(); };
@@ -2541,8 +2621,8 @@
 
   function pmIsiNama() { /* daftar nama dibaca langsung dari NAMA_LIST oleh initPmNamaCombo */ }
 
-  function initPmNamaCombo() {
-    var inp = $('pmNama'), list = $('listPmNama'), items = [], act = -1;
+  function initPmNamaCombo(inpId, listId, arrowId) {
+    var inp = $(inpId || 'pmNama'), list = $(listId || 'listPmNama'), items = [], act = -1;
     if (!inp || !list) return;
 
     function open() { list.hidden = false; inp.setAttribute('aria-expanded', 'true'); }
@@ -2594,7 +2674,7 @@
       e.preventDefault();
       if (li) pick(li.getAttribute('data-v'));
     });
-    $('arrowPmNama').addEventListener('mousedown', function (e) {
+    $(arrowId || 'arrowPmNama').addEventListener('mousedown', function (e) {
       e.preventDefault();
       if (list.hidden) { inp.focus(); build(''); open(); } else close();
     });
@@ -2614,8 +2694,11 @@
     $('app').hidden = v !== 'abs';
     $('pmView').hidden = v !== 'form';
     $('adView').hidden = v !== 'admin';
+    $('izView').hidden = v !== 'izin';
+    $('nvIzin').setAttribute('aria-pressed', v === 'izin');
     $('nvAbs').setAttribute('aria-pressed', v === 'abs');
     $('nvForm').setAttribute('aria-pressed', v === 'form');
+    if (v === 'izin') izUbahJenis();
     $('nvAdmin').setAttribute('aria-pressed', v === 'admin');
     if (v === 'form') pmSiapForm();
     if (v === 'admin' && AD.token) adMuat();
@@ -3033,8 +3116,60 @@
     PM_IZIN = null; pmIsiJenis(); pmUbahKeg(); pmHitungDurasi(); pmGerbang();
   }
 
+  // ---------- Form pengajuan izin ----------
+  var IZ_INFO = {
+    pulang: 'Jam pulang TIDAK perlu diisi: akan terisi otomatis dari data absensi (jam Pulang) setelah admin memperbarui data dari mesin finger print.',
+    terlambat: 'Jam datang TIDAK perlu diisi: akan terisi otomatis dari data absensi (jam Masuk) setelah admin memperbarui data dari mesin finger print.',
+    keluar: 'Isi jam keluar dan jam kembali Anda (mesin finger print tidak mencatat keluar sebentar).',
+    tidakmasuk: 'Isi tanggal mulai. Jika izin lebih dari satu hari, isi juga kolom "Sampai tanggal".',
+    dinas: 'Isi tanggal mulai. Jika dinas lebih dari satu hari, isi juga kolom "Sampai tanggal".'
+  };
+  var IZ_KIRIM_JALAN = false;
+  function izSiap() { izUbahJenis(); }
+  function izUbahJenis() {
+    var j = $('izJenis').value;
+    $('izAkhirBox').hidden = !(j === 'tidakmasuk' || j === 'dinas');
+    $('izJam1Box').hidden = j !== 'keluar';
+    $('izJam2Box').hidden = j !== 'keluar';
+    $('izInfo').textContent = IZ_INFO[j] || 'Pilih jenis izin terlebih dahulu.';
+    izGerbang();
+  }
+  function izGerbang() {
+    var j = $('izJenis').value, ok = !!$('izNama').value.trim() && !!j && !!$('izTgl').value && $('izKet').value.trim().length >= 3;
+    if (j === 'keluar' && (!$('izJam1').value || !$('izJam2').value)) ok = false;
+    if ($('izAkhir').value && $('izAkhir').value < $('izTgl').value) ok = false;
+    $('izKirim').disabled = !ok || IZ_KIRIM_JALAN;
+  }
+  function izKosongkan(simpanHasil) {
+    ['izNama', 'izJenis', 'izTgl', 'izAkhir', 'izJam1', 'izJam2', 'izKet'].forEach(function (id) { $(id).value = ''; });
+    $('izErr').hidden = true;
+    if (!simpanHasil) $('izHasil').hidden = true;
+    izUbahJenis();
+  }
+  function izKirim() {
+    if (IZ_KIRIM_JALAN) return;
+    IZ_KIRIM_JALAN = true;
+    var btn = $('izKirim'); btn.disabled = true; btn.textContent = 'Mengirim…';
+    $('izErr').hidden = true; $('izHasil').hidden = true;
+    apiPost({ action: 'izAjukan', nama: $('izNama').value.trim(), jenis: $('izJenis').value, tgl: $('izTgl').value, tglAkhir: $('izAkhir').value,
+      jam1: $('izJam1').value, jam2: $('izJam2').value, ket: $('izKet').value.trim() }, function (res) {
+      IZ_KIRIM_JALAN = false; btn.textContent = 'Kirim pengajuan izin';
+      var box = $('izHasil');
+      box.className = 'pm-res ok'; box.hidden = false;
+      box.innerHTML = '<h3>✅ Pengajuan izin diterima <span class="pm-id">' + esc(res.id) + '</span></h3>' +
+        '<p>' + esc(res.nama) + ' · ' + esc(res.jenis) + ' · ' + esc(tglPjg(res.tgl)) + (res.tglAkhir && res.tglAkhir !== res.tgl ? ' s/d ' + esc(tglPjg(res.tglAkhir)) : '') +
+        (res.jam1 ? ' · keluar ' + esc(res.jam1) + ', kembali ' + esc(res.jam2) : '') + '</p>' +
+        '<p>Status: <b>menunggu persetujuan admin</b>. Simpan nomor ID di atas. Setelah disetujui, izin tercatat otomatis di sheet absensi.</p>';
+      izKosongkan(true);
+    }, function (e) {
+      IZ_KIRIM_JALAN = false; btn.textContent = 'Kirim pengajuan izin';
+      $('izErr').hidden = false; $('izErr').textContent = e.message;
+      izGerbang();
+    });
+  }
+
   // ---------- Admin ----------
-  var AD = { token: '', admin: '', tab: 'menunggu', data: { menunggu: [], riwayat: [] } };
+  var AD = { token: '', admin: '', tab: 'menunggu', mode: 'lembur', data: { menunggu: [], riwayat: [] }, iz: { menunggu: [], riwayat: [] } };
 
   function adErr(id, msg, ok) { var e = $(id); e.hidden = !msg; e.textContent = msg || ''; e.style.color = ok ? '#047857' : ''; }
 
@@ -3053,7 +3188,7 @@
     $('adPanel').hidden = !AD.token;
     $('adWho').textContent = AD.admin ? 'Masuk sebagai ' + AD.admin : '';
   }
-  function adKeluarLokal() { AD.token = ''; AD.admin = ''; AD.data = { menunggu: [], riwayat: [] }; adTampilPanel(); }
+  function adKeluarLokal() { AD.token = ''; AD.admin = ''; AD.data = { menunggu: [], riwayat: [] }; AD.iz = { menunggu: [], riwayat: [] }; adTampilPanel(); }
   function adKeluar() {
     var t = AD.token; adKeluarLokal();
     if (t) apiPost({ action: 'logout', token: t }, function () {}, function () {});
@@ -3061,9 +3196,11 @@
   function adMuat() {
     if (!AD.token) return;
     var b = $('adMuat'); b.disabled = true; b.textContent = '↻ Memuat…';
-    apiPost({ action: 'daftar', token: AD.token }, function (res) {
+    var izin = AD.mode === 'izin';
+    apiPost({ action: izin ? 'izDaftar' : 'daftar', token: AD.token }, function (res) {
       b.disabled = false; b.textContent = '↻ Muat ulang';
-      AD.data = res; adErr('adErr2', ''); adRender();
+      if (izin) AD.iz = res; else AD.data = res;
+      adErr('adErr2', ''); adRender();
     }, function (e) {
       b.disabled = false; b.textContent = '↻ Muat ulang';
       if (e.auth) { adKeluarLokal(); adErr('adErr', e.message); } else adErr('adErr2', e.message);
@@ -3078,20 +3215,69 @@
     adRender();
   }
 
+  function adSetMode(m) {
+    AD.mode = m;
+    $('adMLembur').setAttribute('aria-pressed', m === 'lembur');
+    $('adMIzin').setAttribute('aria-pressed', m === 'izin');
+    $('adJudul').textContent = m === 'izin' ? 'Pengajuan Izin' : 'Permohonan Lembur';
+    $('adJenis').innerHTML = m === 'izin'
+      ? '<option value="">Semua jenis</option><option value="Ijin Pulang">Ijin Pulang</option><option value="Absensi Terlambat">Absensi Terlambat</option><option value="Ijin Keluar">Ijin Keluar</option><option value="Ijin Tidak Masuk">Ijin Tidak Masuk</option><option value="Dinas">Dinas</option>'
+      : '<option value="">Semua jenis</option><option value="Pulang Cepat">Pulang Cepat</option><option value="Datang Lambat">Datang Lambat</option><option value="Libur">Libur</option>';
+    $('adStatus').innerHTML = m === 'izin'
+      ? '<option value="">Semua status</option><option value="Disetujui">Disetujui</option><option value="Ditolak">Ditolak admin</option>'
+      : '<option value="">Semua status</option><option value="Disetujui">Disetujui</option><option value="Ditolak">Ditolak admin</option><option value="Ditolak Otomatis">Ditolak otomatis</option>';
+    adRender();
+    adMuat();
+  }
+
   function adRender() {
-    var n = (AD.data.menunggu || []).length;
+    var D = AD.mode === 'izin' ? AD.iz : AD.data;
+    var n = (D.menunggu || []).length;
     $('adTMenunggu').textContent = 'Menunggu (' + n + ')';
-    $('adTRiwayat').textContent = 'Riwayat (' + (AD.data.riwayat || []).length + ')';
+    $('adTRiwayat').textContent = 'Riwayat (' + (D.riwayat || []).length + ')';
     var jn = $('adJenis').value, st = $('adStatus').value, q = $('adCari').value.trim().toLowerCase();
-    var list = (AD.tab === 'menunggu' ? AD.data.menunggu : AD.data.riwayat) || [];
+    var list = (AD.tab === 'menunggu' ? D.menunggu : D.riwayat) || [];
     list = list.filter(function (o) {
       if (jn && o.jenis !== jn) return false;
       if (AD.tab === 'riwayat' && st && o.status !== st) return false;
       if (q && (o.nama + ' ' + o.id).toLowerCase().indexOf(q) < 0) return false;
       return true;
     });
-    $('adList').innerHTML = list.length ? list.map(adKartu).join('') :
+    $('adList').innerHTML = list.length ? list.map(AD.mode === 'izin' ? izKartu : adKartu).join('') :
       '<div class="pm-empty">' + (AD.tab === 'menunggu' ? 'Tidak ada permohonan yang menunggu keputusan.' : 'Belum ada riwayat yang cocok.') + '</div>';
+  }
+
+  function izKartu(o) {
+    var st = o.status || 'Menunggu';
+    var stChip = st === 'Disetujui' ? 'ok' : (st.indexOf('Ditolak') === 0 ? 'abs' : 'inc');
+    function kv(l, v) { return '<div><span>' + l + '</span><b>' + (v || '–') + '</b></div>'; }
+    var tgl = esc(tglPjg(o.tgl)) + (o.tglAkhir && o.tglAkhir !== o.tgl ? '<br>s/d ' + esc(tglPjg(o.tglAkhir)) : '');
+    var jam = o.jenis === 'Ijin Keluar' ? 'Keluar ' + esc(o.jam1 || '–') + ', kembali ' + esc(o.jam2 || '–')
+      : (o.jenis === 'Ijin Pulang' ? 'Jam pulang diambil dari data absensi' : (o.jenis === 'Absensi Terlambat' ? 'Jam masuk diambil dari data absensi' : ''));
+    var h = '<article class="pm-it st-' + esc(st.replace(/\s+/g, '-')) + '">' +
+      '<div class="pm-it-h"><b>' + esc(o.nama) + '</b><span class="chip ot">' + esc(o.jenis) + '</span><span class="chip ' + stChip + '">' + esc(st) + '</span><span class="pm-it-id">' + esc(o.id) + '</span></div>' +
+      '<div class="pm-kv">' + kv('Tanggal', tgl) + kv('Jam', jam) + kv('Diajukan', esc(o.diajukan)) + '</div>';
+    if (o.ket) h += '<div class="pm-note"><b>Keterangan pemohon:</b> ' + esc(o.ket) + '</div>';
+    if (o.oleh) h += '<div class="pm-note"><b>Keputusan:</b> ' + esc(st) + ' oleh ' + esc(o.oleh) + ' pada ' + esc(o.waktu) + (o.catatan ? '<br><b>Catatan:</b> ' + esc(o.catatan) : '') + '</div>';
+    if (st === 'Menunggu') h += '<div class="pm-it-a"><button type="button" class="pm-btn ok sm" data-a="setuju" data-id="' + esc(o.id) + '">✅ Setujui</button><button type="button" class="pm-btn no sm" data-a="tolak" data-id="' + esc(o.id) + '">❌ Tolak</button></div>';
+    return h + '</article>';
+  }
+
+  function izAdPutuskan(o, setuju) {
+    pmDialog(setuju ? 'Setujui izin?' : 'Tolak izin?',
+      o.nama + ' · ' + o.jenis + ' · ' + tglPjg(o.tgl) + (o.tglAkhir && o.tglAkhir !== o.tgl ? ' s/d ' + tglPjg(o.tglAkhir) : '') +
+      (setuju ? '. Setelah disetujui, izin dicatat otomatis di sheet absensi bulan terkait (bisa memakan waktu beberapa detik).' : '. Sheet absensi tidak akan diubah.'),
+      setuju ? 'Catatan admin (opsional)' : 'Alasan penolakan (wajib)', !setuju, setuju ? 'Setujui' : 'Tolak',
+      function (cat, selesai, gagal) {
+        apiPost({ action: 'izPutuskan', token: AD.token, id: o.id, keputusan: setuju ? 'setuju' : 'tolak', catatan: cat }, function (res) {
+          selesai();
+          adErr('adErr2', res.id + ': ' + res.status + '. ' + (res.penerapan || ''), !/GAGAL/.test(res.penerapan || ''));
+          if (/GAGAL/.test(res.penerapan || '')) $('adErr2').style.color = '';
+          adMuat();
+        }, function (e) {
+          if (e.auth) { selesai(); adKeluarLokal(); adErr('adErr', e.message); } else gagal(e.message);
+        });
+      });
   }
 
   function adKartu(o) {
@@ -3120,7 +3306,7 @@
   }
 
   function adCari(id) {
-    var a = (AD.data.menunggu || []).concat(AD.data.riwayat || []);
+    var a = (AD.mode === 'izin' ? (AD.iz.menunggu || []).concat(AD.iz.riwayat || []) : (AD.data.menunggu || []).concat(AD.data.riwayat || []));
     for (var i = 0; i < a.length; i++) if (a[i].id === id) return a[i];
     return null;
   }
@@ -3230,6 +3416,16 @@
     $('nvAbs').onclick = function () { tampilView('abs'); };
     $('nvForm').onclick = function () { tampilView('form'); };
     $('nvAdmin').onclick = function () { tampilView('admin'); adTampilPanel(); };
+    $('nvIzin').onclick = function () { tampilView('izin'); };
+    $('izJenis').addEventListener('change', izUbahJenis);
+    ['izNama', 'izTgl', 'izAkhir', 'izJam1', 'izJam2', 'izKet'].forEach(function (id) {
+      $(id).addEventListener('input', izGerbang); $(id).addEventListener('change', izGerbang);
+    });
+    $('izKirim').onclick = izKirim;
+    $('izReset').onclick = function () { izKosongkan(false); };
+    window.addEventListener('pageshow', function () { setTimeout(function () { izKosongkan(false); }, 0); });
+    $('adMLembur').onclick = function () { if (AD.mode !== 'lembur') adSetMode('lembur'); };
+    $('adMIzin').onclick = function () { if (AD.mode !== 'izin') adSetMode('izin'); };
 
     $('pmKeg').addEventListener('change', pmUbahKeg);
     $('pmJenis').addEventListener('change', pmUbahJenis);
@@ -3280,8 +3476,8 @@
       if (!o) return;
       var a = b.getAttribute('data-a');
       if (a === 'cetak') cetakPermohonan(o);
-      else if (a === 'setuju') adPutuskan(o, true);
-      else if (a === 'tolak') adPutuskan(o, false);
+      else if (a === 'setuju') (AD.mode === 'izin' ? izAdPutuskan : adPutuskan)(o, true);
+      else if (a === 'tolak') (AD.mode === 'izin' ? izAdPutuskan : adPutuskan)(o, false);
     });
     $('pmDlgOk').onclick = pmDlgOk;
     $('pmDlgBatal').onclick = pmDlgTutup;
