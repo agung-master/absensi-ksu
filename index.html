@@ -2896,7 +2896,8 @@
         '<div><small>Jam masuk</small><b>' + esc(res.masuk || '–') + '</b></div>' +
         '<div><small>Jam pulang</small><b>' + esc(res.pulang || '–') + '</b></div>' +
         (res.shift ? '<div><small>Jadwal</small><b>' + esc(res.shift) + '</b></div>' : '') + '</div>';
-      if (res.status && res.status.length) h += '<div class="pm-ab-s">' + res.status.map(esc).join(' • ') + '</div>';
+      var stTampil = (res.status || []).filter(function (x) { return !/^Lembur/i.test(x); });   // lembur mentah disembunyikan: yang berlaku hanya "Lama lembur" hasil hitungan jam mulai-selesai
+      if (stTampil.length) h += '<div class="pm-ab-s">' + stTampil.map(esc).join(' • ') + '</div>';
       if (!res.pulang) h += '<div class="pm-ab-s">Jam pulang belum tercatat. Jam selesai lembur belum bisa terisi otomatis.</div>';
       if (kunci.length) {
         h += '<div class="pm-ab-s pm-ab-oto">⚙️ <b>Jam lembur dikosongkan.</b> Jam mulai otomatis (' + esc(res.otoMulai) + ') tidak sesuai data absensi, sehingga kolom jam mulai dan jam selesai lembur dikunci dan tidak bisa diisi manual.</div>';
