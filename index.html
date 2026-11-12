@@ -972,6 +972,7 @@
           <button type="button" id="adMIzin" aria-pressed="false">Pengajuan Izin</button>
         </div>
         <button type="button" class="pm-btn sm" id="adIzBaru" hidden>➕ Input izin langsung</button>
+        <button type="button" class="pm-btn sm" id="adPmBaru">➕ Input permohonan langsung</button>
       </div>
       <div class="pm-tools">
         <div class="seg" role="group" aria-label="Daftar permohonan">
@@ -1034,6 +1035,70 @@
       <div class="pm-act">
         <button type="button" class="pm-btn" id="izaSimpan" disabled>Simpan &amp; catat</button>
         <button type="button" class="pm-btn ghost" id="izaBatal">Batal</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="pm-back" id="pdaBack" hidden>
+    <div class="pm-dlg" role="dialog" aria-modal="true" aria-labelledby="pdaT" style="max-height:90vh;overflow:auto">
+      <h3 id="pdaT">Input permohonan penggantian lembur (admin)</h3>
+      <p class="pm-sub" style="margin-top:0">Langsung berstatus <b>Disetujui</b> tanpa menunggu persetujuan, diterapkan ke absensi, dan tercatat di Riwayat dengan keterangan “Diinput langsung oleh admin”.</p>
+      <div class="field">
+        <label for="pdaNama">Nama karyawan</label>
+        <div class="combo" id="comboPdaNama">
+          <input id="pdaNama" type="text" role="combobox" aria-expanded="false" aria-controls="listPdaNama" aria-autocomplete="list" autocomplete="off" spellcheck="false" placeholder="Ketik atau pilih nama karyawan" maxlength="80">
+          <button type="button" class="combo-arrow" id="arrowPdaNama" tabindex="-1" aria-label="Tampilkan daftar nama"></button>
+          <ul class="combo-list" id="listPdaNama" role="listbox" hidden></ul>
+        </div>
+      </div>
+      <fieldset class="pm-grp" style="margin-top:12px">
+        <legend>Lembur yang sudah dilaksanakan</legend>
+        <div class="pm-row">
+          <div class="field">
+            <label for="pdaKeg">Jenis kegiatan</label>
+            <select id="pdaKeg" autocomplete="off">
+              <option value="">Pilih kegiatan…</option>
+              <option value="Event">Event</option>
+              <option value="CFD">CFD</option>
+              <option value="Lainnya">Lainnya</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="pdaDetail" id="pdaDetailLbl">Nama kegiatan (opsional)</label>
+            <input id="pdaDetail" type="text" maxlength="120" placeholder="Mis. Event Gathering Mitra" autocomplete="off">
+          </div>
+          <div class="field"><label for="pdaTglL">Tanggal lembur</label><input id="pdaTglL" type="date" autocomplete="off"></div>
+          <div class="field"><label for="pdaMulai">Jam mulai lembur</label><input id="pdaMulai" type="time" autocomplete="off"></div>
+          <div class="field"><label for="pdaSelesai">Jam selesai lembur</label><input id="pdaSelesai" type="time" autocomplete="off"></div>
+        </div>
+        <div class="pm-absen" id="pdaAbsen" aria-live="polite" hidden></div>
+        <p class="pm-hint" id="pdaDurasi">Lama lembur dihitung otomatis.</p>
+      </fieldset>
+      <fieldset class="pm-grp" style="margin-top:12px">
+        <legend>Diganti dengan</legend>
+        <div class="pm-row">
+          <div class="field">
+            <label for="pdaJenis">Jenis penggantian</label>
+            <select id="pdaJenis" autocomplete="off">
+              <option value="">Pilih penggantian…</option>
+              <option value="cepat">Pulang cepat</option>
+              <option value="lambat">Datang lambat</option>
+              <option value="libur">Libur</option>
+            </select>
+          </div>
+          <div class="field"><label for="pdaTglG">Tanggal penggantian</label><input id="pdaTglG" type="date" autocomplete="off"></div>
+          <div class="field" id="pdaJamBox" hidden><label for="pdaJamG" id="pdaJamLbl">Jam</label><input id="pdaJamG" type="time" autocomplete="off"></div>
+        </div>
+        <p class="pm-hint" id="pdaJenisInfo">Pilih jenis penggantian terlebih dahulu.</p>
+        <div class="pm-row">
+          <div class="field full"><label for="pdaKet">Keterangan tambahan (opsional)</label><textarea id="pdaKet" maxlength="400" placeholder="Mis. disepakati langsung dengan karyawan" autocomplete="off"></textarea></div>
+        </div>
+      </fieldset>
+      <div class="pm-saran no" id="pdaWarn" role="alert" hidden></div>
+      <div class="pm-err" id="pdaErr" hidden></div>
+      <div class="pm-act">
+        <button type="button" class="pm-btn" id="pdaSimpan" disabled>Simpan &amp; terapkan</button>
+        <button type="button" class="pm-btn ghost" id="pdaBatal">Batal</button>
       </div>
     </div>
   </div>
@@ -1133,7 +1198,7 @@
   // Tempel URL Web App dari Apps Script di antara tanda kutip.
   // Contoh: 'https://script.google.com/macros/s/XXXX/exec'
   // ============================================================
-  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz93Kgbb-vh1YE8U0MKjy9VJEeUQY5tgvr6fQ153sF_E1tRev-3Nr8qevP2miMRRntyOw/exec';
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyievOTHJmz67Pezt6LhU72vXcvOx6cHMGVp_Jejwl0bJQt17x8vt4aDMSnaF5RkLzS/exec';
   // ============================================================
 
   function p2(n) { return (n < 10 ? '0' : '') + n; }
@@ -1687,6 +1752,7 @@
     initPmNamaCombo();
     initPmNamaCombo('izNama', 'listIzNama', 'arrowIzNama');
     initPmNamaCombo('izaNama', 'listIzaNama', 'arrowIzaNama');
+    initPmNamaCombo('pdaNama', 'listPdaNama', 'arrowPdaNama');
     initStatusFilter();
     bindDetail();
     $('inpCari').oninput = function () { S.cari = this.value.trim().toLowerCase(); reset(); };
@@ -3268,6 +3334,102 @@
     });
   }
 
+  // ---------- Admin: input permohonan penggantian lembur langsung ----------
+  var PDA_JALAN = false, PDA_PAKSA = false, PDA_SEQ = 0;
+  var PDA_FIELD = ['pdaNama', 'pdaKeg', 'pdaDetail', 'pdaTglL', 'pdaMulai', 'pdaSelesai', 'pdaJenis', 'pdaTglG', 'pdaJamG', 'pdaKet'];
+  var PDA_INFO = {
+    cepat: 'Pulang cepat: jam pulang karyawan pada tanggal penggantian dimajukan ke jam yang diisi (harus di antara jam masuk dan jam pulang shift hari itu).',
+    lambat: 'Datang lambat: jam masuk karyawan pada tanggal penggantian dimundurkan ke jam yang diisi (harus di antara jam masuk dan jam pulang shift hari itu).',
+    libur: 'Libur: tanggal penggantian menjadi libur penuh (sel LIBUR kuning di sheet absensi, tanpa lupa absen / terlambat / pulang cepat).'
+  };
+  function pdaMenit(t) { var m = /^(\d{1,2}):(\d{2})/.exec(t || ''); return m ? (+m[1]) * 60 + (+m[2]) : null; }
+  function pdaDur() {
+    var a = pdaMenit($('pdaMulai').value), b = pdaMenit($('pdaSelesai').value);
+    if (a === null || b === null || a === b) return null;
+    return b > a ? b - a : b + 1440 - a;
+  }
+  function pdaResetKonfirmasi() {
+    PDA_PAKSA = false; $('pdaWarn').hidden = true; $('pdaWarn').innerHTML = '';
+    if (!PDA_JALAN) $('pdaSimpan').textContent = 'Simpan & terapkan';
+  }
+  function pdaUbahJenis() {
+    var j = $('pdaJenis').value;
+    $('pdaJamBox').hidden = !(j === 'cepat' || j === 'lambat');
+    $('pdaJamLbl').textContent = j === 'cepat' ? 'Jam pulang pada tanggal penggantian' : 'Jam datang pada tanggal penggantian';
+    $('pdaJenisInfo').textContent = PDA_INFO[j] || 'Pilih jenis penggantian terlebih dahulu.';
+  }
+  function pdaUbahKeg() {
+    var lain = $('pdaKeg').value === 'Lainnya';
+    $('pdaDetailLbl').textContent = lain ? 'Nama kegiatan (wajib untuk “Lainnya”)' : 'Nama kegiatan (opsional)';
+  }
+  function pdaGerbang() {
+    var j = $('pdaJenis').value, d = pdaDur();
+    var ok = !!$('pdaNama').value.trim() && !!$('pdaKeg').value && !!$('pdaTglL').value && d !== null && !!j && !!$('pdaTglG').value;
+    if ($('pdaKeg').value === 'Lainnya' && !$('pdaDetail').value.trim()) ok = false;
+    if ((j === 'cepat' || j === 'lambat') && !$('pdaJamG').value) ok = false;
+    $('pdaDurasi').textContent = d !== null ? 'Lama lembur: ' + fmtMin(d) + '.' : (($('pdaMulai').value && $('pdaMulai').value === $('pdaSelesai').value) ? 'Jam mulai dan jam selesai tidak boleh sama.' : 'Lama lembur dihitung otomatis.');
+    $('pdaSimpan').disabled = !ok || PDA_JALAN;
+  }
+  function pdaCekAbsen() {
+    var nama = $('pdaNama').value.trim(), tgl = $('pdaTglL').value, box = $('pdaAbsen');
+    var seq = ++PDA_SEQ;
+    if (!nama || !tgl) { box.hidden = true; return; }
+    box.hidden = false; box.textContent = 'Memeriksa data absensi…';
+    apiPost({ action: 'absen', nama: nama, tglLembur: tgl }, function (r) {
+      if (seq !== PDA_SEQ) return;
+      if (!r.lengkap) { box.hidden = true; return; }
+      if (!r.kenal) { box.innerHTML = 'Nama tidak ditemukan di data absensi / jadwal.'; return; }
+      if (!r.adaSheet) { box.innerHTML = 'Belum ada sheet absensi yang memuat tanggal ini.'; return; }
+      box.innerHTML = '<b>Absensi ' + esc(r.nama) + ' · ' + esc(tglPjg(r.tgl)) + '</b><br>Masuk ' + esc(r.masuk || '–') + ', pulang ' + esc(r.pulang || '–') +
+        (r.shift ? '<br>Jadwal: ' + esc(r.shift) : '') + ((r.status || []).length ? '<br>' + esc(r.status.join(' · ')) : '') +
+        (r.otoMulai || r.otoSelesai ? '<br>Saran lembur: ' + esc(r.otoMulai || '–') + ' – ' + esc(r.otoSelesai || '–') : '');
+      if (r.otoMulai && !$('pdaMulai').value) $('pdaMulai').value = r.otoMulai;
+      if (r.otoSelesai && !$('pdaSelesai').value) $('pdaSelesai').value = r.otoSelesai;
+      pdaGerbang();
+    }, function () { if (seq === PDA_SEQ) box.hidden = true; });
+  }
+  function pdaBuka() {
+    PDA_FIELD.forEach(function (id) { $(id).value = ''; });
+    $('pdaErr').hidden = true; $('pdaAbsen').hidden = true; PDA_JALAN = false; PDA_SEQ++;
+    pdaResetKonfirmasi(); $('pdaBatal').disabled = false;
+    pdaUbahJenis(); pdaUbahKeg(); pdaGerbang();
+    $('pdaBack').hidden = false;
+    $('pdaNama').focus();
+  }
+  function pdaTutup() { if (!PDA_JALAN) $('pdaBack').hidden = true; }
+  function pdaSimpan() {
+    if (PDA_JALAN || !AD.token) return;
+    PDA_JALAN = true;
+    var btn = $('pdaSimpan'); btn.disabled = true; btn.textContent = 'Memproses… mohon tunggu'; $('pdaBatal').disabled = true;
+    $('pdaErr').hidden = true;
+    var j = $('pdaJenis').value;
+    apiPost({ action: 'pmInput', token: AD.token, nama: $('pdaNama').value.trim(), kegiatan: $('pdaKeg').value, detail: $('pdaDetail').value.trim(),
+      tglLembur: $('pdaTglL').value, mulai: $('pdaMulai').value, selesai: $('pdaSelesai').value, jenis: j, tglGanti: $('pdaTglG').value,
+      jamGanti: j === 'libur' ? '' : $('pdaJamG').value, ket: $('pdaKet').value.trim(), paksa: PDA_PAKSA }, function (res) {
+      PDA_JALAN = false; $('pdaBatal').disabled = false;
+      if (res.perluKonfirmasi) {   // ada pemeriksaan yang tidak terpenuhi: admin memutuskan melanjutkan atau memperbaiki isian
+        PDA_PAKSA = true;
+        $('pdaWarn').innerHTML = '<b>Perlu konfirmasi admin</b> — pemeriksaan berikut tidak terpenuhi:<ul style="margin:6px 0 6px 18px;padding:0">' +
+          res.tolak.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') + '</ul>' +
+          ((res.peringatan || []).length ? '<div>Perhatian: ' + esc(res.peringatan.join(' ')) + '</div>' : '') +
+          '<div style="margin-top:6px">Perbaiki isian, atau klik <b>Tetap simpan &amp; terapkan</b> bila Anda yakin.</div>';
+        $('pdaWarn').hidden = false;
+        btn.textContent = 'Tetap simpan & terapkan'; btn.disabled = false;
+        return;
+      }
+      $('pdaBack').hidden = true;
+      adErr('adErr2', res.id + ' · ' + res.nama + ' · ' + res.jenis + ': ' + res.status + ' (input admin). ' + (res.penerapan || ''), !/GAGAL/.test(res.penerapan || ''));
+      if (/GAGAL/.test(res.penerapan || '')) $('adErr2').style.color = '';
+      AD.tab = 'riwayat'; adSetTab('riwayat');
+      adMuat();
+    }, function (e) {
+      PDA_JALAN = false; $('pdaBatal').disabled = false; btn.textContent = PDA_PAKSA ? 'Tetap simpan & terapkan' : 'Simpan & terapkan';
+      if (e.auth) { $('pdaBack').hidden = true; adKeluarLokal(); adErr('adErr', e.message); return; }
+      $('pdaErr').hidden = false; $('pdaErr').textContent = e.message;
+      pdaGerbang();
+    });
+  }
+
   // ---------- Admin ----------
   var AD = { token: '', admin: '', tab: 'menunggu', mode: 'lembur', data: { menunggu: [], riwayat: [] }, iz: { menunggu: [], riwayat: [] } };
 
@@ -3321,6 +3483,7 @@
     $('adMIzin').setAttribute('aria-pressed', m === 'izin');
     $('adJudul').textContent = m === 'izin' ? 'Pengajuan Izin' : 'Permohonan Lembur';
     $('adIzBaru').hidden = m !== 'izin';
+    $('adPmBaru').hidden = m !== 'lembur';
     $('adJenis').innerHTML = m === 'izin'
       ? '<option value="">Semua jenis</option><option value="Ijin Pulang">Ijin Pulang</option><option value="Absensi Terlambat">Absensi Terlambat</option><option value="Ijin Keluar">Ijin Keluar</option><option value="Ijin Tidak Masuk">Ijin Tidak Masuk</option><option value="Dinas">Dinas</option>'
       : '<option value="">Semua jenis</option><option value="Pulang Cepat">Pulang Cepat</option><option value="Datang Lambat">Datang Lambat</option><option value="Libur">Libur</option>';
@@ -3391,7 +3554,7 @@
       (o.lemburCatat !== '' ? '<br>Lembur tercatat ' + esc(fmtMin(+o.lemburCatat)) : '') : 'Tidak ada data';
     var ganti = esc(tglPjg(o.tglGanti)) + (o.jamGanti ? '<br>pukul ' + esc(o.jamGanti) : '');
     var h = '<article class="pm-it st-' + esc(st.replace(/\s+/g, '-')) + '">' +
-      '<div class="pm-it-h"><b>' + esc(o.nama) + '</b><span class="chip ' + jChip + '">' + esc(o.jenis) + '</span><span class="chip ' + stChip + '">' + esc(st) + '</span><span class="pm-it-id">' + esc(o.id) + '</span></div>' +
+      '<div class="pm-it-h"><b>' + esc(o.nama) + '</b><span class="chip ' + jChip + '">' + esc(o.jenis) + '</span><span class="chip ' + stChip + '">' + esc(st) + '</span>' + (String(o.catatan || '').indexOf('Diinput langsung') === 0 ? '<span class="chip inc">Input admin</span>' : '') + '<span class="pm-it-id">' + esc(o.id) + '</span></div>' +
       '<div class="pm-kv">' + kv('Kegiatan', esc(o.kegiatan)) + kv('Lembur', lembur) + kv('Absensi pada tanggal lembur', absen) +
       kv('Diganti dengan', ganti) + kv('Jadwal tanggal penggantian', esc(o.jadwalGanti)) + kv('Diajukan', esc(o.diajukan)) + '</div>';
     if (o.ket) h += '<div class="pm-note"><b>Keterangan pemohon:</b> ' + esc(o.ket) + '</div>';
@@ -3565,6 +3728,16 @@
     $('adPin').addEventListener('keydown', function (e) { if (e.key === 'Enter') adMasuk(); });
     $('adMuat').onclick = adMuat;
     $('adIzBaru').onclick = izaBuka;
+    $('adPmBaru').onclick = pdaBuka;
+    $('pdaBatal').onclick = pdaTutup;
+    $('pdaSimpan').onclick = pdaSimpan;
+    $('pdaJenis').addEventListener('change', pdaUbahJenis);
+    $('pdaKeg').addEventListener('change', pdaUbahKeg);
+    PDA_FIELD.forEach(function (id) {
+      $(id).addEventListener('input', function () { pdaResetKonfirmasi(); pdaGerbang(); });
+      $(id).addEventListener('change', function () { pdaResetKonfirmasi(); pdaGerbang(); });
+    });
+    ['pdaNama', 'pdaTglL'].forEach(function (id) { $(id).addEventListener('change', pdaCekAbsen); });
     $('izaBatal').onclick = izaTutup;
     $('izaSimpan').onclick = izaSimpan;
     $('izaJenis').addEventListener('change', izaUbahJenis);
