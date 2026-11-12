@@ -1016,7 +1016,7 @@
   // Tempel URL Web App dari Apps Script di antara tanda kutip.
   // Contoh: 'https://script.google.com/macros/s/XXXX/exec'
   // ============================================================
-  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxnKexv498mCehP4y3oI82B2bePUSf-H8x_7atsFX0Gno6lEjOtd9WiTTFn8LlX9NZ1PQ/exec';
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbym0uLFT0yHG5mZHr0qwF46M0WOU-Lh_LF-tdk7B87kz8TAzd4XNhvebC1GzrrDm979cA/exec';
   // ============================================================
 
   function p2(n) { return (n < 10 ? '0' : '') + n; }
@@ -2642,11 +2642,29 @@
     $('pmDetailLbl').textContent = l ? 'Nama kegiatan (wajib)' : 'Nama kegiatan (opsional)';
     $('pmDetail').placeholder = l ? 'Tuliskan kegiatannya' : 'Mis. Event Gathering Mitra';
   }
+  // Jenis penggantian yang diizinkan admin untuk karyawan ini (dari sheet Shift Aktif, blok Aturan Pertukaran Lembur).
+  // null = belum diketahui (semua pilihan tampil; server tetap memeriksa).
+  var PM_IZIN = null;
+  var PM_JENIS_NAMA = [['cepat', 'Pulang cepat'], ['lambat', 'Datang lambat'], ['libur', 'Libur']];
+  function pmIsiJenis() {
+    var sel = $('pmJenis'), cur = sel.value, h = '<option value="">Pilih penggantian…</option>';
+    PM_JENIS_NAMA.forEach(function (x) { if (!PM_IZIN || PM_IZIN[x[0]]) h += '<option value="' + x[0] + '">' + x[1] + '</option>'; });
+    sel.innerHTML = h;
+    sel.value = (cur && (!PM_IZIN || PM_IZIN[cur])) ? cur : '';
+    pmUbahJenis(); pmGerbang();
+    if (cur && sel.value === '') pmInfoTunda();
+  }
   function pmUbahJenis() {
     var j = PM_J[$('pmJenis').value];
     $('pmJamBox').hidden = !j || !j.jam;
     if (j && j.jam) $('pmJamLbl').textContent = j.jam;
-    $('pmJenisInfo').textContent = j ? j.info : 'Pilih salah satu jenis penggantian. Kolom isian menyesuaikan pilihan Anda.';
+    var info = j ? j.info : 'Pilih salah satu jenis penggantian. Kolom isian menyesuaikan pilihan Anda.';
+    if (!j && PM_IZIN) {
+      var ok = PM_JENIS_NAMA.filter(function (x) { return PM_IZIN[x[0]]; }).map(function (x) { return x[1]; });
+      info = ok.length ? 'Jenis penggantian yang diizinkan untuk Anda: ' + ok.join(', ') + '.'
+                       : 'Anda belum diizinkan mengajukan jenis penggantian apa pun. Hubungi admin (pengaturan ada di sheet Shift Aktif, blok Aturan Pertukaran Lembur).';
+    }
+    $('pmJenisInfo').textContent = info;
   }
   function pmHitungDurasi() {
     var a = $('pmMulai').value, b = $('pmSelesai').value, box = $('pmDurasi');
@@ -2876,14 +2894,15 @@
     var box = $('pmAbsen'), seq = ++PM_ABS_SEQ;
     var nama = $('pmNama').value.trim(), keg = $('pmKeg').value, tgl = $('pmTglL').value;
     PM_ABS_MASUK = ''; PM_ABS_PULANG = ''; PM_ABS_OK = false; PM_KUNCI = ''; pmKunciJam(false);
-    if (!nama || !keg || !tgl) { box.hidden = true; box.innerHTML = ''; pmOtoBersih(); pmCekMulai(); return; }   // belum lengkap: jangan tampilkan apa pun
+    if (!nama || !keg || !tgl) { box.hidden = true; box.innerHTML = ''; pmOtoBersih(); PM_IZIN = null; pmIsiJenis(); pmCekMulai(); return; }   // belum lengkap: jangan tampilkan apa pun
     box.className = 'pm-absen'; box.hidden = false;
     box.innerHTML = '<div class="pm-ab-t">Memuat data absensi…</div>'; pmCekMulai();
     apiPost({ action: 'absen', nama: nama, tglLembur: tgl }, function (res) {
       if (seq !== PM_ABS_SEQ) return;   // jawaban lama diabaikan
-      if (!res || !res.lengkap) { box.hidden = true; pmGerbang(); return; }
+      if (!res || !res.lengkap) { box.hidden = true; PM_IZIN = null; pmIsiJenis(); pmGerbang(); return; }
       var judul = '<div class="pm-ab-t">Data absensi ' + esc(res.nama || nama) + ' — ' + esc(tglPjg(tgl)) + '</div>';
       if (!res.kenal) {
+        PM_IZIN = null; pmIsiJenis();
         box.className = 'pm-absen no'; pmOtoBersih();
         box.innerHTML = judul + 'Nama tidak ditemukan di data absensi.'; return;
       }
@@ -2897,6 +2916,7 @@
           (res.shift ? '<div class="pm-ab-s">Jadwal: ' + esc(res.shift) + '</div>' : ''); return;
       }
       PM_ABS_OK = true;
+      PM_IZIN = res.izin || null; pmIsiJenis();
       var kunci = pmOtoMasalah(res, tgl);
       var h = judul + '<div class="pm-ab-g">' +
         '<div><small>Jam masuk</small><b>' + esc(res.masuk || '–') + '</b></div>' +
@@ -3010,7 +3030,7 @@
     $('pmSaran').hidden = true; PM_SEQ++;
     $('pmAbsen').hidden = true; $('pmAbsen').innerHTML = ''; PM_ABS_SEQ++; PM_ABS_MASUK = ''; PM_ABS_PULANG = ''; PM_OTO = { key: '', mulai: '', selesai: '' }; PM_OTO_RES = null; $('pmMulaiWarn').hidden = true;
     PM_KUNCI = ''; PM_ABS_OK = false; pmKunciJam(false);
-    pmUbahJenis(); pmUbahKeg(); pmHitungDurasi(); pmGerbang();
+    PM_IZIN = null; pmIsiJenis(); pmUbahKeg(); pmHitungDurasi(); pmGerbang();
   }
 
   // ---------- Admin ----------
