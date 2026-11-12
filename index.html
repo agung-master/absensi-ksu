@@ -815,11 +815,11 @@
           </div>
           <div class="field">
             <label for="pmMulai">Jam mulai lembur</label>
-            <input id="pmMulai" type="time">
+            <input id="pmMulai" type="time" disabled>
           </div>
           <div class="field">
             <label for="pmSelesai">Jam selesai lembur</label>
-            <input id="pmSelesai" type="time">
+            <input id="pmSelesai" type="time" disabled>
           </div>
         </div>
         <div class="pm-absen" id="pmAbsen" aria-live="polite" hidden></div>
@@ -2730,7 +2730,7 @@
         h += '<button type="button" class="pm-btn ghost sm" id="pmPakai" data-jam="' + esc(pakai) + '">Pakai pukul ' + esc(pakai) + '</button>';
       }
       box.className = 'pm-saran ' + (bad ? 'no' : (res.kenal ? 'ok' : ''));
-      box.innerHTML = h; box.hidden = false;
+      box.innerHTML = h; box.hidden = false; pmGerbang();
     }, function () { if (seq === PM_SEQ) box.hidden = true; });
   }
 
@@ -2742,7 +2742,7 @@
   var PM_OTO = { key: '', mulai: '', selesai: '' };   // isian otomatis terakhir (kunci = nama + tanggal)
   var PM_KUNCI = '';        // tidak kosong = jam mulai otomatis tidak valid; jam mulai & selesai dikosongkan dan dikunci (isinya: alasan)
   var PM_ABS_OK = false;    // true bila data absensi pada tanggal lembur ditemukan
-  function pmKunciJam(on) { $('pmMulai').disabled = on; $('pmSelesai').disabled = on; }
+  function pmKunciJam() { $('pmMulai').disabled = true; $('pmSelesai').disabled = true; }   // selalu terkunci: jam lembur hanya terisi otomatis dari absensi
   // Masalah pada jam mulai otomatis (dihitung dari data absensi hasil pencarian, bukan dari isi kolom)
   function pmOtoMasalah(res, tgl) {
     if (!res || !res.otoMulai) return [];
@@ -2807,7 +2807,7 @@
     if (s <= m) return '';                                   // lembur melewati tengah malam: dinilai server
     if (s - p > PM_TOL_SELESAI && p > m) {
       return 'Jam selesai lembur (' + selesai + ') melewati jam pulang tercatat (' + PM_ABS_PULANG + '). Yang diverifikasi hanya ' + fmtMin(p - m) +
-        ' (' + mulai + '–' + PM_ABS_PULANG + '), jadi waktu pengganti dihitung dari lama itu. Sesuaikan jam selesai bila perlu.';
+        ' (' + mulai + '–' + PM_ABS_PULANG + '), jadi waktu pengganti dihitung dari lama itu.';
     }
     return '';
   }
@@ -2901,8 +2901,7 @@
       if (kunci.length) {
         h += '<div class="pm-ab-s pm-ab-oto">⚙️ <b>Jam lembur dikosongkan.</b> Jam mulai otomatis (' + esc(res.otoMulai) + ') tidak sesuai data absensi, sehingga kolom jam mulai dan jam selesai lembur dikunci dan tidak bisa diisi manual.</div>';
       } else if (res.otoKet) {
-        h += '<div class="pm-ab-s pm-ab-oto">⚙️ <b>Jam lembur terisi otomatis.</b> ' + esc(res.otoKet) + ' Anda masih bisa mengubahnya. ' +
-          '<button type="button" class="pm-btn ghost sm" id="pmOtoUlang">Isi ulang otomatis</button></div>';
+        h += '<div class="pm-ab-s pm-ab-oto">⚙️ <b>Jam lembur terisi otomatis.</b> ' + esc(res.otoKet) + ' Kolom jam mulai dan jam selesai terkunci dan tidak bisa diubah manual.</div>';
       }
       box.className = 'pm-absen'; box.innerHTML = h;
       PM_ABS_MASUK = res.masuk || ''; PM_ABS_PULANG = res.pulang || '';
@@ -3195,7 +3194,7 @@
     });
     $('pmSaran').addEventListener('click', function (e) {
       var b = e.target.closest ? e.target.closest('#pmPakai') : null;
-      if (b) { $('pmJamG').value = b.getAttribute('data-jam'); pmInfoCek(); }
+      if (b) { $('pmJamG').value = b.getAttribute('data-jam'); pmInfoCek(); pmGerbang(); }
     });
     $('pmAbsen').addEventListener('click', function (e) {
       var b = e.target.closest ? e.target.closest('#pmOtoUlang') : null;
