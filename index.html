@@ -672,12 +672,6 @@
   .rk-val small { display: block; font-weight: 600; font-size: 12px; color: var(--muted); }
   .rk-more { display: block; margin: 10px auto 0; }
   .rk-sort { cursor: pointer; user-select: none; }
-  .ctt { margin-top: 14px; }
-  .ctt h3 { margin: 14px 0 6px; font-size: 16px; }
-  .ctt ul { margin: 0; padding-left: 18px; }
-  .ctt li { margin: 4px 0; line-height: 1.45; overflow-wrap: anywhere; }
-  .ctt .ctt-tg { font-weight: 700; }
-  .ctt-hd { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
   .ads-card { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; background: var(--surface); }
   .ads-list { display: grid; gap: 10px; margin-top: 12px; }
   .ads-top { display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; align-items: flex-start; }
@@ -828,7 +822,6 @@
     </div>
 
     <p class="note" id="note"></p>
-    <section class="panel ctt" id="catatanBox" aria-label="Catatan periode" hidden></section>
   </main>
 
   <section id="rankView" hidden>
@@ -1260,7 +1253,7 @@
   // Tempel URL Web App dari Apps Script di antara tanda kutip.
   // Contoh: 'https://script.google.com/macros/s/XXXX/exec'
   // ============================================================
-  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwbHxQ69PjXGwZfTDXk6R87wkolFY5nTQKHAT8QWkOyaTSRPdZj2RaiK_oELzIYK9LDZw/exec';
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzNpXQTHqqZMVLGnZtnjO7C88XjDVyou3_X9r-uMcrmOu_fKFKG-ztRb9VabQqJ8BlMFQ/exec';
   // ============================================================
 
   function p2(n) { return (n < 10 ? '0' : '') + n; }
@@ -1272,8 +1265,8 @@
   var SESUAI = {};
   var JAD = {};   // jadwal shift per nama|tanggal yang berbeda dari jam default: [nama, tgl, masuk, pulang, awalLembur]
   var GANTI = {};   // lembur yang sudah digantikan libur / pulang cepat / datang lambat: nama|tanggal lembur
-  var CTT = [];     // catatan periode (tukar libur, pulang cepat, datang lambat) untuk panel Catatan periode
-  var TKS = { l: [], j: {} };   // jadwal ganti/tukar shift + jam tiap shift
+  var CTT = [];     // catatan periode (tukar libur, pulang cepat, datang lambat); dipakai untuk penandaan lembur, tampilan catatan ada di sheet bulanan
+  var TKS = { l: [], j: {} };   // jadwal ganti/tukar shift + jam tiap shift (data saja; tampilan catatan ada di sheet bulanan)
   var IZN = {};   // semua izin disetujui per nama|tanggal (Dinas, Ijin Tidak Masuk, Ijin Pulang, dst.)
   var IZT = {};   // pengajuan Absensi Terlambat yang disetujui (terlambat pada tanggal itu tidak dihitung)
   function nk(n) { return String(n || '').toLowerCase().replace(/\s+/g, ' ').trim(); }
@@ -2114,7 +2107,6 @@
 
   function render() {
     renderUtama();
-    try { renderCatatan(); } catch (e) { $('catatanBox').hidden = true; }
   }
 
   function renderUtama() {
@@ -3041,64 +3033,6 @@
     var p = String(iso || '').split('-');
     return p.length === 3 ? (+p[2]) + ' ' + BULAN[+p[1] - 1] + ' ' + p[0] : (iso || '–');
   }
-  function jamShiftTxt(sb) {
-    if (!sb) return '';
-    if (/^libur$/i.test(sb)) return 'Libur';
-    var ms = sb.match(/shift\s*\d+/gi) || [], a = [], p = [];
-    ms.forEach(function (s) { var j = TKS.j[s.toLowerCase().replace(/\s+/g, '')]; if (j) { a.push(toMin(j[0])); p.push(toMin(j[1])); } });
-    var ket = a.length ? ' (' + mnJam(Math.min.apply(null, a)) + '–' + mnJam(Math.max.apply(null, p)) + ')' : '';
-    return sb.replace(/\s*\+\s*/g, ' + ') + ket;
-  }
-  function renderCatatan() {
-    var box = $('catatanBox');
-    var pr = S.periode ? PMAP[S.periode] : null, s, e;
-    if (pr) { s = pr.s; e = pr.e; }
-    else if (S.tahun && S.bulan) { var y = +S.tahun, m = +S.bulan; s = y + '-' + p2(m) + '-01'; e = y + '-' + p2(m) + '-' + p2(new Date(y, m, 0).getDate()); }
-    else { box.hidden = true; return; }
-    var semua = !(S.mode === 'me' && S.nama && !CATT_SEMUA);
-    var cocok = function (n) { return semua || namaKata(n, S.nama); };
-    var dlm = function (t) { return !!t && t >= s && t <= e; };
-
-    var tks = (TKS.l || []).filter(function (x) { return dlm(x.t) && (cocok(x.n1) || (x.n2 && cocok(x.n2))); }).sort(function (a, b) { return a.t < b.t ? -1 : a.t > b.t ? 1 : a.n1.localeCompare(b.n1, 'id'); });
-    var ctt = CTT.filter(function (x) { return (dlm(x.tl) || dlm(x.tg)) && cocok(x.n); });
-    var libur = ctt.filter(function (x) { return x.j === 'libur'; }).sort(function (a, b) { return (a.tg || '') < (b.tg || '') ? -1 : 1; });
-    var jam = ctt.filter(function (x) { return x.j === 'cepat' || x.j === 'lambat'; }).sort(function (a, b) { return (a.tg || '') < (b.tg || '') ? -1 : 1; });
-    var hilang = ctt.filter(function (x) { return !x.j; }).sort(function (a, b) { return a.tl < b.tl ? -1 : 1; });
-
-    var h = '<div class="ctt-hd"><div><h2 class="pm-h" style="font-size:18px">Catatan periode</h2><p class="pm-sub" style="margin:0">Keterangan pendukung data absensi periode ' + esc(tglTxt(s)) + ' – ' + esc(tglTxt(e)) + '.</p></div>' +
-      (S.mode === 'me' && S.nama ? '<label style="display:flex;gap:8px;align-items:center;font-size:14px;cursor:pointer"><input type="checkbox" id="cttSemua"' + (CATT_SEMUA ? ' checked' : '') + '> Tampilkan semua karyawan</label>' : '') + '</div>';
-    var ada = false;
-    if (tks.length) {
-      ada = true;
-      h += '<h3>Jadwal kerja khusus (ganti / tukar shift)</h3><ul>' + tks.map(function (x) {
-        var isi = x.n2 ? esc(x.n1) + ' ⇄ ' + esc(x.n2) + ' (tukar shift)' : esc(x.n1) + ': ' + esc(jamShiftTxt(x.sb));
-        return '<li><span class="ctt-tg">' + esc(tglTxt(x.t)) + '</span> · ' + isi + (x.k ? ' <small>— ' + esc(x.k) + '</small>' : '') + '</li>';
-      }).join('') + '</ul>';
-    }
-    if (libur.length) {
-      ada = true;
-      h += '<h3>Tukar libur</h3><ul>' + libur.map(function (x) {
-        return '<li><b>' + esc(x.n) + '</b>: libur <span class="ctt-tg">' + esc(tglTxt(x.tg)) + '</span> (pengganti lembur ' + esc(tglTxt(x.tl)) + ')' + (x.kg ? ' <small>— ' + esc(x.kg) + '</small>' : '') + '</li>';
-      }).join('') + '</ul>';
-    }
-    if (jam.length) {
-      ada = true;
-      h += '<h3>Pulang lebih awal / masuk lebih lambat</h3><ul>' + jam.map(function (x) {
-        return '<li><b>' + esc(x.n) + '</b>: <span class="ctt-tg">' + esc(tglTxt(x.tg)) + '</span> ' + (x.j === 'cepat' ? 'pulang jam ' : 'masuk jam ') + esc(x.jam || '–') + ' (pengganti lembur ' + esc(tglTxt(x.tl)) + ')' + (x.kg ? ' <small>— ' + esc(x.kg) + '</small>' : '') + '</li>';
-      }).join('') + '</ul>';
-    }
-    if (hilang.length) {
-      ada = true;
-      h += '<h3>Lembur dihilangkan tanpa pengganti</h3><ul>' + hilang.map(function (x) {
-        return '<li><b>' + esc(x.n) + '</b>: lembur ' + esc(tglTxt(x.tl)) + ' tidak dihitung</li>';
-      }).join('') + '</ul>';
-    }
-    if (!ada) h += '<p class="pm-sub" style="margin-top:10px">Tidak ada catatan khusus pada periode ini.</p>';
-    box.innerHTML = h; box.hidden = false;
-    var cb = $('cttSemua');
-    if (cb) cb.onchange = function () { CATT_SEMUA = cb.checked; renderCatatan(); };
-  }
-  var CATT_SEMUA = false;
 
   /* ===================== MENU ADMIN: PENGATURAN ===================== */
   var AS = { sub: 'pg', pg: null, tk: null, sh: null, cari: '' };
