@@ -698,6 +698,36 @@
     .rk-row { grid-template-columns: 34px minmax(0, 1fr) auto; gap: 8px; }
     .rk-val { font-size: 15px; }
   }
+
+  /* ===== Menu utama & tab: tampilan rapi ===== */
+  .nav button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; line-height: 1.2; }
+  .nav button .ni { font-size: 16px; line-height: 1; }
+  .seg button { line-height: 1.2; }
+  @media (max-width: 640px) {
+    .nav { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+    .nav button { grid-column: span 2; flex-direction: column; gap: 4px; padding: 10px 4px; min-height: 62px; font-size: 12.5px; border-radius: 12px; text-align: center; }
+    .nav button .ni { font-size: 21px; }
+    .nav button .nl { display: block; max-width: 100%; overflow-wrap: anywhere; }
+    .nav button:nth-child(n+4) { grid-column: span 3; flex-direction: row; gap: 8px; min-height: 48px; font-size: 13.5px; padding: 10px 8px; }
+    .nav button:nth-child(n+4) .ni { font-size: 18px; }
+    .nav button[aria-pressed="true"] { box-shadow: 0 4px 12px rgba(29, 95, 240, .3); }
+    .nav button:active { transform: scale(.97); }
+
+    .seg { display: flex; width: 100%; max-width: 100%; }
+    .seg button { flex: 1 1 0; min-width: 0; min-height: 44px; padding: 8px 6px; font-size: 13.5px; text-align: center; display: flex; align-items: center; justify-content: center; overflow-wrap: anywhere; }
+    .seg button + button { border-left: 1px solid var(--line); }
+    .seg button[aria-pressed="true"] + button, .seg button[aria-pressed="true"] { border-left-color: transparent; }
+    .per { width: 100%; }
+    .dt-tools { flex-wrap: wrap; gap: 8px; }
+    .dt-tools .seg, .dt-tools input { width: 100%; }
+    .pm-tools { flex-wrap: wrap; }
+    .pm-tools .field { flex: 1 1 100%; }
+    .pm-btn { min-height: 44px; }
+  }
+  @media (max-width: 360px) {
+    .nav button { font-size: 11.5px; }
+    .seg button { font-size: 12.5px; padding: 8px 4px; }
+  }
 </style>
 </head>
 <body>
@@ -709,11 +739,11 @@
   </header>
 
   <nav class="nav" id="nav" aria-label="Menu utama" hidden>
-    <button type="button" id="nvAbs" aria-pressed="true">📊 Absensi</button>
-    <button type="button" id="nvRank" aria-pressed="false">🏆 Peringkat</button>
-    <button type="button" id="nvForm" aria-pressed="false">📝 Ajukan Permohonan</button>
-    <button type="button" id="nvIzin" aria-pressed="false">🗓 Ajukan Izin</button>
-    <button type="button" id="nvAdmin" aria-pressed="false">🔐 Admin</button>
+    <button type="button" id="nvAbs" aria-pressed="true"><span class="ni" aria-hidden="true">📊</span><span class="nl">Absensi</span></button>
+    <button type="button" id="nvRank" aria-pressed="false"><span class="ni" aria-hidden="true">🏆</span><span class="nl">Peringkat</span></button>
+    <button type="button" id="nvForm" aria-pressed="false"><span class="ni" aria-hidden="true">📝</span><span class="nl">Ajukan Permohonan</span></button>
+    <button type="button" id="nvIzin" aria-pressed="false"><span class="ni" aria-hidden="true">🗓</span><span class="nl">Ajukan Izin</span></button>
+    <button type="button" id="nvAdmin" aria-pressed="false"><span class="ni" aria-hidden="true">🔐</span><span class="nl">Admin</span></button>
   </nav>
 
   <div id="loading" class="loading">Memuat data absensi…</div>
