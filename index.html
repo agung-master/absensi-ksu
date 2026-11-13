@@ -1253,7 +1253,7 @@
   // Tempel URL Web App dari Apps Script di antara tanda kutip.
   // Contoh: 'https://script.google.com/macros/s/XXXX/exec'
   // ============================================================
-  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzxuZV1PN5FKfZ-urDSxqWR13rJb3q2oknsNDw-fZy4xXEiYhZD-Vn1YBi4kOqiJt9m7g/exec';
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyznkBRkYDWz80jCoMzt2iXAPwK5YN0vt0oGJX29D2lHYnOGMEp8_UDjb1bOimvC2WplQ/exec';
   // ============================================================
 
   function p2(n) { return (n < 10 ? '0' : '') + n; }
@@ -3233,7 +3233,7 @@
   /* --- Shift aktif --- */
   function asRenderSh() {
     var D = AS.sh;
-    $('asInfo').textContent = 'Pengaturan jam shift, aturan lembur, toleransi, dan jadwal mingguan. Perubahan ditulis ke sheet Shift Aktif dan semua sheet bulan dihitung ulang otomatis (±1,5 menit).';
+    $('asInfo').textContent = 'Pengaturan jam shift, aturan lembur, toleransi, jadwal mingguan, dan aturan pertukaran lembur. Perubahan ditulis ke sheet Shift Aktif dan semua sheet bulan dihitung ulang otomatis (±1,5 menit).';
     var h = '';
     if (D.cadangan) h += '<div class="pm-saran no">Tabel jam shift belum ada di sheet Shift Aktif, sehingga sistem memakai jam cadangan. Buat tabelnya lewat menu 2 di spreadsheet.</div>';
 
@@ -3287,6 +3287,28 @@
         }).join('') + '</div><div class="ads-act"><button type="button" class="pm-btn sm" id="mgTambah">➕ Tambah karyawan</button></div></div>';
     }
     h += '</div>';
+    var PT = D.pt || { ada: false, libMin: 0, orang: [] };
+    h += '<div class="ads-sec"><h3>Aturan pertukaran lembur</h3><p class="pm-sub" style="margin:0">Atur siapa yang boleh menukar lembur dengan Libur, Pulang cepat, atau Datang lambat. Karyawan yang tidak tercantum mengikuti baris DEFAULT.</p>';
+    if (!PT.ada) h += '<div class="pm-saran no" style="margin-top:8px">Blok ATURAN PERTUKARAN LEMBUR belum ada di sheet Shift Aktif. Blok dibuat otomatis saat Anda menyimpan pengaturan di bawah.</div>';
+    h += '<div class="ads-grid"><div class="field"><label for="ptMin">Lembur minimal untuk libur (menit)</label><input id="ptMin" type="number" min="0" max="1440" step="1" value="' + esc(PT.libMin === undefined ? 0 : PT.libMin) + '"></div></div>' +
+      '<p class="pm-sub" style="margin:4px 0 0">Libur hanya bisa diajukan jika lembur terverifikasi minimal sebesar ini (480 = 8 jam). Isi 0 = tanpa syarat.</p>' +
+      '<div class="pm-act"><button type="button" class="pm-btn sm" id="ptMinSimpan">Simpan lembur minimal</button></div>';
+    var ptOpt = function (j, v) { return '<select data-j="' + j + '"><option value="Ya"' + (v ? ' selected' : '') + '>Ya</option><option value="Tidak"' + (!v ? ' selected' : '') + '>Tidak</option></select>'; };
+    var ptKartu = function (o, judul) {
+      return '<div class="ads-card" style="margin-top:10px" data-ptn="' + esc(o.nama) + '" data-def="' + (o.def ? '1' : '0') + '"><div class="ads-nm">' + esc(judul) + '</div><div class="ads-hari">' +
+        '<div class="field"><label>Boleh libur</label>' + ptOpt('libur', o.libur) + '</div>' +
+        '<div class="field"><label>Boleh pulang cepat</label>' + ptOpt('cepat', o.cepat) + '</div>' +
+        '<div class="field"><label>Boleh datang lambat</label>' + ptOpt('lambat', o.lambat) + '</div></div>' +
+        '<div class="ads-act"><button type="button" class="pm-btn sm" data-pt="s">Simpan</button></div></div>';
+    };
+    var ptDef = (PT.orang || []).filter(function (o) { return o.def; })[0] || { nama: 'DEFAULT', def: true, libur: false, cepat: true, lambat: true };
+    if (PT.ada) h += ptKartu(ptDef, 'DEFAULT (karyawan yang tidak tercantum)');
+    (PT.orang || []).filter(function (o) { return !o.def; }).forEach(function (o) { h += ptKartu(o, o.nama); });
+    h += '<div class="ads-card" style="margin-top:10px"><div class="ads-nm">Tambah karyawan ke aturan pertukaran</div><div class="ads-grid"><div class="field"><label for="ptBaru">Nama karyawan</label><input id="ptBaru" type="text" maxlength="80" autocomplete="off" placeholder="Nama persis seperti di sheet absensi"></div></div>' +
+      '<div class="ads-hari"><div class="field"><label>Boleh libur</label><select id="ptBLibur"><option value="Ya">Ya</option><option value="Tidak" selected>Tidak</option></select></div>' +
+      '<div class="field"><label>Boleh pulang cepat</label><select id="ptBCepat"><option value="Ya" selected>Ya</option><option value="Tidak">Tidak</option></select></div>' +
+      '<div class="field"><label>Boleh datang lambat</label><select id="ptBLambat"><option value="Ya" selected>Ya</option><option value="Tidak">Tidak</option></select></div></div>' +
+      '<div class="ads-act"><button type="button" class="pm-btn sm" id="ptTambah">➕ Tambah karyawan</button></div></div></div>';
     $('asBody').innerHTML = h;
     asPasangCari(asRenderSh);
     asPasangSh();
@@ -3329,6 +3351,20 @@
         asSimpanSh({ action: 'admShMinggu', nama: kartu.getAttribute('data-nm'), hari: hari });
       };
     });
+    var pmn = $('ptMinSimpan');
+    if (pmn) pmn.onclick = function () { asSimpanSh({ action: 'admShPt', mode: 'min', libMin: $('ptMin').value.trim() }); };
+    Array.prototype.forEach.call(B.querySelectorAll('[data-pt="s"]'), function (b) {
+      b.onclick = function () {
+        var k = b.closest('[data-ptn]'), v = function (j) { return k.querySelector('select[data-j="' + j + '"]').value === 'Ya'; };
+        asSimpanSh({ action: 'admShPt', mode: 'orang', nama: k.getAttribute('data-ptn'), def: k.getAttribute('data-def') === '1', libur: v('libur'), cepat: v('cepat'), lambat: v('lambat') });
+      };
+    });
+    var ptb = $('ptTambah');
+    if (ptb) ptb.onclick = function () {
+      var nama = $('ptBaru').value.trim();
+      if (!nama) { asErr('Isi nama karyawan yang akan ditambahkan.'); return; }
+      asSimpanSh({ action: 'admShPt', mode: 'orang', tambah: true, nama: nama, libur: $('ptBLibur').value === 'Ya', cepat: $('ptBCepat').value === 'Ya', lambat: $('ptBLambat').value === 'Ya' });
+    };
     var mt = $('mgTambah');
     if (mt) mt.onclick = function () {
       var nama = $('mgBaru').value.trim(), hari = [];
