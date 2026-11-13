@@ -442,6 +442,9 @@
     .kd .dt-foot { padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
   }
   [hidden] { display: none !important; }
+  .sel-pop { position: fixed; right: auto; z-index: 400; }
+  .field select, .dt-tools select, .pager select { cursor: pointer; }
+
 
   /* ---- Kartu "Hadir hari ini" ---- */
   .hc {
@@ -3235,9 +3238,53 @@
   /* --- Shift aktif --- */
   /* --- Pemilih karyawan (ketik / pilih dari daftar) untuk Jadwal mingguan & Aturan pertukaran --- */
   function asPilihBar(id, listId, ph, names, val) {
-    return '<div class="pm-tools" style="margin-top:10px"><div class="field"><input id="' + id + '" list="' + listId + '" type="text" placeholder="' + esc(ph) + '" value="' + esc(val || '') + '" aria-label="' + esc(ph) + '" autocomplete="off">' +
-      '<datalist id="' + listId + '">' + names.map(function (n) { return '<option value="' + esc(n) + '"></option>'; }).join('') + '</datalist></div></div>' +
+    return '<div class="pm-tools" style="margin-top:10px"><div class="field"><div class="combo">' +
+      '<input id="' + id + '" type="text" role="combobox" aria-expanded="false" aria-controls="' + listId + '" aria-autocomplete="list" placeholder="' + esc(ph) + '" value="' + esc(val || '') + '" aria-label="' + esc(ph) + '" autocomplete="off" spellcheck="false">' +
+      '<button type="button" class="combo-arrow" id="' + id + 'Arrow" tabindex="-1" aria-label="Tampilkan daftar nama"></button>' +
+      '<ul class="combo-list" id="' + listId + '" role="listbox" hidden></ul></div></div></div>' +
       '<p class="pm-sub" id="' + id + 'Info" style="margin:4px 0 0">' + names.length + ' nama tersedia. Klik kolom lalu pilih dari daftar, atau ketik namanya.</p>';
+  }
+  function asCombo(id, names, onChange) {
+    var inp = $(id), list = $(id + 'List') || document.getElementById(inp && inp.getAttribute('aria-controls')), arrow = $(id + 'Arrow'), items = [], act = -1;
+    if (!inp || !list || inp.getAttribute('data-cb')) return;
+    inp.setAttribute('data-cb', '1');
+    function open() { list.hidden = false; inp.setAttribute('aria-expanded', 'true'); }
+    function close() { list.hidden = true; inp.setAttribute('aria-expanded', 'false'); act = -1; }
+    function setAct(i) {
+      var lis = list.querySelectorAll('li[data-v]');
+      if (!lis.length) return;
+      act = (i + lis.length) % lis.length;
+      for (var k = 0; k < lis.length; k++) lis[k].classList.toggle('active', k === act);
+      lis[act].scrollIntoView({ block: 'nearest' });
+    }
+    function build(q) {
+      q = (q || '').trim().toLowerCase();
+      items = names.filter(function (n) { return !q || n.toLowerCase().indexOf(q) >= 0; });
+      list.innerHTML = items.length
+        ? items.map(function (n) { return '<li role="option" data-v="' + esc(n) + '"' + (n === inp.value ? ' class="sel"' : '') + '>' + esc(n) + '</li>'; }).join('')
+        : '<li class="none">Nama tidak ditemukan</li>';
+      act = -1;
+    }
+    function pick(n) { inp.value = n; close(); onChange(); }
+    inp.addEventListener('focus', function () { inp.select(); build(''); open(); });
+    inp.addEventListener('click', function () { if (list.hidden) { build(''); open(); } });
+    inp.addEventListener('input', function () { build(inp.value); open(); if (items.length) setAct(0); onChange(true); });
+    inp.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowDown') { e.preventDefault(); if (list.hidden) { build(inp.value); open(); } setAct(act + 1); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); setAct(act - 1); }
+      else if (e.key === 'Enter') { if (!list.hidden && items.length) { e.preventDefault(); pick(items[act >= 0 ? act : 0]); } }
+      else if (e.key === 'Escape') close();
+    });
+    inp.addEventListener('blur', function () { setTimeout(close, 120); });
+    list.addEventListener('mousedown', function (e) {
+      var li = e.target.closest ? e.target.closest('li[data-v]') : null;
+      e.preventDefault();
+      if (li) pick(li.getAttribute('data-v'));
+    });
+    if (arrow) arrow.addEventListener('mousedown', function (e) {
+      e.preventDefault();
+      if (list.hidden) { inp.focus(); build(''); open(); } else close();
+    });
   }
   function asNamaPt() {
     var PT = (AS.sh && AS.sh.pt) || { orang: [] };
@@ -3269,7 +3316,7 @@
     var el = $(id); if (!el) return;
     var info = $(id + 'Info');
     var awal = names.length + ' nama tersedia. Klik kolom lalu pilih dari daftar, atau ketik namanya.';
-    el.oninput = el.onchange = function () {
+    function cari() {
       var v = el.value.trim().replace(/\s+/g, ' ').toLowerCase(), hit = null, n = 0;
       if (v) {
         names.forEach(function (x) { if (x.toLowerCase() === v) hit = x; });
@@ -3279,7 +3326,8 @@
       $(detailId).innerHTML = hit ? kartu(hit) : '';
       if (info) info.textContent = !v ? awal : hit ? '' : (n ? n + ' nama cocok. Lanjutkan mengetik atau pilih dari daftar.' : 'Tidak ada karyawan dengan nama itu.');
       asPasangSh();
-    };
+    }
+    asCombo(id, names, cari);
   }
   function asRenderSh() {
     var D = AS.sh;
@@ -4320,6 +4368,90 @@
     $('pmDlgBatal').onclick = pmDlgTutup;
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && DLG && !$('pmDlgBatal').disabled) pmDlgTutup(); });
   })();
+</script>
+<script>
+(function () {
+  // Dropdown <select> bergaya sama dengan daftar nama (combo-list) di perangkat dengan mouse; layar sentuh tetap memakai pemilih bawaan.
+  var mq = window.matchMedia ? window.matchMedia('(hover: hover) and (pointer: fine)') : null;
+  var pop = null, cur = null, act = -1;
+  function tutup() {
+    if (!pop) return;
+    pop.parentNode && pop.parentNode.removeChild(pop);
+    pop = null;
+    if (cur) cur.setAttribute('aria-expanded', 'false');
+    cur = null; act = -1;
+  }
+  function setAct(i) {
+    var lis = pop.querySelectorAll('li[data-i]');
+    if (!lis.length) return;
+    act = (i + lis.length) % lis.length;
+    for (var k = 0; k < lis.length; k++) lis[k].classList.toggle('active', k === act);
+    lis[act].scrollIntoView({ block: 'nearest' });
+  }
+  function pilih(i) {
+    var s = cur; if (!s) return;
+    var o = s.options[i];
+    tutup();
+    if (!o || o.disabled || s.selectedIndex === i) { s.focus(); return; }
+    s.selectedIndex = i;
+    s.dispatchEvent(new Event('input', { bubbles: true }));
+    s.dispatchEvent(new Event('change', { bubbles: true }));
+    s.focus();
+  }
+  function buka(s) {
+    tutup();
+    cur = s; s.setAttribute('aria-expanded', 'true');
+    pop = document.createElement('ul');
+    pop.className = 'combo-list sel-pop'; pop.setAttribute('role', 'listbox');
+    var h = '';
+    for (var i = 0; i < s.options.length; i++) {
+      var o = s.options[i];
+      h += '<li role="option" data-i="' + i + '"' + (i === s.selectedIndex ? ' class="sel"' : '') + (o.disabled ? ' style="opacity:.45;cursor:default"' : '') + '>' + esc(o.text) + '</li>';
+    }
+    pop.innerHTML = h;
+    document.body.appendChild(pop);
+    var r = s.getBoundingClientRect();
+    var w = Math.max(r.width, 160);
+    var left = Math.min(Math.max(8, r.left), Math.max(8, window.innerWidth - w - 8));
+    pop.style.left = left + 'px'; pop.style.width = w + 'px';
+    var tinggi = Math.min(pop.scrollHeight + 10, 260);
+    var bawah = window.innerHeight - r.bottom - 12, atas = r.top - 12;
+    if (bawah >= tinggi || bawah >= atas) { pop.style.top = (r.bottom + 4) + 'px'; pop.style.maxHeight = Math.max(120, Math.min(260, bawah)) + 'px'; }
+    else { var mh = Math.max(120, Math.min(260, atas)); pop.style.maxHeight = mh + 'px'; pop.style.top = Math.max(8, r.top - 4 - Math.min(tinggi, mh)) + 'px'; }
+    setAct(s.selectedIndex);
+  }
+  function bisa(t) { return t && t.tagName === 'SELECT' && !t.disabled && !t.multiple && !(t.size > 1) && mq && mq.matches; }
+  document.addEventListener('mousedown', function (e) {
+    if (pop && pop.contains(e.target)) {
+      e.preventDefault();
+      var li = e.target.closest ? e.target.closest('li[data-i]') : null;
+      if (li) pilih(+li.getAttribute('data-i'));
+      return;
+    }
+    var t = e.target;
+    if (bisa(t)) {
+      e.preventDefault();
+      if (cur === t) { tutup(); return; }
+      t.focus(); buka(t);
+      return;
+    }
+    tutup();
+  }, true);
+  document.addEventListener('keydown', function (e) {
+    var t = e.target;
+    if (pop) {
+      if (e.key === 'ArrowDown') { e.preventDefault(); setAct(act + 1); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); setAct(act - 1); }
+      else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); if (act >= 0) pilih(act); }
+      else if (e.key === 'Escape') { e.stopPropagation(); e.preventDefault(); var s = cur; tutup(); if (s) s.focus(); }
+      else if (e.key === 'Tab') tutup();
+      return;
+    }
+    if (bisa(t) && (e.key === ' ' || (e.altKey && e.key === 'ArrowDown'))) { e.preventDefault(); buka(t); }
+  }, true);
+  window.addEventListener('resize', tutup);
+  window.addEventListener('scroll', function (e) { if (pop && !pop.contains(e.target)) tutup(); }, true);
+})();
 </script>
 </body>
 </html>
