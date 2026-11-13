@@ -678,6 +678,8 @@
   .ads-nm { font-weight: 800; }
   .ads-act { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
   .ads-sec { margin-top: 18px; }
+  .ads-tambah > summary { cursor: pointer; list-style-position: inside; }
+  .ads-tambah[open] > summary { margin-bottom: 8px; }
   .ads-sec h3 { margin: 0 0 4px; font-size: 17px; }
   .ads-grid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin-top: 8px; }
   .ads-row { display: grid; grid-template-columns: minmax(70px, 1fr) minmax(110px, 1.3fr) minmax(110px, 1.3fr) auto; gap: 8px; align-items: end; margin-top: 8px; }
@@ -1253,7 +1255,7 @@
   // Tempel URL Web App dari Apps Script di antara tanda kutip.
   // Contoh: 'https://script.google.com/macros/s/XXXX/exec'
   // ============================================================
-  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyznkBRkYDWz80jCoMzt2iXAPwK5YN0vt0oGJX29D2lHYnOGMEp8_UDjb1bOimvC2WplQ/exec';
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby00Z8Rut4-RICbrHCy7XDbWs0tvhL7Ep3IhsYk-FykpL5n3s8GVMGI55Txe_9ClFpt1w/exec';
   // ============================================================
 
   function p2(n) { return (n < 10 ? '0' : '') + n; }
@@ -3035,7 +3037,7 @@
   }
 
   /* ===================== MENU ADMIN: PENGATURAN ===================== */
-  var AS = { sub: 'pg', pg: null, tk: null, sh: null, cari: '' };
+  var AS = { sub: 'pg', pg: null, tk: null, sh: null, cari: '', pilMg: '', pilPt: '' };
 
   function asErr(msg) { var e = $('asErr'); e.hidden = !msg; e.textContent = msg || ''; if (msg) { $('asOk').hidden = true; } }
   function asOk(msg) { var o = $('asOk'); o.hidden = !msg; o.textContent = msg || ''; if (msg) { $('asErr').hidden = true; } }
@@ -3231,6 +3233,54 @@
   }
 
   /* --- Shift aktif --- */
+  /* --- Pemilih karyawan (ketik / pilih dari daftar) untuk Jadwal mingguan & Aturan pertukaran --- */
+  function asPilihBar(id, listId, ph, names, val) {
+    return '<div class="pm-tools" style="margin-top:10px"><div class="field"><input id="' + id + '" list="' + listId + '" type="text" placeholder="' + esc(ph) + '" value="' + esc(val || '') + '" aria-label="' + esc(ph) + '" autocomplete="off">' +
+      '<datalist id="' + listId + '">' + names.map(function (n) { return '<option value="' + esc(n) + '"></option>'; }).join('') + '</datalist></div></div>' +
+      '<p class="pm-sub" id="' + id + 'Info" style="margin:4px 0 0">' + names.length + ' nama tersedia. Klik kolom lalu pilih dari daftar, atau ketik namanya.</p>';
+  }
+  function asNamaPt() {
+    var PT = (AS.sh && AS.sh.pt) || { orang: [] };
+    return ['DEFAULT'].concat(PT.orang.filter(function (o) { return !o.def; }).map(function (o) { return o.nama; }));
+  }
+  function asMgKartu(nama) {
+    var D = AS.sh; if (!D || !nama) return '';
+    var o = (D.mingguan || []).filter(function (x) { return x.nama === nama; })[0]; if (!o) return '';
+    var opsi = ['Libur'].concat((D.aturan || []).map(function (a) { return a.shift; }));
+    return '<div class="ads-card" style="margin-top:10px" data-nm="' + esc(o.nama) + '"><div class="ads-nm">' + esc(o.nama) + '</div><div class="ads-hari">' +
+      (D.hari || []).map(function (hn, k) {
+        var cur = o.hari[k] || '';
+        var op = opsi.slice(); if (cur && op.indexOf(cur) < 0) op.push(cur);
+        return '<div class="field"><label>' + esc(hn) + '</label><select data-hk="' + k + '">' + op.map(function (x) { return '<option value="' + esc(x) + '"' + (x === cur ? ' selected' : '') + '>' + esc(x) + '</option>'; }).join('') + '</select></div>';
+      }).join('') + '</div><div class="ads-act"><button type="button" class="pm-btn sm" data-mg="s">Simpan jadwal</button></div></div>';
+  }
+  function asPtKartu(nama) {
+    var PT = AS.sh && AS.sh.pt; if (!PT || !PT.ada || !nama) return '';
+    var isDef = nama === 'DEFAULT';
+    var o = PT.orang.filter(function (x) { return isDef ? x.def : (!x.def && x.nama === nama); })[0]; if (!o) return '';
+    var sel = function (j, v) { return '<select data-j="' + j + '"><option value="Ya"' + (v ? ' selected' : '') + '>Ya</option><option value="Tidak"' + (!v ? ' selected' : '') + '>Tidak</option></select>'; };
+    return '<div class="ads-card" style="margin-top:10px" data-ptn="' + esc(isDef ? 'DEFAULT' : o.nama) + '" data-def="' + (isDef ? '1' : '0') + '"><div class="ads-nm">' + esc(isDef ? 'DEFAULT (karyawan yang tidak tercantum)' : o.nama) + '</div><div class="ads-hari">' +
+      '<div class="field"><label>Boleh libur</label>' + sel('libur', o.libur) + '</div>' +
+      '<div class="field"><label>Boleh pulang cepat</label>' + sel('cepat', o.cepat) + '</div>' +
+      '<div class="field"><label>Boleh datang lambat</label>' + sel('lambat', o.lambat) + '</div></div>' +
+      '<div class="ads-act"><button type="button" class="pm-btn sm" data-pt="s">Simpan</button></div></div>';
+  }
+  function asPilih(id, key, names, kartu, detailId) {
+    var el = $(id); if (!el) return;
+    var info = $(id + 'Info');
+    var awal = names.length + ' nama tersedia. Klik kolom lalu pilih dari daftar, atau ketik namanya.';
+    el.oninput = el.onchange = function () {
+      var v = el.value.trim().replace(/\s+/g, ' ').toLowerCase(), hit = null, n = 0;
+      if (v) {
+        names.forEach(function (x) { if (x.toLowerCase() === v) hit = x; });
+        if (!hit) { var c = names.filter(function (x) { return x.toLowerCase().indexOf(v) >= 0; }); n = c.length; if (n === 1) hit = c[0]; }
+      }
+      AS[key] = hit || '';
+      $(detailId).innerHTML = hit ? kartu(hit) : '';
+      if (info) info.textContent = !v ? awal : hit ? '' : (n ? n + ' nama cocok. Lanjutkan mengetik atau pilih dari daftar.' : 'Tidak ada karyawan dengan nama itu.');
+      asPasangSh();
+    };
+  }
   function asRenderSh() {
     var D = AS.sh;
     $('asInfo').textContent = 'Pengaturan jam shift, aturan lembur, toleransi, jadwal mingguan, dan aturan pertukaran lembur. Perubahan ditulis ke sheet Shift Aktif dan semua sheet bulan dihitung ulang otomatis (±1,5 menit).';
@@ -3270,45 +3320,33 @@
     if (!D.adaMingguan) {
       h += '<p class="pm-sub" style="margin:0">Sheet Shift Aktif memakai jadwal per tanggal, jadi jadwal ini diubah lewat spreadsheet atau lewat menu Tukar shift.</p>';
     } else {
-      h += '<p class="pm-sub" style="margin:0">Shift tiap hari per karyawan. Pilih Libur untuk hari libur.</p>' + asCariBar('Cari nama karyawan');
-      var q = AS.cari.trim().toLowerCase();
       var opsi = ['Libur'].concat((D.aturan || []).map(function (a) { return a.shift; }));
-      (D.mingguan || []).filter(function (o) { return !q || o.nama.toLowerCase().indexOf(q) >= 0; }).forEach(function (o, i) {
-        h += '<div class="ads-card" style="margin-top:10px" data-nm="' + esc(o.nama) + '"><div class="ads-nm">' + esc(o.nama) + '</div><div class="ads-hari">' +
-          (D.hari || []).map(function (hn, k) {
-            var cur = o.hari[k] || '';
-            var op = opsi.slice(); if (cur && op.indexOf(cur) < 0) op.push(cur);
-            return '<div class="field"><label>' + esc(hn) + '</label><select data-hk="' + k + '">' + op.map(function (x) { return '<option value="' + esc(x) + '"' + (x === cur ? ' selected' : '') + '>' + esc(x) + '</option>'; }).join('') + '</select></div>';
-          }).join('') + '</div><div class="ads-act"><button type="button" class="pm-btn sm" data-mg="s">Simpan jadwal</button></div></div>';
-      });
-      h += '<div class="ads-card" style="margin-top:10px"><div class="ads-nm">Tambah karyawan ke jadwal</div><div class="ads-grid"><div class="field"><label for="mgBaru">Nama karyawan</label><input id="mgBaru" type="text" maxlength="80" autocomplete="off" placeholder="Nama persis seperti di sheet absensi"></div></div>' +
+      h += '<p class="pm-sub" style="margin:0">Pilih atau ketik nama karyawan, lalu atur shift tiap harinya. Pilih Libur untuk hari libur.</p>' +
+        asPilihBar('mgPilih', 'mgList', 'Ketik atau pilih nama karyawan', (D.mingguan || []).map(function (o) { return o.nama; }), AS.pilMg) +
+        '<div id="mgDetail">' + asMgKartu(AS.pilMg) + '</div>';
+      h += '<details class="ads-card ads-tambah" style="margin-top:10px"><summary class="ads-nm">➕ Tambah karyawan ke jadwal</summary><div class="ads-grid"><div class="field"><label for="mgBaru">Nama karyawan</label><input id="mgBaru" type="text" maxlength="80" autocomplete="off" placeholder="Nama persis seperti di sheet absensi"></div></div>' +
         '<div class="ads-hari">' + (D.hari || []).map(function (hn, k) {
           return '<div class="field"><label>' + esc(hn) + '</label><select data-nk="' + k + '">' + opsi.map(function (x) { return '<option value="' + esc(x) + '"' + ((k === 6 && x === 'Libur') || (k < 6 && x === (opsi[1] || 'Libur')) ? ' selected' : '') + '>' + esc(x) + '</option>'; }).join('') + '</select></div>';
-        }).join('') + '</div><div class="ads-act"><button type="button" class="pm-btn sm" id="mgTambah">➕ Tambah karyawan</button></div></div>';
+        }).join('') + '</div><div class="ads-act"><button type="button" class="pm-btn sm" id="mgTambah">➕ Tambah karyawan</button></div></details>';
     }
     h += '</div>';
     var PT = D.pt || { ada: false, libMin: 0, orang: [] };
-    h += '<div class="ads-sec"><h3>Aturan pertukaran lembur</h3><p class="pm-sub" style="margin:0">Atur siapa yang boleh menukar lembur dengan Libur, Pulang cepat, atau Datang lambat. Karyawan yang tidak tercantum mengikuti baris DEFAULT.</p>';
+    h += '<div class="ads-sec"><h3>Aturan pertukaran lembur</h3><p class="pm-sub" style="margin:0">Atur siapa yang boleh menukar lembur dengan Libur, Pulang cepat, atau Datang lambat. Karyawan yang tidak tercantum mengikuti aturan DEFAULT.</p>';
     if (!PT.ada) h += '<div class="pm-saran no" style="margin-top:8px">Blok ATURAN PERTUKARAN LEMBUR belum ada di sheet Shift Aktif. Blok dibuat otomatis saat Anda menyimpan pengaturan di bawah.</div>';
     h += '<div class="ads-grid"><div class="field"><label for="ptMin">Lembur minimal untuk libur (menit)</label><input id="ptMin" type="number" min="0" max="1440" step="1" value="' + esc(PT.libMin === undefined ? 0 : PT.libMin) + '"></div></div>' +
       '<p class="pm-sub" style="margin:4px 0 0">Libur hanya bisa diajukan jika lembur terverifikasi minimal sebesar ini (480 = 8 jam). Isi 0 = tanpa syarat.</p>' +
       '<div class="pm-act"><button type="button" class="pm-btn sm" id="ptMinSimpan">Simpan lembur minimal</button></div>';
-    var ptOpt = function (j, v) { return '<select data-j="' + j + '"><option value="Ya"' + (v ? ' selected' : '') + '>Ya</option><option value="Tidak"' + (!v ? ' selected' : '') + '>Tidak</option></select>'; };
-    var ptKartu = function (o, judul) {
-      return '<div class="ads-card" style="margin-top:10px" data-ptn="' + esc(o.nama) + '" data-def="' + (o.def ? '1' : '0') + '"><div class="ads-nm">' + esc(judul) + '</div><div class="ads-hari">' +
-        '<div class="field"><label>Boleh libur</label>' + ptOpt('libur', o.libur) + '</div>' +
-        '<div class="field"><label>Boleh pulang cepat</label>' + ptOpt('cepat', o.cepat) + '</div>' +
-        '<div class="field"><label>Boleh datang lambat</label>' + ptOpt('lambat', o.lambat) + '</div></div>' +
-        '<div class="ads-act"><button type="button" class="pm-btn sm" data-pt="s">Simpan</button></div></div>';
-    };
-    var ptDef = (PT.orang || []).filter(function (o) { return o.def; })[0] || { nama: 'DEFAULT', def: true, libur: false, cepat: true, lambat: true };
-    if (PT.ada) h += ptKartu(ptDef, 'DEFAULT (karyawan yang tidak tercantum)');
-    (PT.orang || []).filter(function (o) { return !o.def; }).forEach(function (o) { h += ptKartu(o, o.nama); });
-    h += '<div class="ads-card" style="margin-top:10px"><div class="ads-nm">Tambah karyawan ke aturan pertukaran</div><div class="ads-grid"><div class="field"><label for="ptBaru">Nama karyawan</label><input id="ptBaru" type="text" maxlength="80" autocomplete="off" placeholder="Nama persis seperti di sheet absensi"></div></div>' +
-      '<div class="ads-hari"><div class="field"><label>Boleh libur</label><select id="ptBLibur"><option value="Ya">Ya</option><option value="Tidak" selected>Tidak</option></select></div>' +
-      '<div class="field"><label>Boleh pulang cepat</label><select id="ptBCepat"><option value="Ya" selected>Ya</option><option value="Tidak">Tidak</option></select></div>' +
-      '<div class="field"><label>Boleh datang lambat</label><select id="ptBLambat"><option value="Ya" selected>Ya</option><option value="Tidak">Tidak</option></select></div></div>' +
-      '<div class="ads-act"><button type="button" class="pm-btn sm" id="ptTambah">➕ Tambah karyawan</button></div></div></div>';
+    if (PT.ada) {
+      h += '<h4 style="margin:16px 0 0;font-size:15px">Izin per karyawan</h4><p class="pm-sub" style="margin:0">Pilih DEFAULT atau ketik nama karyawan untuk melihat dan mengubah izinnya.</p>' +
+        asPilihBar('ptPilih', 'ptList', 'Ketik atau pilih nama karyawan', asNamaPt(), AS.pilPt) +
+        '<div id="ptDetail">' + asPtKartu(AS.pilPt) + '</div>' +
+        '<details class="ads-card ads-tambah" style="margin-top:10px"><summary class="ads-nm">➕ Tambah karyawan ke aturan pertukaran</summary><div class="ads-grid"><div class="field"><label for="ptBaru">Nama karyawan</label><input id="ptBaru" type="text" maxlength="80" autocomplete="off" placeholder="Nama persis seperti di sheet absensi"></div></div>' +
+        '<div class="ads-hari"><div class="field"><label>Boleh libur</label><select id="ptBLibur"><option value="Ya">Ya</option><option value="Tidak" selected>Tidak</option></select></div>' +
+        '<div class="field"><label>Boleh pulang cepat</label><select id="ptBCepat"><option value="Ya" selected>Ya</option><option value="Tidak">Tidak</option></select></div>' +
+        '<div class="field"><label>Boleh datang lambat</label><select id="ptBLambat"><option value="Ya" selected>Ya</option><option value="Tidak">Tidak</option></select></div></div>' +
+        '<div class="ads-act"><button type="button" class="pm-btn sm" id="ptTambah">➕ Tambah karyawan</button></div></details>';
+    }
+    h += '</div>';
     $('asBody').innerHTML = h;
     asPasangCari(asRenderSh);
     asPasangSh();
@@ -3351,6 +3389,8 @@
         asSimpanSh({ action: 'admShMinggu', nama: kartu.getAttribute('data-nm'), hari: hari });
       };
     });
+    asPilih('mgPilih', 'pilMg', ((AS.sh && AS.sh.mingguan) || []).map(function (o) { return o.nama; }), asMgKartu, 'mgDetail');
+    asPilih('ptPilih', 'pilPt', asNamaPt(), asPtKartu, 'ptDetail');
     var pmn = $('ptMinSimpan');
     if (pmn) pmn.onclick = function () { asSimpanSh({ action: 'admShPt', mode: 'min', libMin: $('ptMin').value.trim() }); };
     Array.prototype.forEach.call(B.querySelectorAll('[data-pt="s"]'), function (b) {
@@ -3363,6 +3403,7 @@
     if (ptb) ptb.onclick = function () {
       var nama = $('ptBaru').value.trim();
       if (!nama) { asErr('Isi nama karyawan yang akan ditambahkan.'); return; }
+      AS.pilPt = nama;
       asSimpanSh({ action: 'admShPt', mode: 'orang', tambah: true, nama: nama, libur: $('ptBLibur').value === 'Ya', cepat: $('ptBCepat').value === 'Ya', lambat: $('ptBLambat').value === 'Ya' });
     };
     var mt = $('mgTambah');
@@ -3370,6 +3411,7 @@
       var nama = $('mgBaru').value.trim(), hari = [];
       if (!nama) { asErr('Isi nama karyawan yang akan ditambahkan.'); return; }
       Array.prototype.forEach.call(B.querySelectorAll('select[data-nk]'), function (s) { hari[+s.getAttribute('data-nk')] = s.value; });
+      AS.pilMg = nama;
       asSimpanSh({ action: 'admShMinggu', tambah: true, nama: nama, hari: hari });
     };
   }
