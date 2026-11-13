@@ -225,6 +225,7 @@
   .note { color: var(--muted); font-size: 13px; margin-top: 18px; }
   .chip.off { background: var(--off-soft); color: #4a5d80; }
   .chip.abs { background: var(--abs-soft); color: var(--abs); }
+  .chip.izn { background: #ede9fe; color: #5b21b6; }
   tr.libur td { color: var(--muted); background: #f2f6fc; }
   .stat.absent { border-top-color: #ef4444; }
   .stat.absent b { color: var(--abs); }
@@ -395,6 +396,7 @@
   .kal-c.abs, .kal-legend i.abs { background: var(--abs-soft); color: var(--abs); border-color: #f5b5b5; }
   .kal-c.viol, .kal-legend i.viol { background: #dc2626; color: #fff; border-color: #991b1b; }
   .kal-c.off, .kal-legend i.off { background: var(--off-soft); color: #4a5d80; border-color: #cbd7ea; }
+  .kal-c.izn, .kal-legend i.izn { background: #ede9fe; color: #5b21b6; border-color: #c4b5fd; }
   .kal-c.mg, .kal-legend i.mg { background: var(--brand-soft); color: var(--brand-dark); border-color: #b9cdf0; }
   .kal-c.none, .kal-legend i.none { background: transparent; color: #9aa8c2; border: 1.5px dashed var(--line); }
   .kal-c { position: relative; }
@@ -1167,7 +1169,7 @@
   // Tempel URL Web App dari Apps Script di antara tanda kutip.
   // Contoh: 'https://script.google.com/macros/s/XXXX/exec'
   // ============================================================
-  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzPnH8XVIrRDTNC6RzRWsZHw5GTQ-3BIy2JYvQ5ajXpeOl_T392hCbjekjVfkFuvsv53Q/exec';
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz0El7i5U-xMTIbyxJ3R5Do9Oc0HmDRFaHDvYHzmjtYxSIBcvecwp7XoII8AS69Aema2w/exec';
   // ============================================================
 
   function p2(n) { return (n < 10 ? '0' : '') + n; }
@@ -1177,6 +1179,7 @@
   var DB = { periods: [], records: [], names: {}, config: null, hariIni: null };
   var LOADED = {};
   var SESUAI = {};
+  var IZN = {};   // semua izin disetujui per nama|tanggal (Dinas, Ijin Tidak Masuk, Ijin Pulang, dst.)
   var IZT = {};   // pengajuan Absensi Terlambat yang disetujui (terlambat pada tanggal itu tidak dihitung)
   function nk(n) { return String(n || '').toLowerCase().replace(/\s+/g, ' ').trim(); }
   function petaSesuai(list) { var m = {}; (list || []).forEach(function (x) { m[nk(x.n) + '|' + x.t] = x; (m['@' + x.t] = m['@' + x.t] || []).push(x); }); return m; }
@@ -1195,6 +1198,26 @@
     for (var i = 0; i < l.length; i++) if (namaKata(l[i].n, nama)) return l[i];
     return null;
   }
+  function petaIzin(list) {
+    var m = {};
+    (list || []).forEach(function (x) { var k = nk(x.n) + '|' + x.t; (m[k] = m[k] || []).push(x); (m['@' + x.t] = m['@' + x.t] || []).push(x); });
+    return m;
+  }
+  function cariIzinHari(nama, tgl) {
+    var out = [], seen = {};
+    function tambah(x) { var id = x.j + '|' + x.k + '|' + x.a + '|' + x.b; if (!seen[id]) { seen[id] = 1; out.push(x); } }
+    (IZN[nk(nama) + '|' + tgl] || []).forEach(tambah);
+    (IZN['@' + tgl] || []).forEach(function (x) { if (namaKata(x.n, nama)) tambah(x); });
+    return out;
+  }
+  function izTeks(x) {
+    var jam = (x.a || x.b) ? ' ' + (x.a || '') + (x.b ? '–' + x.b : '') : '';
+    return x.j + jam + (x.k ? ' — ' + x.k : '');
+  }
+  function izChips(r) {
+    return (r.iz || []).map(function (x) { return '<span class="chip izn">' + esc(izTeks(x)) + '</span>'; }).join('');
+  }
+  function izTxt(r) { return (r.iz || []).map(izTeks).join('; '); }
   function cariSesuai(nama, tgl) { return cariDi(SESUAI, nama, tgl); }
   function cariIzinTelat(nama, tgl) { return !!cariDi(IZT, nama, tgl); }
   function adjTeks(r) {
@@ -1329,11 +1352,14 @@
         SEEN[key] = true;
         var row = rec[key];
         var r = { nama: nama, tgl: tgl, y: y, m: m, d: d, dow: dow, masuk: '', pulang: '', telat: 0, lembur: 0, cepat: 0, st: '', mg: false, malam: false, adj: cariSesuai(nama, tgl) };
+        r.iz = cariIzinHari(nama, tgl);
+        var blok = r.iz.filter(function (x) { return x.j === 'Dinas' || x.j === 'Ijin Tidak Masuk'; })[0];
         if (row) {
           r.masuk = row[2]; r.pulang = row[3]; r.st = 'hadir';
           if (r.masuk && r.masuk === r.pulang) r.pulang = '';
           if (dow === 0 || (lib[key] && !r.adj)) hitungMinggu(r); else hitung(r);
-        } else if (r.adj && r.adj.j === 'libur') r.st = 'libur';
+        } else if (blok) { r.st = 'izin'; r.izBlok = blok; }
+        else if (r.adj && r.adj.j === 'libur') r.st = 'libur';
         else if (dow === 0) r.st = 'libur';
         else if (LIBUR_JIKA_SEMUA_KOSONG && !has[tgl]) r.st = 'libur';
         else if (tgl === TODAY) r.st = 'belum';
@@ -1593,7 +1619,7 @@
     DB.periods = data.periods || [];
     DB.config = data.config;
     DB.hariIni = data.hariIni || null;
-    SESUAI = petaSesuai(data.sesuai); IZT = petaSesuai(data.izt);
+    SESUAI = petaSesuai(data.sesuai); IZT = petaSesuai(data.izt); IZN = petaIzin(data.izn);
 
     if (!DB.periods.length) { showError(new Error('Tidak ada sheet bulanan yang terbaca dari spreadsheet')); return; }
 
@@ -1656,7 +1682,7 @@
       DB.periods = data.periods || [];
       DB.config = data.config;
       DB.hariIni = data.hariIni || null;
-      SESUAI = petaSesuai(data.sesuai); IZT = petaSesuai(data.izt);
+      SESUAI = petaSesuai(data.sesuai); IZT = petaSesuai(data.izt); IZN = petaIzin(data.izn);
       renderHariIni();
       buildPeriods();
       var perlu = sheetDilihat().filter(function (n) { return !awal[n]; });
@@ -1956,6 +1982,7 @@
 
   function chips(r) {
     if (r.st === 'libur') return '<span class="chip off">Libur</span>' + (r.adj ? '<span class="chip ot">' + esc(adjTeks(r)) + '</span>' : '');
+    if (r.st === 'izin') return izChips(r);
     if (r.st === 'absen') return '<span class="chip abs">Tidak hadir</span>';
     if (r.st === 'belum') return '<span class="chip inc">Belum absen</span>';
     var out = [];
@@ -1972,6 +1999,7 @@
     if (r.lembur) out.push('<span class="chip ot">Lembur ' + fmtMin(r.lembur) + '</span>');
     if (!out.length) out.push('<span class="chip ok">Tepat waktu</span>');
     if (r.adj) out.push('<span class="chip ot">' + esc(adjTeks(r)) + '</span>');
+    out.push(izChips(r));
     return out.join('');
   }
 
@@ -2082,11 +2110,12 @@
 
   var HARI_PJG = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
   var KAL = { recs: {}, tgl: '', buka: false };
-  var KAL_LBL = { ok: 'Tepat waktu', warn: 'Terlambat / belum lengkap', abs: 'Tidak hadir', viol: 'Melanggar jam izin', off: 'Libur', mg: 'Masuk saat libur', none: 'Belum ada data' };
-  var KAL_WARNA = { ok: '#10b981', warn: '#eab308', abs: '#ef4444', viol: '#dc2626', off: '#94a3b8', mg: '#1d5ff0', none: '#94a3b8' };
+  var KAL_LBL = { izn: 'Izin / dinas', ok: 'Tepat waktu', warn: 'Terlambat / belum lengkap', abs: 'Tidak hadir', viol: 'Melanggar jam izin', off: 'Libur', mg: 'Masuk saat libur', none: 'Belum ada data' };
+  var KAL_WARNA = { izn: '#7c3aed', ok: '#10b981', warn: '#eab308', abs: '#ef4444', viol: '#dc2626', off: '#94a3b8', mg: '#1d5ff0', none: '#94a3b8' };
 
   function kalKelas(r) {
     if (!r) return 'none';
+    if (r.st === 'izin') return 'izn';
     if (r.st === 'libur') return 'off';
     if (r.st === 'absen') return 'abs';
     if (r.st === 'belum') return 'warn';
@@ -2133,7 +2162,7 @@
     KAL.recs = recs;
 
     var dates = rangeDates(rg.s, rg.e);
-    var c = { ok: 0, warn: 0, abs: 0, viol: 0, off: 0, mg: 0, none: 0 }, cek = [];
+    var c = { ok: 0, warn: 0, abs: 0, viol: 0, izn: 0, off: 0, mg: 0, none: 0 }, cek = [];
     var a0 = dates[0].split('-');
     var lead = (new Date(+a0[0], +a0[1] - 1, +a0[2]).getDay() + 6) % 7;
 
@@ -2151,7 +2180,8 @@
       if (!r) { cells += '<div class="' + cls + '"><span class="kal-d">' + lbl + '</span></div>'; return; }
 
       var isi;
-      if (r.st === 'libur') isi = '<span class="kal-s">Libur</span>';
+      if (r.st === 'izin') isi = '<span class="kal-s">' + esc(r.izBlok.j === 'Dinas' ? 'DINAS' : 'IJIN') + '</span>' + (r.izBlok.k ? '<span class="kal-t">' + esc(r.izBlok.k.length > 18 ? r.izBlok.k.slice(0, 17) + '…' : r.izBlok.k) + '</span>' : '');
+      else if (r.st === 'libur') isi = '<span class="kal-s">Libur</span>';
       else if (r.st === 'absen') isi = '<span class="kal-s">Absen</span>';
       else if (r.st === 'belum') isi = '<span class="kal-s">Belum absen</span>';
       else isi = '<span class="kal-t">' + (r.masuk || '–') + '</span><span class="kal-t">' + (r.pulang || '–') + '</span>';
@@ -2161,6 +2191,8 @@
       var aria = d + ' ' + BULAN[m - 1] + ': ' + KAL_LBL[k] +
                  (r.masuk ? ', masuk ' + r.masuk : '') + (r.pulang ? ', pulang ' + r.pulang : '') +
                  (lupa || r.st === 'belum' ? ', ' + lupaApa(r).toLowerCase() : '');
+      if (r.st === 'hadir' && r.iz && r.iz.length) isi += '<span class="kal-s">' + esc(r.iz.map(function (x) { return x.j.replace(/^Ijin /, 'Izin ').replace('Absensi Terlambat', 'Izin telat'); }).join(', ')) + '</span>';
+      if (r.iz && r.iz.length) aria += ', ' + izTxt(r);
       cells += '<button type="button" class="' + cls + '" data-tgl="' + tgl + '" aria-label="' + esc(aria) + '">' +
                '<span class="kal-d">' + lbl + '</span>' + isi + '</button>';
     });
@@ -2178,7 +2210,7 @@
       '<button type="button" data-nav="-1" aria-label="Sebelumnya"' + (prevOk ? '' : ' disabled') + '>‹</button>' +
       '<button type="button" data-nav="1" aria-label="Berikutnya"' + (nextOk ? '' : ' disabled') + '>›</button></div></div>';
 
-    h += '<div class="kal-legend">' + ['ok', 'warn', 'viol', 'abs', 'off', 'mg', 'none'].filter(function (k) {
+    h += '<div class="kal-legend">' + ['ok', 'warn', 'viol', 'abs', 'izn', 'off', 'mg', 'none'].filter(function (k) {
       return c[k] > 0 || k === 'ok' || k === 'warn' || k === 'abs' || k === 'off';
     }).map(function (k) {
       return '<span><i class="' + k + '"></i>' + KAL_LBL[k] + ' <b>' + c[k] + '</b></span>';
@@ -2236,7 +2268,11 @@
              row('Pulang cepat', r.cepat ? esc(fmtMin(r.cepat)) + ' <small>(batas ' + esc(r.bPulang || DB.config.jamPulang) + (r.adj && r.adj.j === 'cepat' ? ', disetujui' : ', jadwal') + ')</small>' + (r.langgar === 'cepat' ? ' <span class="chip viol">Melanggar izin</span>' : '') : 'Tidak') +
              row('Lembur', r.lembur ? esc(fmtMin(r.lembur)) : 'Tidak ada');
       }
+      if (r.iz && r.iz.length) h += r.iz.map(function (x) { return row(esc(x.j), esc(izTeks(x).slice(x.j.length).replace(/^ — /, '').trim() || 'Disetujui')); }).join('');
       if (isLupa(r)) h += '<div class="kd-note"><b>' + esc(lupaApa(r)) + '.</b> Jika Anda merasa sudah absen, hubungi admin untuk dicek.</div>';
+    } else if (r.st === 'izin') {
+      h += r.iz.map(function (x) { return row(esc(x.j), esc(izTeks(x).slice(x.j.length).replace(/^ — /, '').trim() || 'Disetujui')); }).join('');
+      h += '<p class="kd-info">Tidak ada scan masuk maupun pulang, karena pada tanggal ini karyawan sedang ' + (r.izBlok.j === 'Dinas' ? 'dinas' : 'izin tidak masuk') + ' (disetujui admin).</p>';
     } else if (r.st === 'libur') {
       h += '<p class="kd-info">' + (r.adj ? esc(adjTeks(r)) + '.' : r.dow === 0 ? 'Hari Minggu — libur.' : 'Tidak ada scan dari seluruh karyawan pada hari ini, sehingga dianggap hari libur.') + '</p>';
     } else if (r.st === 'absen') {
@@ -2592,6 +2628,7 @@
 
   function chipsTxt(r) {
     if (r.st === 'libur') return 'Libur' + (r.adj ? '; ' + adjTeks(r) : '');
+    if (r.st === 'izin') return izTxt(r);
     if (r.st === 'absen') return 'Tidak hadir';
     if (r.st === 'belum') return 'Belum absen';
     var out = [];
@@ -2603,6 +2640,7 @@
     if (r.lembur) out.push('Lembur ' + fmtMin(r.lembur));
     if (!out.length) out.push('Tepat waktu');
     if (r.adj) out.push(adjTeks(r));
+    if (r.iz && r.iz.length) out.push(izTxt(r));
     return out.join('; ');
   }
 
@@ -2621,7 +2659,7 @@
     L.slice().sort(function (a, b) {
       return a.tgl < b.tgl ? -1 : a.tgl > b.tgl ? 1 : a.nama.localeCompare(b.nama, 'id');
     }).forEach(function (r) {
-      var statusTxt = r.st === 'hadir' ? (r.mg ? 'Hadir (libur)' : 'Hadir') : (r.st === 'absen' ? 'Tidak hadir' : (r.st === 'belum' ? 'Belum absen' : 'Libur'));
+      var statusTxt = r.st === 'hadir' ? (r.mg ? 'Hadir (libur)' : 'Hadir') : (r.st === 'absen' ? 'Tidak hadir' : (r.st === 'belum' ? 'Belum absen' : (r.st === 'izin' ? 'Izin / dinas' : 'Libur')));
       rows.push([r.tgl, r.nama, r.masuk || '', r.pulang || '',
                  r.telat || 0, r.cepat || 0, r.lembur || 0, statusTxt, chipsTxt(r)]);
     });
