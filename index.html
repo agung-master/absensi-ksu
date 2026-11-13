@@ -650,6 +650,55 @@
   .pr-sign .ttd { height: 62px; border-bottom: 1px solid #000; margin: 4px 6px 4px; }
   .pr-foot { margin-top: 14px; font-size: 9pt; color: #333; border-top: 1px solid #000; padding-top: 4px; }
   .pr-log { margin: 0; padding-left: 18px; font-size: 10.5pt; }
+  /* ===== Peringkat, catatan periode, pengaturan admin ===== */
+  .rk-sum { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-top: 14px; }
+  .rk-sum div { background: #f3f8ff; border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+  .rk-sum span { display: block; font-size: 12.5px; color: var(--muted); font-weight: 600; }
+  .rk-sum b { font-size: 20px; }
+  .rk-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 330px), 1fr)); gap: 14px; margin-top: 14px; }
+  .rk-card { border: 1px solid var(--line); border-radius: 14px; background: var(--surface); padding: 12px 14px; border-top: 4px solid var(--ok); }
+  .rk-card.late { border-top-color: var(--late); }
+  .rk-card h3 { margin: 0 0 2px; font-size: 17px; }
+  .rk-card .rk-sub { margin: 0 0 8px; font-size: 13px; color: var(--muted); }
+  .rk-row { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 9px 0; border-top: 1px solid var(--line); }
+  .rk-no { width: 34px; height: 34px; border-radius: 50%; background: var(--brand-soft); color: var(--brand-dark); font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+  .rk-no.m1 { background: #fde68a; color: #78350f; } .rk-no.m2 { background: #e5e7eb; color: #374151; } .rk-no.m3 { background: #fdba74; color: #7c2d12; }
+  .rk-nm { font-weight: 700; overflow-wrap: anywhere; }
+  .rk-det { font-size: 12.5px; color: var(--muted); }
+  .rk-bar { height: 6px; border-radius: 99px; background: #e8eefb; overflow: hidden; margin-top: 5px; }
+  .rk-bar i { display: block; height: 100%; background: var(--ok); }
+  .rk-card.late .rk-bar i { background: var(--late); }
+  .rk-val { text-align: right; font-weight: 800; font-size: 16px; white-space: nowrap; }
+  .rk-val small { display: block; font-weight: 600; font-size: 12px; color: var(--muted); }
+  .rk-more { display: block; margin: 10px auto 0; }
+  .rk-sort { cursor: pointer; user-select: none; }
+  .ctt { margin-top: 14px; }
+  .ctt h3 { margin: 14px 0 6px; font-size: 16px; }
+  .ctt ul { margin: 0; padding-left: 18px; }
+  .ctt li { margin: 4px 0; line-height: 1.45; overflow-wrap: anywhere; }
+  .ctt .ctt-tg { font-weight: 700; }
+  .ctt-hd { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
+  .ads-card { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; background: var(--surface); }
+  .ads-list { display: grid; gap: 10px; margin-top: 12px; }
+  .ads-top { display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; align-items: flex-start; }
+  .ads-nm { font-weight: 800; }
+  .ads-act { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .ads-sec { margin-top: 18px; }
+  .ads-sec h3 { margin: 0 0 4px; font-size: 17px; }
+  .ads-grid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin-top: 8px; }
+  .ads-row { display: grid; grid-template-columns: minmax(70px, 1fr) minmax(110px, 1.3fr) minmax(110px, 1.3fr) auto; gap: 8px; align-items: end; margin-top: 8px; }
+  .ads-row .field { margin: 0; }
+  .ads-row .pm-act { margin: 0; }
+  .ads-hari { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 8px; margin-top: 8px; }
+  .ads-hari .field label { font-size: 12px; }
+  .pm-btn.no { background: #dc2626; }
+  @media (max-width: 640px) {
+    .ads-row { grid-template-columns: 1fr 1fr; }
+    .ads-row .pm-act { grid-column: 1 / -1; }
+    .ads-row .pm-act .pm-btn { flex: 1; }
+    .rk-row { grid-template-columns: 34px minmax(0, 1fr) auto; gap: 8px; }
+    .rk-val { font-size: 15px; }
+  }
 </style>
 </head>
 <body>
@@ -662,6 +711,7 @@
 
   <nav class="nav" id="nav" aria-label="Menu utama" hidden>
     <button type="button" id="nvAbs" aria-pressed="true">📊 Absensi</button>
+    <button type="button" id="nvRank" aria-pressed="false">🏆 Peringkat</button>
     <button type="button" id="nvForm" aria-pressed="false">📝 Ajukan Permohonan</button>
     <button type="button" id="nvIzin" aria-pressed="false">🗓 Ajukan Izin</button>
     <button type="button" id="nvAdmin" aria-pressed="false">🔐 Admin</button>
@@ -778,7 +828,22 @@
     </div>
 
     <p class="note" id="note"></p>
+    <section class="panel ctt" id="catatanBox" aria-label="Catatan periode" hidden></section>
   </main>
+
+  <section id="rankView" hidden>
+    <div class="panel">
+      <h2 class="pm-h">Peringkat ketepatan waktu</h2>
+      <p class="pm-sub">Dihitung dari jam masuk hari kerja pada satu periode. Terlambat yang sudah diizinkan (Absensi Terlambat disetujui) tidak dihitung sebagai terlambat, dan hari libur, shift malam, serta hari tanpa jam masuk tidak ikut dihitung.</p>
+      <div class="pm-tools">
+        <div class="field"><label for="rkPer">Periode gaji</label><select id="rkPer"></select></div>
+        <div class="field"><label for="rkMin">Minimal hari masuk</label>
+          <select id="rkMin"><option value="1">1 hari</option><option value="3">3 hari</option><option value="5" selected>5 hari</option><option value="10">10 hari</option></select></div>
+        <div class="field"><label for="rkCari">Cari nama</label><input id="rkCari" type="search" placeholder="Nama karyawan" autocomplete="off"></div>
+      </div>
+      <div id="rkBody"></div>
+    </div>
+  </section>
 
   <section id="pmView" hidden>
     <div class="panel">
@@ -969,6 +1034,7 @@
         <div class="seg" role="group" aria-label="Jenis pengajuan">
           <button type="button" id="adMLembur" aria-pressed="true">Permohonan Lembur</button>
           <button type="button" id="adMIzin" aria-pressed="false">Pengajuan Izin</button>
+          <button type="button" id="adMSet" aria-pressed="false">Pengaturan</button>
         </div>
         <button type="button" class="pm-btn sm" id="adIzBaru" hidden>➕ Input izin langsung</button>
         <button type="button" class="pm-btn sm" id="adPmBaru">➕ Input pertukaran langsung</button>
@@ -995,6 +1061,19 @@
           </select>
         </div>
         <div class="field"><input id="adCari" type="search" placeholder="Cari nama / ID" aria-label="Cari nama atau ID"></div>
+      </div>
+      <div id="adSet" hidden>
+        <div class="pm-tools">
+          <div class="seg" role="group" aria-label="Menu pengaturan">
+            <button type="button" id="asPg" aria-pressed="true">Penyesuaian lembur</button>
+            <button type="button" id="asTk" aria-pressed="false">Tukar shift</button>
+            <button type="button" id="asSh" aria-pressed="false">Shift aktif</button>
+          </div>
+        </div>
+        <p class="pm-sub" id="asInfo" style="margin-top:10px"></p>
+        <div class="pm-err" id="asErr" hidden style="white-space:pre-line"></div>
+        <div class="pm-res ok" id="asOk" hidden role="status" aria-live="polite"></div>
+        <div id="asBody"></div>
       </div>
       <div class="pm-err" id="adErr2" hidden></div>
       <div class="pm-list" id="adList"></div>
@@ -1088,6 +1167,18 @@
       </div>
     </div>
   </div>
+  <div class="pm-back" id="adfBack" hidden>
+    <div class="pm-dlg" role="dialog" aria-modal="true" aria-labelledby="adfT" style="max-height:90vh;overflow:auto;max-width:480px">
+      <h3 id="adfT"></h3>
+      <p id="adfP"></p>
+      <div id="adfBody"></div>
+      <div class="pm-err" id="adfErr" hidden style="white-space:pre-line"></div>
+      <div class="pm-act">
+        <button type="button" class="pm-btn" id="adfOk">Simpan</button>
+        <button type="button" class="pm-btn ghost" id="adfBatal">Batal</button>
+      </div>
+    </div>
+  </div>
 </div>
 <div id="printArea" aria-hidden="true"></div>
 
@@ -1169,7 +1260,7 @@
   // Tempel URL Web App dari Apps Script di antara tanda kutip.
   // Contoh: 'https://script.google.com/macros/s/XXXX/exec'
   // ============================================================
-  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz0El7i5U-xMTIbyxJ3R5Do9Oc0HmDRFaHDvYHzmjtYxSIBcvecwp7XoII8AS69Aema2w/exec';
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwbHxQ69PjXGwZfTDXk6R87wkolFY5nTQKHAT8QWkOyaTSRPdZj2RaiK_oELzIYK9LDZw/exec';
   // ============================================================
 
   function p2(n) { return (n < 10 ? '0' : '') + n; }
@@ -1179,6 +1270,10 @@
   var DB = { periods: [], records: [], names: {}, config: null, hariIni: null };
   var LOADED = {};
   var SESUAI = {};
+  var JAD = {};   // jadwal shift per nama|tanggal yang berbeda dari jam default: [nama, tgl, masuk, pulang, awalLembur]
+  var GANTI = {};   // lembur yang sudah digantikan libur / pulang cepat / datang lambat: nama|tanggal lembur
+  var CTT = [];     // catatan periode (tukar libur, pulang cepat, datang lambat) untuk panel Catatan periode
+  var TKS = { l: [], j: {} };   // jadwal ganti/tukar shift + jam tiap shift
   var IZN = {};   // semua izin disetujui per nama|tanggal (Dinas, Ijin Tidak Masuk, Ijin Pulang, dst.)
   var IZT = {};   // pengajuan Absensi Terlambat yang disetujui (terlambat pada tanggal itu tidak dihitung)
   function nk(n) { return String(n || '').toLowerCase().replace(/\s+/g, ' ').trim(); }
@@ -1220,6 +1315,14 @@
   function izTxt(r) { return (r.iz || []).map(izTeks).join('; '); }
   function cariSesuai(nama, tgl) { return cariDi(SESUAI, nama, tgl); }
   function cariIzinTelat(nama, tgl) { return !!cariDi(IZT, nama, tgl); }
+  function lemburTxt(r) {
+    if (r.lembur) return esc(fmtMin(r.lembur));
+    if (r.lemburDiganti) return 'Tidak dihitung <small>(' + esc(fmtMin(r.lemburDiganti)) + ' sudah digantikan libur / pulang cepat / datang lambat)</small>';
+    return 'Tidak ada';
+  }
+  function terapkanGanti(r) {
+    if (r.lembur > 0 && cariDi(GANTI, r.nama, r.tgl)) { r.lemburDiganti = r.lembur; r.lembur = 0; }
+  }
   function adjTeks(r) {
     if (!r.adj) return '';
     return r.adj.j === 'libur' ? 'Libur pengganti lembur (disetujui)' : (r.adj.j === 'cepat' ? 'Pulang cepat ' : 'Datang lambat ') + r.adj.m + ' disetujui (pengganti lembur)';
@@ -1283,26 +1386,29 @@
   function mnJam(m) { return p2(Math.floor(m / 60)) + ':' + p2(m % 60); }
   function hitung(r) {
     var c = DB.config;
-    if (hitungShiftMalam(r)) return;
+    if (hitungShiftMalam(r)) { terapkanGanti(r); return; }
     var adj = r.adj, bebas = !!adj && adj.j === 'libur';
-    var bMasuk = toMin(c.jamMasuk), bPulang = toMin(c.jamPulang);
+    var jd = JAD[nk(r.nama) + '|' + r.tgl];   // jadwal shift karyawan pada tanggal ini (Shift Aktif + Tukar Shift)
+    var baseM = jd ? jd[2] : toMin(c.jamMasuk), baseP = jd ? jd[3] : toMin(c.jamPulang), mulaiL = jd ? jd[4] : toMin(c.lemburMulai);
+    var bMasuk = baseM, bPulang = baseP;
     if (adj && adj.j === 'lambat' && adj.m) bMasuk = Math.max(bMasuk, toMin(adj.m));
     if (adj && adj.j === 'cepat' && adj.m) bPulang = Math.min(bPulang, toMin(adj.m));
     r.bMasuk = mnJam(bMasuk); r.bPulang = mnJam(bPulang);
     if (!bebas && r.masuk && toMin(r.masuk) > bMasuk + c.toleransi) {
       r.telat = toMin(r.masuk) - bMasuk;
-      if (adj && adj.j === 'lambat' && adj.m && bMasuk > toMin(c.jamMasuk)) r.langgar = 'lambat';
+      if (adj && adj.j === 'lambat' && adj.m && bMasuk > baseM) r.langgar = 'lambat';
       // Sudah mengajukan Absensi Terlambat (disetujui): menit terlambat tidak dihitung
       if (!r.langgar && cariIzinTelat(r.nama, r.tgl)) { r.telatIzin = r.telat; r.telat = 0; }
     }
     if (r.pulang) {
       var p = toMin(r.pulang);
-      if (p > toMin(c.lemburMulai)) r.lembur = p - toMin(c.lemburMulai);
+      if (p > mulaiL) r.lembur = p - mulaiL;
       if (!bebas && p < bPulang) {
         r.cepat = bPulang - p;
-        if (adj && adj.j === 'cepat' && adj.m && bPulang < toMin(c.jamPulang)) r.langgar = 'cepat';
+        if (adj && adj.j === 'cepat' && adj.m && bPulang < baseP) r.langgar = 'cepat';
       }
     }
+    terapkanGanti(r);
   }
 
   function hitungMinggu(r) {
@@ -1315,6 +1421,7 @@
       if (sel < 0) { sel += 24 * 60; r.malam = true; }
       if (sel > 0 && sel <= 24 * 60) r.lembur = sel;
     }
+    terapkanGanti(r);
   }
 
   function rangeDates(s, e) {
@@ -1333,6 +1440,7 @@
   function buildRows(data) {
     var rec = {}, has = {}, maxD = '', lib = {};
     (data.l || []).forEach(function (k) { lib[k] = true; });
+    (data.j || []).forEach(function (x) { JAD[nk(x[0]) + '|' + x[1]] = x; });
     data.k.forEach(function (n) { DB.names[n] = true; });
     data.r.forEach(function (row) {
       rec[row[0] + '|' + row[1]] = row;
@@ -1619,7 +1727,7 @@
     DB.periods = data.periods || [];
     DB.config = data.config;
     DB.hariIni = data.hariIni || null;
-    SESUAI = petaSesuai(data.sesuai); IZT = petaSesuai(data.izt); IZN = petaIzin(data.izn);
+    SESUAI = petaSesuai(data.sesuai); IZT = petaSesuai(data.izt); IZN = petaIzin(data.izn); CTT = data.ctt || []; TKS = data.tks || { l: [], j: {} }; GANTI = petaSesuai(CTT.map(function (x) { return { n: x.n, t: x.tl }; }));
 
     if (!DB.periods.length) { showError(new Error('Tidak ada sheet bulanan yang terbaca dari spreadsheet')); return; }
 
@@ -1682,7 +1790,7 @@
       DB.periods = data.periods || [];
       DB.config = data.config;
       DB.hariIni = data.hariIni || null;
-      SESUAI = petaSesuai(data.sesuai); IZT = petaSesuai(data.izt); IZN = petaIzin(data.izn);
+      SESUAI = petaSesuai(data.sesuai); IZT = petaSesuai(data.izt); IZN = petaIzin(data.izn); CTT = data.ctt || []; TKS = data.tks || { l: [], j: {} }; GANTI = petaSesuai(CTT.map(function (x) { return { n: x.n, t: x.tl }; }));
       renderHariIni();
       buildPeriods();
       var perlu = sheetDilihat().filter(function (n) { return !awal[n]; });
@@ -1997,6 +2105,7 @@
       ? '<span class="chip viol">Melanggar izin pulang cepat ' + fmtMin(r.cepat) + ' (izin ' + esc(r.bPulang) + ')</span>'
       : '<span class="chip early">Pulang cepat ' + fmtMin(r.cepat) + '</span>');
     if (r.lembur) out.push('<span class="chip ot">Lembur ' + fmtMin(r.lembur) + '</span>');
+    else if (r.lemburDiganti) out.push('<span class="chip ot">Lembur ' + fmtMin(r.lemburDiganti) + ' sudah digantikan, tidak dihitung</span>');
     if (!out.length) out.push('<span class="chip ok">Tepat waktu</span>');
     if (r.adj) out.push('<span class="chip ot">' + esc(adjTeks(r)) + '</span>');
     out.push(izChips(r));
@@ -2004,6 +2113,11 @@
   }
 
   function render() {
+    renderUtama();
+    try { renderCatatan(); } catch (e) { $('catatanBox').hidden = true; }
+  }
+
+  function renderUtama() {
     var box = $('tableBox');
     $('pager').hidden = true;
 
@@ -2258,15 +2372,15 @@
     if (r.st === 'hadir') {
       h += row('Jam masuk', tm(r.masuk)) + row('Jam pulang', tm(r.pulang)) + row('Durasi kerja', durKerja(r) || DASH);
       if (r.mg) {
-        h += row('Jenis hari', 'Hari libur (masuk)') + row('Lembur', r.lembur ? esc(fmtMin(r.lembur)) : 'Tidak ada');
+        h += row('Jenis hari', 'Hari libur (masuk)') + row('Lembur', lemburTxt(r));
       } else if (r.malam) {
         h += row('Jenis shift', 'Shift malam <small>(pulang keesokan harinya)</small>') +
              row('Terlambat / pulang cepat', 'Tidak dihitung') +
-             row('Lembur', r.lembur ? esc(fmtMin(r.lembur)) : 'Tidak ada');
+             row('Lembur', lemburTxt(r));
       } else {
         h += row('Terlambat', r.telat ? esc(fmtMin(r.telat)) + ' <small>(batas ' + esc(r.bMasuk || DB.config.jamMasuk) + (r.adj && r.adj.j === 'lambat' ? ', disetujui' : '') + ')</small>' + (r.langgar === 'lambat' ? ' <span class="chip viol">Melanggar izin</span>' : '') : (r.telatIzin ? 'Tidak dihitung <small>(' + esc(fmtMin(r.telatIzin)) + ', izin Absensi Terlambat disetujui)</small>' : 'Tidak')) +
              row('Pulang cepat', r.cepat ? esc(fmtMin(r.cepat)) + ' <small>(batas ' + esc(r.bPulang || DB.config.jamPulang) + (r.adj && r.adj.j === 'cepat' ? ', disetujui' : ', jadwal') + ')</small>' + (r.langgar === 'cepat' ? ' <span class="chip viol">Melanggar izin</span>' : '') : 'Tidak') +
-             row('Lembur', r.lembur ? esc(fmtMin(r.lembur)) : 'Tidak ada');
+             row('Lembur', lemburTxt(r));
       }
       if (r.iz && r.iz.length) h += r.iz.map(function (x) { return row(esc(x.j), esc(izTeks(x).slice(x.j.length).replace(/^ — /, '').trim() || 'Disetujui')); }).join('');
       if (isLupa(r)) h += '<div class="kd-note"><b>' + esc(lupaApa(r)) + '.</b> Jika Anda merasa sudah absen, hubungi admin untuk dicek.</div>';
@@ -2799,6 +2913,497 @@
     return HARI_PANJANG[d.getDay()] + ', ' + d.getDate() + ' ' + BULAN[d.getMonth()] + ' ' + d.getFullYear();
   }
 
+  /* ===================== PERINGKAT ===================== */
+  var RK = { pk: '', semua: { tepat: false, telat: false }, urut: 'tepat', arah: 1, data: [] };
+
+  function rkSiap() {
+    if (!PKEYS.length) { $('rkBody').innerHTML = '<div class="pm-empty">Data periode belum tersedia.</div>'; return; }
+    if (!RK.pk || !PMAP[RK.pk]) RK.pk = (S.periode && PMAP[S.periode]) ? S.periode : PKEYS[PKEYS.length - 1];
+    $('rkPer').innerHTML = PKEYS.slice().reverse().map(function (k) { return '<option value="' + esc(k) + '">' + esc(periodeText(k)) + '</option>'; }).join('');
+    $('rkPer').value = RK.pk;
+    var nm = PMAP[RK.pk].name;
+    if (!LOADED[nm]) {
+      if (LOADING) { setTimeout(rkSiap, 400); return; }
+      LOADING = true;
+      $('rkBody').innerHTML = '<div class="pm-empty">Memuat data periode…</div>';
+      api('sheets', [nm], function (res) { LOADING = false; addSheets(res, [nm]); updateNames(); rkRender(); },
+        function (e) { LOADING = false; $('rkBody').innerHTML = '<div class="pm-err">' + esc(e.message) + '</div>'; });
+      return;
+    }
+    rkRender();
+  }
+
+  function rkHitung() {
+    var pr = PMAP[RK.pk], per = {};
+    DB.records.forEach(function (r) {
+      if (r.tgl < pr.s || r.tgl > pr.e) return;
+      var o = per[r.nama] || (per[r.nama] = { nama: r.nama, hadir: 0, masuk: 0, tepat: 0, telatN: 0, telatM: 0, izin: 0, cepat: 0, lembur: 0, absen: 0 });
+      if (r.st === 'hadir') o.hadir++;
+      if (r.st === 'absen') o.absen++;
+      if (r.st === 'hadir' && r.masuk && !r.mg && !r.malam) {
+        o.masuk++;
+        if (r.telat) { o.telatN++; o.telatM += r.telat; }
+        else if (r.telatIzin) o.izin++;
+        else o.tepat++;
+      }
+      if (r.cepat) o.cepat++;
+      o.lembur += r.lembur || 0;
+    });
+    return Object.keys(per).map(function (k) {
+      var o = per[k], dasar = o.tepat + o.telatN;
+      o.dasar = dasar;
+      o.rate = dasar ? o.tepat / dasar : null;
+      return o;
+    });
+  }
+
+  function rkPeringkat(list, cmp, kunciFn) {
+    var out = [], no = 0, prev = null, idx = 0;
+    list.slice().sort(cmp).forEach(function (o) {
+      idx++;
+      var k = kunciFn(o);
+      if (k !== prev) { no = idx; prev = k; }
+      out.push({ no: no, o: o });
+    });
+    return out;
+  }
+
+  function rkKartu(judul, sub, daftar, kind, maks, semua) {
+    var tampil = semua ? daftar : daftar.slice(0, maks);
+    var mx = 0;
+    daftar.forEach(function (x) { var v = kind === 'tepat' ? x.o.rate : x.o.telatN; if (v > mx) mx = v; });
+    var h = '<div class="rk-card' + (kind === 'telat' ? ' late' : '') + '"><h3>' + judul + '</h3><p class="rk-sub">' + sub + '</p>';
+    if (!daftar.length) h += '<div class="pm-empty">Belum ada data yang memenuhi syarat.</div>';
+    tampil.forEach(function (x) {
+      var o = x.o, medal = x.no <= 3 ? ' m' + x.no : '';
+      var persen = o.rate === null ? 0 : Math.round(o.rate * 1000) / 10;
+      var lebar = kind === 'tepat' ? persen : (mx ? Math.round(o.telatN / mx * 100) : 0);
+      var det = kind === 'tepat'
+        ? 'Masuk ' + o.masuk + ' hari · tepat ' + o.tepat + ' · terlambat ' + o.telatN + (o.telatM ? ' (' + fmtMin(o.telatM) + ')' : '') + (o.izin ? ' · izin terlambat ' + o.izin : '')
+        : 'Masuk ' + o.masuk + ' hari · tepat ' + o.tepat + ' · total ' + fmtMin(o.telatM) + (o.telatN ? ' · rata-rata ' + fmtMin(Math.round(o.telatM / o.telatN)) + '/kali' : '') + (o.izin ? ' · izin terlambat ' + o.izin : '');
+      var val = kind === 'tepat' ? (String(persen).replace('.', ',') + '%') + '<small>tepat waktu</small>' : o.telatN + '×<small>' + esc(fmtMin(o.telatM)) + '</small>';
+      h += '<div class="rk-row"><div class="rk-no' + medal + '">' + x.no + '</div><div><div class="rk-nm">' + esc(o.nama) + '</div><div class="rk-det">' + esc(det) + '</div><div class="rk-bar"><i style="width:' + lebar + '%"></i></div></div><div class="rk-val">' + val + '</div></div>';
+    });
+    if (daftar.length > maks) h += '<button type="button" class="pm-btn ghost sm rk-more" data-rk="' + kind + '">' + (semua ? 'Tampilkan 10 teratas' : 'Tampilkan semua (' + daftar.length + ')') + '</button>';
+    return h + '</div>';
+  }
+
+  function rkRender() {
+    var all = rkHitung(), minH = +$('rkMin').value || 1, q = $('rkCari').value.trim().toLowerCase();
+    var layak = all.filter(function (o) { return o.dasar >= minH; });
+    var tepat = rkPeringkat(layak, function (a, b) { return (b.rate - a.rate) || (a.telatM - b.telatM) || (b.dasar - a.dasar) || a.nama.localeCompare(b.nama, 'id'); },
+      function (o) { return o.rate + '|' + o.telatM; });
+    var telat = rkPeringkat(layak.filter(function (o) { return o.telatN > 0; }), function (a, b) { return (b.telatN - a.telatN) || (b.telatM - a.telatM) || a.nama.localeCompare(b.nama, 'id'); },
+      function (o) { return o.telatN + '|' + o.telatM; });
+    if (q) {
+      tepat = tepat.filter(function (x) { return x.o.nama.toLowerCase().indexOf(q) >= 0; });
+      telat = telat.filter(function (x) { return x.o.nama.toLowerCase().indexOf(q) >= 0; });
+    }
+    var totM = 0, totN = 0, totTepat = 0, totDasar = 0;
+    layak.forEach(function (o) { totM += o.telatM; totN += o.telatN; totTepat += o.tepat; totDasar += o.dasar; });
+    var rata = totDasar ? Math.round(totTepat / totDasar * 1000) / 10 : 0;
+    var sempurna = layak.filter(function (o) { return o.telatN === 0; }).length;
+
+    var h = '<div class="rk-sum">' +
+      '<div><span>Karyawan dihitung</span><b>' + layak.length + '</b></div>' +
+      '<div><span>Rata-rata tepat waktu</span><b>' + String(rata).replace('.', ',') + '%</b></div>' +
+      '<div><span>Tanpa terlambat</span><b>' + sempurna + '</b></div>' +
+      '<div><span>Total terlambat</span><b>' + totN + '×</b></div>' +
+      '<div><span>Total menit terlambat</span><b>' + esc(fmtMin(totM)) + '</b></div></div>';
+    if (!layak.length) {
+      h += '<div class="pm-empty">Belum ada karyawan dengan minimal ' + minH + ' hari masuk pada periode ini. Turunkan pilihan "Minimal hari masuk".</div>';
+      $('rkBody').innerHTML = h; return;
+    }
+    h += '<div class="rk-grid">' +
+      rkKartu('Paling tepat waktu', 'Diurutkan dari persentase tepat waktu tertinggi, lalu menit terlambat paling sedikit.', tepat, 'tepat', 10, RK.semua.tepat) +
+      rkKartu('Paling sering terlambat', 'Diurutkan dari jumlah hari terlambat terbanyak, lalu total menit terlambat.', telat, 'telat', 10, RK.semua.telat) + '</div>';
+
+    var rows = layak.filter(function (o) { return !q || o.nama.toLowerCase().indexOf(q) >= 0; });
+    var key = RK.urut, dir = RK.arah;
+    rows.sort(function (a, b) {
+      var va = key === 'nama' ? a.nama : key === 'rate' ? a.rate : a[key], vb = key === 'nama' ? b.nama : key === 'rate' ? b.rate : b[key];
+      var c = key === 'nama' ? va.localeCompare(vb, 'id') : (va - vb);
+      return (c * dir) || a.nama.localeCompare(b.nama, 'id');
+    });
+    function th(k, l) { return '<th class="rk-sort" data-k="' + k + '" tabindex="0">' + l + (RK.urut === k ? (RK.arah > 0 ? ' ▲' : ' ▼') : '') + '</th>'; }
+    h += '<h3 style="margin:18px 0 4px;font-size:16px">Tabel lengkap</h3><div class="tablebox"><table><thead><tr>' +
+      th('nama', 'Nama') + th('masuk', 'Hari masuk') + th('tepat', 'Tepat waktu') + th('telatN', 'Terlambat') + th('telatM', 'Menit terlambat') + th('izin', 'Izin terlambat') + th('rate', '% tepat') + th('cepat', 'Pulang cepat') + th('lembur', 'Lembur (menit)') +
+      '</tr></thead><tbody>' + rows.map(function (o) {
+        return '<tr><td data-label="Nama">' + esc(o.nama) + '</td><td data-label="Hari masuk">' + o.masuk + '</td><td data-label="Tepat waktu">' + o.tepat + '</td><td data-label="Terlambat">' + o.telatN + '×</td>' +
+          '<td data-label="Menit terlambat">' + esc(fmtMin(o.telatM)) + '</td><td data-label="Izin terlambat">' + o.izin + '</td><td data-label="% tepat">' + (o.rate === null ? '–' : String(Math.round(o.rate * 1000) / 10).replace('.', ',') + '%') + '</td>' +
+          '<td data-label="Pulang cepat">' + o.cepat + '×</td><td data-label="Lembur">' + esc(fmtMin(o.lembur)) + '</td></tr>';
+      }).join('') + '</tbody></table></div>';
+    $('rkBody').innerHTML = h;
+  }
+
+  /* ===================== CATATAN PERIODE ===================== */
+  function tglTxt(iso) {
+    var p = String(iso || '').split('-');
+    return p.length === 3 ? (+p[2]) + ' ' + BULAN[+p[1] - 1] + ' ' + p[0] : (iso || '–');
+  }
+  function jamShiftTxt(sb) {
+    if (!sb) return '';
+    if (/^libur$/i.test(sb)) return 'Libur';
+    var ms = sb.match(/shift\s*\d+/gi) || [], a = [], p = [];
+    ms.forEach(function (s) { var j = TKS.j[s.toLowerCase().replace(/\s+/g, '')]; if (j) { a.push(toMin(j[0])); p.push(toMin(j[1])); } });
+    var ket = a.length ? ' (' + mnJam(Math.min.apply(null, a)) + '–' + mnJam(Math.max.apply(null, p)) + ')' : '';
+    return sb.replace(/\s*\+\s*/g, ' + ') + ket;
+  }
+  function renderCatatan() {
+    var box = $('catatanBox');
+    var pr = S.periode ? PMAP[S.periode] : null, s, e;
+    if (pr) { s = pr.s; e = pr.e; }
+    else if (S.tahun && S.bulan) { var y = +S.tahun, m = +S.bulan; s = y + '-' + p2(m) + '-01'; e = y + '-' + p2(m) + '-' + p2(new Date(y, m, 0).getDate()); }
+    else { box.hidden = true; return; }
+    var semua = !(S.mode === 'me' && S.nama && !CATT_SEMUA);
+    var cocok = function (n) { return semua || namaKata(n, S.nama); };
+    var dlm = function (t) { return !!t && t >= s && t <= e; };
+
+    var tks = (TKS.l || []).filter(function (x) { return dlm(x.t) && (cocok(x.n1) || (x.n2 && cocok(x.n2))); }).sort(function (a, b) { return a.t < b.t ? -1 : a.t > b.t ? 1 : a.n1.localeCompare(b.n1, 'id'); });
+    var ctt = CTT.filter(function (x) { return (dlm(x.tl) || dlm(x.tg)) && cocok(x.n); });
+    var libur = ctt.filter(function (x) { return x.j === 'libur'; }).sort(function (a, b) { return (a.tg || '') < (b.tg || '') ? -1 : 1; });
+    var jam = ctt.filter(function (x) { return x.j === 'cepat' || x.j === 'lambat'; }).sort(function (a, b) { return (a.tg || '') < (b.tg || '') ? -1 : 1; });
+    var hilang = ctt.filter(function (x) { return !x.j; }).sort(function (a, b) { return a.tl < b.tl ? -1 : 1; });
+
+    var h = '<div class="ctt-hd"><div><h2 class="pm-h" style="font-size:18px">Catatan periode</h2><p class="pm-sub" style="margin:0">Keterangan pendukung data absensi periode ' + esc(tglTxt(s)) + ' – ' + esc(tglTxt(e)) + '.</p></div>' +
+      (S.mode === 'me' && S.nama ? '<label style="display:flex;gap:8px;align-items:center;font-size:14px;cursor:pointer"><input type="checkbox" id="cttSemua"' + (CATT_SEMUA ? ' checked' : '') + '> Tampilkan semua karyawan</label>' : '') + '</div>';
+    var ada = false;
+    if (tks.length) {
+      ada = true;
+      h += '<h3>Jadwal kerja khusus (ganti / tukar shift)</h3><ul>' + tks.map(function (x) {
+        var isi = x.n2 ? esc(x.n1) + ' ⇄ ' + esc(x.n2) + ' (tukar shift)' : esc(x.n1) + ': ' + esc(jamShiftTxt(x.sb));
+        return '<li><span class="ctt-tg">' + esc(tglTxt(x.t)) + '</span> · ' + isi + (x.k ? ' <small>— ' + esc(x.k) + '</small>' : '') + '</li>';
+      }).join('') + '</ul>';
+    }
+    if (libur.length) {
+      ada = true;
+      h += '<h3>Tukar libur</h3><ul>' + libur.map(function (x) {
+        return '<li><b>' + esc(x.n) + '</b>: libur <span class="ctt-tg">' + esc(tglTxt(x.tg)) + '</span> (pengganti lembur ' + esc(tglTxt(x.tl)) + ')' + (x.kg ? ' <small>— ' + esc(x.kg) + '</small>' : '') + '</li>';
+      }).join('') + '</ul>';
+    }
+    if (jam.length) {
+      ada = true;
+      h += '<h3>Pulang lebih awal / masuk lebih lambat</h3><ul>' + jam.map(function (x) {
+        return '<li><b>' + esc(x.n) + '</b>: <span class="ctt-tg">' + esc(tglTxt(x.tg)) + '</span> ' + (x.j === 'cepat' ? 'pulang jam ' : 'masuk jam ') + esc(x.jam || '–') + ' (pengganti lembur ' + esc(tglTxt(x.tl)) + ')' + (x.kg ? ' <small>— ' + esc(x.kg) + '</small>' : '') + '</li>';
+      }).join('') + '</ul>';
+    }
+    if (hilang.length) {
+      ada = true;
+      h += '<h3>Lembur dihilangkan tanpa pengganti</h3><ul>' + hilang.map(function (x) {
+        return '<li><b>' + esc(x.n) + '</b>: lembur ' + esc(tglTxt(x.tl)) + ' tidak dihitung</li>';
+      }).join('') + '</ul>';
+    }
+    if (!ada) h += '<p class="pm-sub" style="margin-top:10px">Tidak ada catatan khusus pada periode ini.</p>';
+    box.innerHTML = h; box.hidden = false;
+    var cb = $('cttSemua');
+    if (cb) cb.onchange = function () { CATT_SEMUA = cb.checked; renderCatatan(); };
+  }
+  var CATT_SEMUA = false;
+
+  /* ===================== MENU ADMIN: PENGATURAN ===================== */
+  var AS = { sub: 'pg', pg: null, tk: null, sh: null, cari: '' };
+
+  function asErr(msg) { var e = $('asErr'); e.hidden = !msg; e.textContent = msg || ''; if (msg) { $('asOk').hidden = true; } }
+  function asOk(msg) { var o = $('asOk'); o.hidden = !msg; o.textContent = msg || ''; if (msg) { $('asErr').hidden = true; } }
+  function asApi(payload, ok, gagal) {
+    payload.token = AD.token;
+    apiPost(payload, ok, function (e) {
+      if (e.auth) { adKeluarLokal(); adErr('adErr', e.message); return; }
+      if (gagal) gagal(e); else asErr(e.message);
+    });
+  }
+  function asTab(t) {
+    AS.sub = t; AS.cari = '';
+    ['Pg', 'Tk', 'Sh'].forEach(function (k) { $('as' + k).setAttribute('aria-pressed', k.toLowerCase() === t); });
+    asErr(''); asOk('');
+    asMuat();
+  }
+  function asRender() {
+    $('asPg').setAttribute('aria-pressed', AS.sub === 'pg'); $('asTk').setAttribute('aria-pressed', AS.sub === 'tk'); $('asSh').setAttribute('aria-pressed', AS.sub === 'sh');
+    if (!AS[AS.sub]) { asMuat(); return; }
+    if (AS.sub === 'pg') asRenderPg(); else if (AS.sub === 'tk') asRenderTk(); else asRenderSh();
+  }
+  function asMuat() {
+    var aksi = AS.sub === 'pg' ? 'admPgDaftar' : AS.sub === 'tk' ? 'admTkDaftar' : 'admShBaca';
+    var b = $('adMuat'); b.disabled = true; b.textContent = '↻ Memuat…';
+    $('asBody').innerHTML = AS[AS.sub] ? $('asBody').innerHTML : '<div class="pm-empty">Memuat data…</div>';
+    var sub = AS.sub;
+    asApi({ action: aksi }, function (res) {
+      b.disabled = false; b.textContent = '↻ Muat ulang';
+      AS[sub] = res;
+      if (AS.sub === sub) asRender();
+    }, function (e) { b.disabled = false; b.textContent = '↻ Muat ulang'; $('asBody').innerHTML = ''; asErr(e.message); });
+  }
+
+  /* --- formulir modal serbaguna --- */
+  var ADF = { fields: [], simpan: null };
+  function adfNilai() {
+    var v = {};
+    ADF.fields.forEach(function (f) { var el = $('adf_' + f.id); v[f.id] = el ? el.value : ''; });
+    return v;
+  }
+  function adfTampil() {
+    var v = adfNilai();
+    ADF.fields.forEach(function (f) {
+      var w = document.querySelector('#adfBody [data-f="' + f.id + '"]');
+      if (w && f.tampil) w.hidden = !f.tampil(v);
+    });
+  }
+  function adfBuka(o) {
+    ADF.fields = o.fields; ADF.simpan = o.simpan;
+    $('adfT').textContent = o.judul; $('adfP').textContent = o.info || '';
+    $('adfErr').hidden = true;
+    $('adfBody').innerHTML = o.fields.map(function (f) {
+      var v = f.nilai === undefined || f.nilai === null ? '' : String(f.nilai);
+      var inp;
+      if (f.tipe === 'select') {
+        inp = '<select id="adf_' + f.id + '">' + f.opsi.map(function (x) {
+          var val = typeof x === 'object' ? x.v : x, lb = typeof x === 'object' ? x.l : x;
+          return '<option value="' + esc(val) + '"' + (String(val) === v ? ' selected' : '') + '>' + esc(lb) + '</option>';
+        }).join('') + '</select>';
+      } else {
+        inp = '<input id="adf_' + f.id + '" type="' + (f.tipe || 'text') + '" value="' + esc(v) + '"' + (f.maks ? ' maxlength="' + f.maks + '"' : '') + ' autocomplete="off">';
+      }
+      return '<div class="field" data-f="' + f.id + '" style="margin-top:10px"><label for="adf_' + f.id + '">' + esc(f.label) + '</label>' + inp + (f.hint ? '<div class="pm-hint" style="margin-top:4px">' + esc(f.hint) + '</div>' : '') + '</div>';
+    }).join('');
+    o.fields.forEach(function (f) { var el = $('adf_' + f.id); if (el) { el.addEventListener('change', adfTampil); el.addEventListener('input', adfTampil); } });
+    adfTampil();
+    $('adfBack').hidden = false;
+    var pertama = $('adf_' + o.fields[0].id); if (pertama) pertama.focus();
+  }
+  function adfTutup() { $('adfBack').hidden = true; }
+  function adfSimpan() {
+    var b = $('adfOk'); b.disabled = true; b.textContent = 'Menyimpan…'; $('adfErr').hidden = true;
+    ADF.simpan(adfNilai(), function (pesan) {
+      b.disabled = false; b.textContent = 'Simpan'; adfTutup(); asOk(pesan || 'Tersimpan.'); AS[AS.sub] = null; asMuat();
+    }, function (msg) { b.disabled = false; b.textContent = 'Simpan'; var e = $('adfErr'); e.hidden = false; e.textContent = msg; });
+  }
+
+  function asNamaOpsi(daftar, kosong) {
+    var o = kosong ? [{ v: '', l: kosong }] : [{ v: '', l: 'Pilih karyawan…' }];
+    return o.concat((daftar || []).map(function (n) { return { v: n, l: n }; }));
+  }
+  function asCariBar(ph) {
+    return '<div class="pm-tools" style="margin-top:10px"><div class="field"><input id="asCari" type="search" placeholder="' + esc(ph) + '" value="' + esc(AS.cari) + '" aria-label="' + esc(ph) + '" autocomplete="off"></div></div>';
+  }
+  function asPasangCari(fn) {
+    var c = $('asCari'); if (!c) return;
+    c.oninput = function () { AS.cari = c.value; var pos = c.selectionStart; fn(); var n = $('asCari'); if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch (e) {} } };
+  }
+
+  /* --- Penyesuaian lembur (Pengecualian Lembur) --- */
+  function asRenderPg() {
+    var D = AS.pg, q = AS.cari.trim().toLowerCase();
+    $('asInfo').textContent = 'Menghilangkan lembur pada tanggal tertentu karena sudah digantikan libur, pulang cepat, atau datang lambat. Lembur tanggal itu tidak dihitung di sheet maupun aplikasi.';
+    var rows = (D.rows || []).filter(function (r) { return !q || r.nama.toLowerCase().indexOf(q) >= 0; }).sort(function (a, b) { return a.tglL < b.tglL ? 1 : a.tglL > b.tglL ? -1 : 0; });
+    var h = '<div class="pm-tools" style="margin-top:10px"><button type="button" class="pm-btn sm" id="pgBaru">➕ Tambah penyesuaian</button></div>' + asCariBar('Cari nama karyawan');
+    h += '<div class="ads-list">' + (rows.length ? rows.map(function (r) {
+      var isi = r.jenis ? esc(r.jenis) + ' pada <b>' + esc(tglTxt(r.tglG)) + '</b>' + (r.jam ? ' (jam ' + esc(r.jam) + ')' : '') : '<b>Lembur dihilangkan</b> tanpa pengganti';
+      return '<div class="ads-card"><div class="ads-top"><div><div class="ads-nm">' + esc(r.nama) + '</div><div class="rk-det">Lembur ' + esc(tglTxt(r.tglL)) + ' → ' + isi + '</div>' + (r.ket ? '<div class="rk-det">Ket: ' + esc(r.ket) + '</div>' : '') + '</div></div>' +
+        '<div class="ads-act"><button type="button" class="pm-btn ghost sm" data-pg="e" data-row="' + r.row + '">Ubah</button><button type="button" class="pm-btn no sm" data-pg="h" data-row="' + r.row + '">Hapus</button></div></div>';
+    }).join('') : '<div class="pm-empty">Belum ada penyesuaian lembur.</div>') + '</div>';
+    $('asBody').innerHTML = h;
+    asPasangCari(asRenderPg);
+    $('pgBaru').onclick = function () { asFormPg(null); };
+    Array.prototype.forEach.call($('asBody').querySelectorAll('[data-pg]'), function (b) {
+      b.onclick = function () {
+        var r = (AS.pg.rows || []).filter(function (x) { return String(x.row) === b.getAttribute('data-row'); })[0];
+        if (!r) return;
+        if (b.getAttribute('data-pg') === 'e') asFormPg(r);
+        else if (confirm('Hapus penyesuaian lembur ' + r.nama + ' (lembur ' + tglTxt(r.tglL) + ')? Lembur tanggal itu akan dihitung lagi seperti biasa.')) {
+          asApi({ action: 'admPgHapus', row: r.row }, function (res) { asOk(res.pesan); AS.pg = null; asMuat(); });
+        }
+      };
+    });
+  }
+  function asFormPg(r) {
+    var D = AS.pg;
+    adfBuka({
+      judul: r ? 'Ubah penyesuaian lembur' : 'Tambah penyesuaian lembur',
+      info: 'Pilih karyawan dan tanggal lembur yang digantikan. Pilih jenis penggantinya, atau biarkan "Hanya hilangkan lembur".',
+      fields: [
+        { id: 'nama', label: 'Nama karyawan', tipe: 'select', opsi: asNamaOpsi(D.nama), nilai: r ? r.nama : '' },
+        { id: 'tglL', label: 'Tanggal lembur yang digantikan', tipe: 'date', nilai: r ? r.tglL : '' },
+        { id: 'jenis', label: 'Jenis pengganti', tipe: 'select', opsi: [{ v: '', l: 'Hanya hilangkan lembur' }, { v: 'Libur', l: 'Libur' }, { v: 'Pulang Cepat', l: 'Pulang cepat' }, { v: 'Datang Lambat', l: 'Datang lambat' }], nilai: r ? r.jenis : '' },
+        { id: 'tglG', label: 'Tanggal pengganti', tipe: 'date', nilai: r ? r.tglG : '', tampil: function (v) { return !!v.jenis; } },
+        { id: 'jam', label: 'Jam', tipe: 'time', nilai: r ? r.jam : '', hint: 'Pulang cepat: jam paling awal boleh pulang. Datang lambat: jam paling lambat boleh datang.', tampil: function (v) { return v.jenis === 'Pulang Cepat' || v.jenis === 'Datang Lambat'; } },
+        { id: 'ket', label: 'Keterangan (opsional)', tipe: 'text', maks: 200, nilai: r ? r.ket : '' }
+      ],
+      simpan: function (v, ok, gagal) {
+        if (!v.nama) { gagal('Pilih nama karyawan.'); return; }
+        if (!v.tglL) { gagal('Isi tanggal lembur.'); return; }
+        if (v.jenis && !v.tglG) { gagal('Isi tanggal pengganti.'); return; }
+        if ((v.jenis === 'Pulang Cepat' || v.jenis === 'Datang Lambat') && !v.jam) { gagal('Isi jam.'); return; }
+        asApi({ action: 'admPgSimpan', row: r ? r.row : 0, nama: v.nama, tglL: v.tglL, jenis: v.jenis, tglG: v.jenis ? v.tglG : '', jam: v.jam, ket: v.ket },
+          function (res) { ok(res.pesan); }, function (e) { gagal(e.message); });
+      }
+    });
+  }
+
+  /* --- Tukar shift --- */
+  function asRenderTk() {
+    var D = AS.tk, q = AS.cari.trim().toLowerCase();
+    $('asInfo').textContent = 'Ganti shift satu orang pada tanggal tertentu, atau tukar shift dua orang. Berlaku hanya pada tanggal itu dan langsung dipakai untuk menghitung terlambat, pulang cepat, dan lembur.';
+    var rows = (D.rows || []).filter(function (r) { return !q || (r.n1 + ' ' + r.n2).toLowerCase().indexOf(q) >= 0; }).sort(function (a, b) { return a.tgl < b.tgl ? 1 : a.tgl > b.tgl ? -1 : 0; });
+    var h = '<div class="pm-tools" style="margin-top:10px"><button type="button" class="pm-btn sm" id="tkBaru">➕ Tambah tukar / ganti shift</button></div>' + asCariBar('Cari nama karyawan');
+    h += '<div class="ads-list">' + (rows.length ? rows.map(function (r) {
+      var isi = r.n2 ? esc(r.n1) + ' ⇄ ' + esc(r.n2) + ' <small>(tukar shift)</small>' : esc(r.n1) + ': <b>' + esc(r.sb) + '</b>';
+      return '<div class="ads-card"><div class="ads-top"><div><div class="ads-nm">' + esc(tglTxt(r.tgl)) + '</div><div class="rk-det" style="font-size:14px;color:inherit">' + isi + '</div>' + (r.ket ? '<div class="rk-det">Ket: ' + esc(r.ket) + '</div>' : '') + '</div></div>' +
+        '<div class="ads-act"><button type="button" class="pm-btn ghost sm" data-tk="e" data-row="' + r.row + '">Ubah</button><button type="button" class="pm-btn no sm" data-tk="h" data-row="' + r.row + '">Hapus</button></div></div>';
+    }).join('') : '<div class="pm-empty">Belum ada tukar / ganti shift.</div>') + '</div>';
+    $('asBody').innerHTML = h;
+    asPasangCari(asRenderTk);
+    $('tkBaru').onclick = function () { asFormTk(null); };
+    Array.prototype.forEach.call($('asBody').querySelectorAll('[data-tk]'), function (b) {
+      b.onclick = function () {
+        var r = (AS.tk.rows || []).filter(function (x) { return String(x.row) === b.getAttribute('data-row'); })[0];
+        if (!r) return;
+        if (b.getAttribute('data-tk') === 'e') asFormTk(r);
+        else if (confirm('Hapus tukar / ganti shift ' + r.n1 + ' pada ' + tglTxt(r.tgl) + '? Jadwal kembali ke jadwal normal.')) {
+          asApi({ action: 'admTkHapus', row: r.row }, function (res) { asOk(res.pesan); AS.tk = null; asMuat(); });
+        }
+      };
+    });
+  }
+  function asOpsiShiftBaru(shifts) {
+    var n = (shifts || []).map(function (s) { return s.nama; });
+    var o = [{ v: '', l: 'Pilih shift…' }, { v: 'Libur', l: 'Libur' }];
+    (shifts || []).forEach(function (s) { o.push({ v: s.nama, l: s.nama + ' (' + s.masuk + '–' + s.pulang + ')' }); });
+    for (var i = 0; i < n.length; i++) for (var j = i + 1; j < n.length; j++) o.push({ v: n[i] + ' + ' + n[j], l: n[i] + ' + ' + n[j] + ' (gabungan)' });
+    return o;
+  }
+  function asFormTk(r) {
+    var D = AS.tk;
+    adfBuka({
+      judul: r ? 'Ubah tukar / ganti shift' : 'Tambah tukar / ganti shift',
+      info: 'Ganti shift: satu karyawan memakai shift lain pada tanggal itu. Tukar: dua karyawan saling bertukar shift tanggal itu.',
+      fields: [
+        { id: 'tgl', label: 'Tanggal', tipe: 'date', nilai: r ? r.tgl : '' },
+        { id: 'mode', label: 'Jenis', tipe: 'select', opsi: [{ v: 'ganti', l: 'Ganti shift (satu orang)' }, { v: 'tukar', l: 'Tukar shift (dua orang)' }], nilai: r && r.n2 ? 'tukar' : 'ganti' },
+        { id: 'n1', label: 'Karyawan 1', tipe: 'select', opsi: asNamaOpsi(D.nama), nilai: r ? r.n1 : '' },
+        { id: 'n2', label: 'Karyawan 2', tipe: 'select', opsi: asNamaOpsi(D.nama), nilai: r ? r.n2 : '', tampil: function (v) { return v.mode === 'tukar'; } },
+        { id: 'sb', label: 'Shift baru', tipe: 'select', opsi: asOpsiShiftBaru(D.shifts), nilai: r ? r.sb : '', tampil: function (v) { return v.mode === 'ganti'; } },
+        { id: 'ket', label: 'Keterangan (opsional)', tipe: 'text', maks: 200, nilai: r ? r.ket : '' }
+      ],
+      simpan: function (v, ok, gagal) {
+        if (!v.tgl) { gagal('Isi tanggal.'); return; }
+        if (!v.n1) { gagal('Pilih Karyawan 1.'); return; }
+        if (v.mode === 'tukar' && !v.n2) { gagal('Pilih Karyawan 2.'); return; }
+        if (v.mode === 'ganti' && !v.sb) { gagal('Pilih shift baru.'); return; }
+        asApi({ action: 'admTkSimpan', row: r ? r.row : 0, tgl: v.tgl, n1: v.n1, n2: v.mode === 'tukar' ? v.n2 : '', sb: v.mode === 'ganti' ? v.sb : '', ket: v.ket },
+          function (res) { ok(res.pesan); }, function (e) { gagal(e.message); });
+      }
+    });
+  }
+
+  /* --- Shift aktif --- */
+  function asRenderSh() {
+    var D = AS.sh;
+    $('asInfo').textContent = 'Pengaturan jam shift, aturan lembur, toleransi, dan jadwal mingguan. Perubahan ditulis ke sheet Shift Aktif dan semua sheet bulan dihitung ulang otomatis (±1,5 menit).';
+    var h = '';
+    if (D.cadangan) h += '<div class="pm-saran no">Tabel jam shift belum ada di sheet Shift Aktif, sehingga sistem memakai jam cadangan. Buat tabelnya lewat menu 2 di spreadsheet.</div>';
+
+    h += '<div class="ads-sec"><h3>Jam shift</h3><p class="pm-sub" style="margin:0">Jam masuk dan jam pulang tiap shift.</p>';
+    (D.aturan || []).forEach(function (a) {
+      var id = a.shift.replace(/\D/g, '');
+      h += '<div class="ads-row" data-shift="' + esc(a.shift) + '"><div class="field"><label>Shift</label><input value="' + esc(a.shift) + '" disabled></div>' +
+        '<div class="field"><label for="shm' + id + '">Jam masuk</label><input id="shm' + id + '" type="time" value="' + esc(a.masuk) + '"></div>' +
+        '<div class="field"><label for="shp' + id + '">Jam pulang</label><input id="shp' + id + '" type="time" value="' + esc(a.pulang) + '"></div>' +
+        '<div class="pm-act"><button type="button" class="pm-btn sm" data-sj="s" data-id="' + id + '">Simpan</button><button type="button" class="pm-btn no sm" data-sj="h" data-id="' + id + '">Hapus</button></div></div>';
+    });
+    var nxt = 1; (D.aturan || []).forEach(function (a) { var n = +a.shift.replace(/\D/g, ''); if (n >= nxt) nxt = n + 1; });
+    h += '<div class="ads-row"><div class="field"><label>Shift baru</label><input value="Shift ' + nxt + '" disabled></div>' +
+      '<div class="field"><label for="shmN">Jam masuk</label><input id="shmN" type="time"></div><div class="field"><label for="shpN">Jam pulang</label><input id="shpN" type="time"></div>' +
+      '<div class="pm-act"><button type="button" class="pm-btn sm" id="shTambah" data-nama="Shift ' + nxt + '">➕ Tambah shift</button></div></div></div>';
+
+    var L = D.lembur || {}, per = L.perShift || {};
+    h += '<div class="ads-sec"><h3>Aturan lembur</h3><p class="pm-sub" style="margin:0">Lembur dihitung setelah jam pulang shift ditambah menit di bawah. Kosongkan kolom per shift untuk mengikuti default.</p>' +
+      '<div class="ads-grid"><div class="field"><label for="lmAktif">Hitung lembur</label><select id="lmAktif"><option value="Ya"' + (L.aktif !== false ? ' selected' : '') + '>Ya</option><option value="Tidak"' + (L.aktif === false ? ' selected' : '') + '>Tidak</option></select></div>' +
+      '<div class="field"><label for="lmMenit">Default (menit)</label><input id="lmMenit" type="number" min="0" max="1440" step="1" value="' + esc(L.menit === undefined ? 120 : L.menit) + '"></div>';
+    (D.aturan || []).forEach(function (a) {
+      var k = 'shift' + a.shift.replace(/\D/g, '');
+      h += '<div class="field"><label for="lm_' + k + '">' + esc(a.shift) + ' (menit)</label><input id="lm_' + k + '" data-k="' + k + '" class="lmPer" type="number" min="0" max="1440" step="1" placeholder="ikut default" value="' + (per[k] === undefined ? '' : esc(per[k])) + '"></div>';
+    });
+    h += '</div><div class="pm-act"><button type="button" class="pm-btn sm" id="lmSimpan">Simpan aturan lembur</button></div></div>';
+
+    var T = D.tol || {};
+    h += '<div class="ads-sec"><h3>Toleransi</h3><p class="pm-sub" style="margin:0">Keterlambatan dan pulang cepat baru dihitung jika melewati toleransi ini.</p>' +
+      '<div class="ads-grid"><div class="field"><label for="tlTelat">Toleransi terlambat (menit)</label><input id="tlTelat" type="number" min="0" max="240" step="1" value="' + esc(T.telat === undefined ? 0 : T.telat) + '"></div>' +
+      '<div class="field"><label for="tlCepat">Toleransi pulang cepat (menit)</label><input id="tlCepat" type="number" min="0" max="240" step="1" value="' + esc(T.cepat === undefined ? 0 : T.cepat) + '"></div></div>' +
+      '<div class="pm-act"><button type="button" class="pm-btn sm" id="tlSimpan">Simpan toleransi</button></div></div>';
+
+    h += '<div class="ads-sec"><h3>Jadwal mingguan</h3>';
+    if (!D.adaMingguan) {
+      h += '<p class="pm-sub" style="margin:0">Sheet Shift Aktif memakai jadwal per tanggal, jadi jadwal ini diubah lewat spreadsheet atau lewat menu Tukar shift.</p>';
+    } else {
+      h += '<p class="pm-sub" style="margin:0">Shift tiap hari per karyawan. Pilih Libur untuk hari libur.</p>' + asCariBar('Cari nama karyawan');
+      var q = AS.cari.trim().toLowerCase();
+      var opsi = ['Libur'].concat((D.aturan || []).map(function (a) { return a.shift; }));
+      (D.mingguan || []).filter(function (o) { return !q || o.nama.toLowerCase().indexOf(q) >= 0; }).forEach(function (o, i) {
+        h += '<div class="ads-card" style="margin-top:10px" data-nm="' + esc(o.nama) + '"><div class="ads-nm">' + esc(o.nama) + '</div><div class="ads-hari">' +
+          (D.hari || []).map(function (hn, k) {
+            var cur = o.hari[k] || '';
+            var op = opsi.slice(); if (cur && op.indexOf(cur) < 0) op.push(cur);
+            return '<div class="field"><label>' + esc(hn) + '</label><select data-hk="' + k + '">' + op.map(function (x) { return '<option value="' + esc(x) + '"' + (x === cur ? ' selected' : '') + '>' + esc(x) + '</option>'; }).join('') + '</select></div>';
+          }).join('') + '</div><div class="ads-act"><button type="button" class="pm-btn sm" data-mg="s">Simpan jadwal</button></div></div>';
+      });
+      h += '<div class="ads-card" style="margin-top:10px"><div class="ads-nm">Tambah karyawan ke jadwal</div><div class="ads-grid"><div class="field"><label for="mgBaru">Nama karyawan</label><input id="mgBaru" type="text" maxlength="80" autocomplete="off" placeholder="Nama persis seperti di sheet absensi"></div></div>' +
+        '<div class="ads-hari">' + (D.hari || []).map(function (hn, k) {
+          return '<div class="field"><label>' + esc(hn) + '</label><select data-nk="' + k + '">' + opsi.map(function (x) { return '<option value="' + esc(x) + '"' + ((k === 6 && x === 'Libur') || (k < 6 && x === (opsi[1] || 'Libur')) ? ' selected' : '') + '>' + esc(x) + '</option>'; }).join('') + '</select></div>';
+        }).join('') + '</div><div class="ads-act"><button type="button" class="pm-btn sm" id="mgTambah">➕ Tambah karyawan</button></div></div>';
+    }
+    h += '</div>';
+    $('asBody').innerHTML = h;
+    asPasangCari(asRenderSh);
+    asPasangSh();
+  }
+  function asSimpanSh(payload) {
+    asApi(payload, function (res) { asOk(res.pesan); AS.sh = null; asMuat(); });
+  }
+  function asPasangSh() {
+    var B = $('asBody');
+    Array.prototype.forEach.call(B.querySelectorAll('[data-sj]'), function (b) {
+      b.onclick = function () {
+        var id = b.getAttribute('data-id'), nm = 'Shift ' + id;
+        if (b.getAttribute('data-sj') === 'h') {
+          if (confirm('Hapus ' + nm + '? Shift yang masih dipakai di jadwal atau Tukar Shift tidak bisa dihapus.')) asSimpanSh({ action: 'admShJamHapus', shift: nm });
+          return;
+        }
+        var m = $('shm' + id).value, p = $('shp' + id).value;
+        if (!m || !p) { asErr('Isi jam masuk dan jam pulang ' + nm + '.'); return; }
+        asSimpanSh({ action: 'admShJam', shift: nm, masuk: m, pulang: p, baru: false });
+      };
+    });
+    var t = $('shTambah');
+    if (t) t.onclick = function () {
+      var m = $('shmN').value, p = $('shpN').value;
+      if (!m || !p) { asErr('Isi jam masuk dan jam pulang shift baru.'); return; }
+      asSimpanSh({ action: 'admShJam', shift: t.getAttribute('data-nama'), masuk: m, pulang: p, baru: true });
+    };
+    var lm = $('lmSimpan');
+    if (lm) lm.onclick = function () {
+      var per = {};
+      Array.prototype.forEach.call(B.querySelectorAll('.lmPer'), function (el) { per[el.getAttribute('data-k')] = el.value.trim(); });
+      asSimpanSh({ action: 'admShLembur', aktif: $('lmAktif').value === 'Ya', menit: $('lmMenit').value.trim(), perShift: per });
+    };
+    var tl = $('tlSimpan');
+    if (tl) tl.onclick = function () { asSimpanSh({ action: 'admShTol', telat: $('tlTelat').value.trim(), cepat: $('tlCepat').value.trim() }); };
+    Array.prototype.forEach.call(B.querySelectorAll('[data-mg="s"]'), function (b) {
+      b.onclick = function () {
+        var kartu = b.closest('[data-nm]'), hari = [];
+        Array.prototype.forEach.call(kartu.querySelectorAll('select[data-hk]'), function (s) { hari[+s.getAttribute('data-hk')] = s.value; });
+        asSimpanSh({ action: 'admShMinggu', nama: kartu.getAttribute('data-nm'), hari: hari });
+      };
+    });
+    var mt = $('mgTambah');
+    if (mt) mt.onclick = function () {
+      var nama = $('mgBaru').value.trim(), hari = [];
+      if (!nama) { asErr('Isi nama karyawan yang akan ditambahkan.'); return; }
+      Array.prototype.forEach.call(B.querySelectorAll('select[data-nk]'), function (s) { hari[+s.getAttribute('data-nk')] = s.value; });
+      asSimpanSh({ action: 'admShMinggu', tambah: true, nama: nama, hari: hari });
+    };
+  }
+
   var VIEW = 'abs';
   function tampilView(v) {
     VIEW = v;
@@ -2806,6 +3411,9 @@
     $('pmView').hidden = v !== 'form';
     $('adView').hidden = v !== 'admin';
     $('izView').hidden = v !== 'izin';
+    $('rankView').hidden = v !== 'rank';
+    $('nvRank').setAttribute('aria-pressed', v === 'rank');
+    if (v === 'rank') rkSiap();
     $('nvIzin').setAttribute('aria-pressed', v === 'izin');
     $('nvAbs').setAttribute('aria-pressed', v === 'abs');
     $('nvForm').setAttribute('aria-pressed', v === 'form');
@@ -3374,6 +3982,7 @@
   }
   function adMuat() {
     if (!AD.token) return;
+    if (AD.mode === 'set') { asMuat(); return; }
     var b = $('adMuat'); b.disabled = true; b.textContent = '↻ Memuat…';
     var izin = AD.mode === 'izin';
     apiPost({ action: izin ? 'izDaftar' : 'daftar', token: AD.token }, function (res) {
@@ -3398,6 +4007,18 @@
     AD.mode = m;
     $('adMLembur').setAttribute('aria-pressed', m === 'lembur');
     $('adMIzin').setAttribute('aria-pressed', m === 'izin');
+    $('adMSet').setAttribute('aria-pressed', m === 'set');
+    var set = m === 'set', tools = $('adPanel').querySelectorAll('.pm-tools');
+    $('adSet').hidden = !set;
+    $('adList').hidden = set;
+    if (tools[1]) tools[1].hidden = set;
+    if (set) {
+      $('adJudul').textContent = 'Pengaturan';
+      $('adIzBaru').hidden = true; $('adPmBaru').hidden = true;
+      adErr('adErr2', '');
+      asRender();
+      return;
+    }
     $('adJudul').textContent = m === 'izin' ? 'Pengajuan Izin' : 'Permohonan Lembur';
     $('adIzBaru').hidden = m !== 'izin';
     $('adPmBaru').hidden = m === 'izin';
@@ -3604,6 +4225,23 @@
     window.addEventListener('pageshow', function () { setTimeout(function () { izKosongkan(false); }, 0); });
     $('adMLembur').onclick = function () { if (AD.mode !== 'lembur') adSetMode('lembur'); };
     $('adMIzin').onclick = function () { if (AD.mode !== 'izin') adSetMode('izin'); };
+    $('adMSet').onclick = function () { if (AD.mode !== 'set') adSetMode('set'); };
+    $('asPg').onclick = function () { asTab('pg'); };
+    $('asTk').onclick = function () { asTab('tk'); };
+    $('asSh').onclick = function () { asTab('sh'); };
+    $('adfOk').onclick = adfSimpan;
+    $('adfBatal').onclick = adfTutup;
+    $('adfBack').addEventListener('mousedown', function (e) { if (e.target === $('adfBack')) adfTutup(); });
+    $('nvRank').onclick = function () { tampilView('rank'); };
+    $('rkPer').onchange = function () { RK.pk = $('rkPer').value; RK.semua = { tepat: false, telat: false }; rkSiap(); };
+    $('rkMin').onchange = rkRender;
+    $('rkCari').oninput = rkRender;
+    $('rkBody').addEventListener('click', function (e) {
+      var b = e.target.closest ? e.target.closest('[data-rk]') : null;
+      if (b) { var k = b.getAttribute('data-rk'); RK.semua[k] = !RK.semua[k]; rkRender(); return; }
+      var th = e.target.closest ? e.target.closest('.rk-sort') : null;
+      if (th) { var kk = th.getAttribute('data-k'); if (RK.urut === kk) RK.arah = -RK.arah; else { RK.urut = kk; RK.arah = kk === 'nama' ? 1 : -1; } rkRender(); }
+    });
 
     $('pmKeg').addEventListener('change', pmUbahKeg);
     $('pmJenis').addEventListener('change', pmUbahJenis);
