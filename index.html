@@ -1167,7 +1167,7 @@
   // Tempel URL Web App dari Apps Script di antara tanda kutip.
   // Contoh: 'https://script.google.com/macros/s/XXXX/exec'
   // ============================================================
-  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxWP3riRVTmeqC5Q_ImHGz41-AVyVChcFyDEBSd1LoD8b9Hzq6dJ4rz1h13HCPHUBON3A/exec';
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzPnH8XVIrRDTNC6RzRWsZHw5GTQ-3BIy2JYvQ5ajXpeOl_T392hCbjekjVfkFuvsv53Q/exec';
   // ============================================================
 
   function p2(n) { return (n < 10 ? '0' : '') + n; }
@@ -1177,6 +1177,7 @@
   var DB = { periods: [], records: [], names: {}, config: null, hariIni: null };
   var LOADED = {};
   var SESUAI = {};
+  var IZT = {};   // pengajuan Absensi Terlambat yang disetujui (terlambat pada tanggal itu tidak dihitung)
   function nk(n) { return String(n || '').toLowerCase().replace(/\s+/g, ' ').trim(); }
   function petaSesuai(list) { var m = {}; (list || []).forEach(function (x) { m[nk(x.n) + '|' + x.t] = x; (m['@' + x.t] = m['@' + x.t] || []).push(x); }); return m; }
   function namaKata(a, b) {
@@ -1187,13 +1188,15 @@
     var kecil = tx.length <= ty.length ? tx : ty, besar = tx.length <= ty.length ? ty : tx;
     return kecil.every(function (k) { return besar.indexOf(k) >= 0; });
   }
-  function cariSesuai(nama, tgl) {
-    var p = SESUAI[nk(nama) + '|' + tgl];
+  function cariDi(peta, nama, tgl) {
+    var p = peta[nk(nama) + '|' + tgl];
     if (p) return p;
-    var l = SESUAI['@' + tgl] || [];
+    var l = peta['@' + tgl] || [];
     for (var i = 0; i < l.length; i++) if (namaKata(l[i].n, nama)) return l[i];
     return null;
   }
+  function cariSesuai(nama, tgl) { return cariDi(SESUAI, nama, tgl); }
+  function cariIzinTelat(nama, tgl) { return !!cariDi(IZT, nama, tgl); }
   function adjTeks(r) {
     if (!r.adj) return '';
     return r.adj.j === 'libur' ? 'Libur pengganti lembur (disetujui)' : (r.adj.j === 'cepat' ? 'Pulang cepat ' : 'Datang lambat ') + r.adj.m + ' disetujui (pengganti lembur)';
@@ -1266,6 +1269,8 @@
     if (!bebas && r.masuk && toMin(r.masuk) > bMasuk + c.toleransi) {
       r.telat = toMin(r.masuk) - bMasuk;
       if (adj && adj.j === 'lambat' && adj.m && bMasuk > toMin(c.jamMasuk)) r.langgar = 'lambat';
+      // Sudah mengajukan Absensi Terlambat (disetujui): menit terlambat tidak dihitung
+      if (!r.langgar && cariIzinTelat(r.nama, r.tgl)) { r.telatIzin = r.telat; r.telat = 0; }
     }
     if (r.pulang) {
       var p = toMin(r.pulang);
@@ -1508,6 +1513,7 @@
         if (x.s) c += '<span class="chip inc">' + esc(x.s) + '</span>';
         if (x.x) c += '<span class="chip forgot">Tanpa jadwal</span>';
         if (x.t) c += x.g === 't' ? '<span class="chip viol">Melanggar izin datang lambat ' + esc(fmtMin(x.t)) + '</span>' : '<span class="chip late">Terlambat ' + esc(fmtMin(x.t)) + '</span>';
+        else if (x.iz) c += '<span class="chip ot">Terlambat ' + esc(fmtMin(x.iz)) + ' · izin disetujui</span>';
         else if (x.m && x.s) c += '<span class="chip ok">Tepat waktu</span>';
         if (x.c) c += x.g === 'c' ? '<span class="chip viol">Melanggar izin pulang cepat ' + esc(fmtMin(x.c)) + '</span>' : '<span class="chip early">Pulang cepat ' + esc(fmtMin(x.c)) + '</span>';
         if (x.l) c += '<span class="chip ot">Lembur ' + esc(fmtMin(x.l)) + '</span>';
@@ -1587,7 +1593,7 @@
     DB.periods = data.periods || [];
     DB.config = data.config;
     DB.hariIni = data.hariIni || null;
-    SESUAI = petaSesuai(data.sesuai);
+    SESUAI = petaSesuai(data.sesuai); IZT = petaSesuai(data.izt);
 
     if (!DB.periods.length) { showError(new Error('Tidak ada sheet bulanan yang terbaca dari spreadsheet')); return; }
 
@@ -1650,7 +1656,7 @@
       DB.periods = data.periods || [];
       DB.config = data.config;
       DB.hariIni = data.hariIni || null;
-      SESUAI = petaSesuai(data.sesuai);
+      SESUAI = petaSesuai(data.sesuai); IZT = petaSesuai(data.izt);
       renderHariIni();
       buildPeriods();
       var perlu = sheetDilihat().filter(function (n) { return !awal[n]; });
@@ -1959,6 +1965,7 @@
     if (r.telat) out.push(r.langgar === 'lambat'
       ? '<span class="chip viol">Melanggar izin datang lambat ' + fmtMin(r.telat) + ' (izin ' + esc(r.bMasuk) + ')</span>'
       : '<span class="chip late">Terlambat ' + fmtMin(r.telat) + '</span>');
+    else if (r.telatIzin) out.push('<span class="chip ot">Terlambat ' + fmtMin(r.telatIzin) + ' · izin disetujui, tidak dihitung</span>');
     if (r.cepat) out.push(r.langgar === 'cepat'
       ? '<span class="chip viol">Melanggar izin pulang cepat ' + fmtMin(r.cepat) + ' (izin ' + esc(r.bPulang) + ')</span>'
       : '<span class="chip early">Pulang cepat ' + fmtMin(r.cepat) + '</span>');
@@ -2225,7 +2232,7 @@
              row('Terlambat / pulang cepat', 'Tidak dihitung') +
              row('Lembur', r.lembur ? esc(fmtMin(r.lembur)) : 'Tidak ada');
       } else {
-        h += row('Terlambat', r.telat ? esc(fmtMin(r.telat)) + ' <small>(batas ' + esc(r.bMasuk || DB.config.jamMasuk) + (r.adj && r.adj.j === 'lambat' ? ', disetujui' : '') + ')</small>' + (r.langgar === 'lambat' ? ' <span class="chip viol">Melanggar izin</span>' : '') : 'Tidak') +
+        h += row('Terlambat', r.telat ? esc(fmtMin(r.telat)) + ' <small>(batas ' + esc(r.bMasuk || DB.config.jamMasuk) + (r.adj && r.adj.j === 'lambat' ? ', disetujui' : '') + ')</small>' + (r.langgar === 'lambat' ? ' <span class="chip viol">Melanggar izin</span>' : '') : (r.telatIzin ? 'Tidak dihitung <small>(' + esc(fmtMin(r.telatIzin)) + ', izin Absensi Terlambat disetujui)</small>' : 'Tidak')) +
              row('Pulang cepat', r.cepat ? esc(fmtMin(r.cepat)) + ' <small>(batas ' + esc(r.bPulang || DB.config.jamPulang) + (r.adj && r.adj.j === 'cepat' ? ', disetujui' : ', jadwal') + ')</small>' + (r.langgar === 'cepat' ? ' <span class="chip viol">Melanggar izin</span>' : '') : 'Tidak') +
              row('Lembur', r.lembur ? esc(fmtMin(r.lembur)) : 'Tidak ada');
       }
