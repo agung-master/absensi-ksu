@@ -806,6 +806,21 @@
     header .reload { width: 100%; text-align: center; }
     .nav { gap: 6px; padding: 8px; }
   }
+
+  /* ===== Tabel lengkap peringkat: area gulir ===== */
+  .rk-tophead { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin: 18px 0 4px; }
+  .rk-tophead h3 { margin: 0; font-size: 16px; }
+  .rk-tophead span { font-size: 13px; color: var(--muted); font-weight: 600; }
+  .rk-scroll { max-height: min(560px, 70vh); overflow: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+  .rk-scroll th { position: sticky; top: 0; z-index: 3; box-shadow: 0 1px 0 var(--line); }
+  .rk-scroll td:first-child, .rk-scroll th:first-child { position: sticky; left: 0; z-index: 2; background: var(--surface); box-shadow: 1px 0 0 var(--line); }
+  .rk-scroll th:first-child { z-index: 4; background: var(--brand-soft); }
+  .rk-scroll tbody tr:hover td:first-child { background: #f1f6ff; }
+  .rk-scroll:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+  @media (max-width: 640px) {
+    .rk-scroll { border: 1px solid var(--line); background: var(--surface); padding: 8px; border-radius: 12px; max-height: 70vh; overflow-y: auto; overflow-x: hidden; }
+    .rk-scroll td:first-child { position: static; box-shadow: none; }
+  }
 </style>
 </head>
 <body>
@@ -3161,7 +3176,7 @@
       return (c * dir) || a.nama.localeCompare(b.nama, 'id');
     });
     function th(k, l) { return '<th class="rk-sort" data-k="' + k + '" tabindex="0">' + l + (RK.urut === k ? (RK.arah > 0 ? ' ▲' : ' ▼') : '') + '</th>'; }
-    h += '<h3 style="margin:18px 0 4px;font-size:16px">Tabel lengkap</h3><div class="tablebox"><table><thead><tr>' +
+    h += '<div class="rk-tophead"><h3>Tabel lengkap</h3><span>' + rows.length + ' karyawan</span></div><div class="tablebox rk-scroll" tabindex="0" aria-label="Tabel lengkap peringkat, dapat digulir"><table><thead><tr>' +
       th('nama', 'Nama') + th('masuk', 'Hari masuk') + th('tepat', 'Tepat waktu') + th('telatN', 'Terlambat') + th('telatM', 'Menit terlambat') + th('izin', 'Izin terlambat') + th('rate', '% tepat') + th('avgSel', 'Rata-rata jam masuk') + th('cepat', 'Pulang cepat') + th('lembur', 'Lembur (menit)') +
       '</tr></thead><tbody>' + rows.map(function (o) {
         return '<tr><td data-label="Nama">' + esc(o.nama) + '</td><td data-label="Hari masuk">' + o.masuk + '</td><td data-label="Tepat waktu">' + o.tepat + '</td><td data-label="Terlambat">' + o.telatN + '×</td>' +
