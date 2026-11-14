@@ -296,6 +296,26 @@
 
   .per { width: fit-content; max-width: 100%; margin-top: 14px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: #f3f8ff; }
   .per > .seg { margin-bottom: 10px; }
+  .per-wrap { display: flex; flex-wrap: wrap; gap: 14px; align-items: stretch; margin-top: 14px; }
+  .per-wrap > .per { margin-top: 0; }
+  .gr { flex: 1 1 340px; min-width: 260px; padding: 12px 16px; border: 1px solid var(--line); border-radius: 12px; background: #fff; display: flex; flex-direction: column; }
+  .gr-h { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+  .gr-h b { font-size: 14.5px; color: var(--ink); }
+  .gr-h span { font-size: 12.5px; color: var(--muted); }
+  .gr-b { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; margin-top: 8px; flex: 1; }
+  .gr-donut { position: relative; width: 132px; height: 132px; flex: 0 0 auto; }
+  .gr-donut svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  .gr-donut circle { fill: none; stroke-width: 15; }
+  .gr-donut .gr-bg { stroke: #e8eefb; }
+  .gr-ctr { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.15; }
+  .gr-ctr b { font-size: 24px; color: var(--ink); }
+  .gr-ctr small { font-size: 11.5px; color: var(--muted); }
+  .gr-leg { list-style: none; margin: 0; padding: 0; flex: 1 1 150px; display: grid; gap: 6px; }
+  .gr-leg li { display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--ink); }
+  .gr-leg i { width: 11px; height: 11px; border-radius: 3px; flex: 0 0 auto; }
+  .gr-leg em { margin-left: auto; font-style: normal; font-weight: 700; }
+  .gr-leg li.nol { opacity: .45; }
+  .gr-empty { color: var(--muted); font-size: 13.5px; margin: auto 0; padding: 18px 4px; }
   .per-l { display: block; font-size: 13px; font-weight: 600; color: #3c5185; margin-bottom: 6px; }
   .per-l span { font-weight: 500; color: var(--muted); }
   .per-top { display: flex; gap: 8px; align-items: stretch; }
@@ -873,6 +893,7 @@
         <button type="button" id="mAll" aria-pressed="false">Semua karyawan</button>
       </div>
 
+      <div class="per-wrap">
       <div class="per" id="perBox">
         <div class="seg" id="perMode" role="group" aria-label="Jenis periode">
           <button type="button" id="pmGaji" aria-pressed="true">Periode gaji (26–25)</button>
@@ -887,6 +908,8 @@
           </div>
           <p class="per-info" id="perInfo"></p>
         </div>
+      </div>
+      <section class="gr" id="grafik" aria-label="Grafik kehadiran"></section>
       </div>
 
       <div class="filters">
@@ -1429,7 +1452,7 @@
   // Tempel URL Web App dari Apps Script di antara tanda kutip.
   // Contoh: 'https://script.google.com/macros/s/XXXX/exec'
   // ============================================================
-  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyJQ8FNMYbIBCiWU4p3yUW_HNybLb9-Tuuf8JyuPzvg76qXkGGJgKdB8aLQfaCd9ZeK-Q/exec';
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzzg7AOTS33A26Qc8DjMzIcHzm_20LHjWXXhPoSk1qsG8iRls1RL0UpH0UFz8-NViRDhg/exec';
   // ============================================================
 
   function p2(n) { return (n < 10 ? '0' : '') + n; }
@@ -2285,6 +2308,49 @@
     renderUtama();
   }
 
+  /* ---------- Grafik kehadiran (donat) di samping pilihan periode: ikut periode gaji maupun kalender biasa ---------- */
+  function renderGrafik(base, pesan) {
+    var el = $('grafik');
+    if (!el) return;
+    var judul = '<div class="gr-h"><b>Grafik kehadiran</b><span>' + esc(periodeLabel()) + '</span></div>';
+    if (!base || !base.length) {
+      el.innerHTML = judul + '<div class="gr-empty">' + esc(pesan || 'Belum ada data untuk periode ini.') + '</div>';
+      return;
+    }
+    var K = [
+      { l: 'Tepat waktu', c: '#047857', n: 0 },
+      { l: 'Terlambat', c: '#c2410c', n: 0 },
+      { l: 'Pulang cepat', c: '#be185d', n: 0 },
+      { l: 'Izin / dinas', c: '#4338ca', n: 0 },
+      { l: 'Tidak hadir', c: '#b91c1c', n: 0 },
+      { l: 'Belum absen', c: '#94a3b8', n: 0 }
+    ];
+    base.forEach(function (r) {
+      if (r.st === 'hadir') { if (r.telat > 0) K[1].n++; else if (r.cepat > 0) K[2].n++; else K[0].n++; }
+      else if (r.st === 'izin') K[3].n++;
+      else if (r.st === 'absen') K[4].n++;
+      else if (r.st === 'belum') K[5].n++;
+    });
+    var total = 0, hadir = K[0].n + K[1].n + K[2].n;
+    K.forEach(function (k) { total += k.n; });
+    if (!total) { el.innerHTML = judul + '<div class="gr-empty">Belum ada hari kerja pada pilihan ini.</div>'; return; }
+    var dasar = total - K[5].n;                       // "belum absen" (hari ini) belum menentukan persentase
+    var pct = dasar > 0 ? Math.round(hadir / dasar * 100) : 0;
+    var R = 52, C = 2 * Math.PI * R, off = 0, arcs = '';
+    K.forEach(function (k) {
+      if (!k.n) return;
+      var len = k.n / total * C;
+      arcs += '<circle cx="66" cy="66" r="' + R + '" stroke="' + k.c + '" stroke-dasharray="' + len.toFixed(2) + ' ' + (C - len).toFixed(2) + '" stroke-dashoffset="' + (-off).toFixed(2) + '"><title>' + k.l + ': ' + k.n + '</title></circle>';
+      off += len;
+    });
+    var leg = K.map(function (k) { return '<li class="' + (k.n ? '' : 'nol') + '"><i style="background:' + k.c + '"></i>' + k.l + '<em>' + k.n + '</em></li>'; }).join('');
+    el.innerHTML = judul +
+      '<div class="gr-b"><div class="gr-donut" role="img" aria-label="Kehadiran ' + pct + ' persen dari ' + total + ' hari kerja">' +
+      '<svg viewBox="0 0 132 132"><circle class="gr-bg" cx="66" cy="66" r="' + R + '"/>' + arcs + '</svg>' +
+      '<div class="gr-ctr"><b>' + pct + '%</b><small>hadir</small></div></div>' +
+      '<ul class="gr-leg">' + leg + '</ul></div>';
+  }
+
   function renderUtama() {
     var box = $('tableBox');
     $('pager').hidden = true;
@@ -2292,6 +2358,7 @@
     if (S.mode === 'me' && !S.nama) {
       $('stats').innerHTML = '';
       updateSfCounts([], []);
+      renderGrafik(null, 'Pilih nama Anda untuk melihat grafik kehadiran.');
       $('count').textContent = '';
       box.innerHTML = '<div class="empty">Pilih nama Anda untuk melihat data absensi pribadi.</div>';
       $('note').textContent = '';
@@ -2301,6 +2368,7 @@
     var base = getList();
     var list = filterStatus(base);
     updateSfCounts(base, list);
+    renderGrafik(base);
 
     var hadir = 0, absen = 0, telatN = 0, telatM = 0, lemburM = 0, cepatN = 0, lupaN = 0;
     base.forEach(function (r) {
