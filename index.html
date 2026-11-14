@@ -720,6 +720,23 @@
   .rk-val small { display: block; font-weight: 600; font-size: 12px; color: var(--muted); }
   .rk-more { display: block; margin: 10px auto 0; }
   .rk-sort { cursor: pointer; user-select: none; }
+  .rk-link { all: unset; cursor: pointer; font-weight: 700; color: inherit; overflow-wrap: anywhere; border-bottom: 1px dashed var(--muted); }
+  .rk-link:hover { color: var(--brand-dark); border-bottom-color: var(--brand-dark); }
+  .rk-link:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 4px; }
+  .rkd-dlg { max-width: 760px !important; max-height: 90vh; overflow: auto; }
+  .rkd-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+  .rkd-sum { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; margin: 8px 0 12px; }
+  .rkd-sum div { background: #f3f8ff; border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; }
+  .rkd-sum span { display: block; font-size: 12px; color: var(--muted); font-weight: 600; }
+  .rkd-sum b { font-size: 16px; }
+  .rkd-tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; }
+  .rkd-tbl table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  .rkd-tbl th, .rkd-tbl td { padding: 7px 10px; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  .rkd-tbl th { background: var(--brand-soft); position: sticky; top: 0; }
+  .rkd-tbl td:last-child { white-space: normal; min-width: 180px; }
+  .rkd-tbl tr.k-telat td { background: #fff4ee; } .rkd-tbl tr.k-awal td { background: #f1faf5; }
+  .rkd-tbl tr.k-skip td { color: var(--muted); }
+  .rkd-tag { font-weight: 700; } .k-telat .rkd-tag { color: var(--late); } .k-awal .rkd-tag, .k-tepat .rkd-tag { color: var(--ok); }
   .ads-card { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; background: var(--surface); }
   .ads-list { display: grid; gap: 10px; margin-top: 12px; }
   .ads-top { display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; align-items: flex-start; }
@@ -1311,6 +1328,12 @@
         <button type="button" class="pm-btn" id="pmDlgOk">Simpan</button>
         <button type="button" class="pm-btn ghost" id="pmDlgBatal">Batal</button>
       </div>
+    </div>
+  </div>
+  <div class="pm-back" id="rkdBack" hidden>
+    <div class="pm-dlg rkd-dlg" role="dialog" aria-modal="true" aria-labelledby="rkdT">
+      <div class="rkd-head"><div><h3 id="rkdT"></h3><p id="rkdP"></p></div><button type="button" class="pm-btn ghost sm" id="rkdTutup">Tutup</button></div>
+      <div id="rkdBody"></div>
     </div>
   </div>
   <div class="pm-back" id="adfBack" hidden>
@@ -3082,7 +3105,8 @@
     var pr = PMAP[RK.pk], per = {};
     DB.records.forEach(function (r) {
       if (r.tgl < pr.s || r.tgl > pr.e) return;
-      var o = per[r.nama] || (per[r.nama] = { nama: r.nama, hadir: 0, masuk: 0, tepat: 0, telatN: 0, telatM: 0, izin: 0, cepat: 0, lembur: 0, absen: 0, sumJam: 0, sumSel: 0, awal: 0, awalM: 0 });
+      var o = per[r.nama] || (per[r.nama] = { nama: r.nama, recs: [], hadir: 0, masuk: 0, tepat: 0, telatN: 0, telatM: 0, izin: 0, cepat: 0, lembur: 0, absen: 0, sumJam: 0, sumSel: 0, awal: 0, awalM: 0 });
+      o.recs.push(r);
       if (r.st === 'hadir') o.hadir++;
       if (r.st === 'absen') o.absen++;
       if (r.st === 'hadir' && r.masuk && !r.mg && !r.malam && !(r.adj && r.adj.j === 'libur')) {
@@ -3138,7 +3162,7 @@
         ? 'Masuk ' + o.masuk + ' hari · tepat ' + o.tepat + ' (' + String(persen).replace('.', ',') + '%) · lebih awal ' + o.awal + ' hari' + (o.awalM ? ' (total ' + fmtMin(o.awalM) + ')' : '') + ' · terlambat ' + o.telatN + (o.telatM ? ' (' + fmtMin(o.telatM) + ')' : '') + (o.izin ? ' · izin terlambat ' + o.izin : '')
         : 'Masuk ' + o.masuk + ' hari · tepat ' + o.tepat + ' (' + String(persen).replace('.', ',') + '%) · terlambat ' + o.telatN + '×' + (o.telatN ? ' · rata-rata ' + fmtMin(Math.round(o.telatM / o.telatN)) + '/kali' : '') + (o.izin ? ' · izin terlambat ' + o.izin : '');
       var val = kind === 'tepat' ? o.awal + ' hari<small>lebih awal</small>' : o.telatN + '×<small>' + esc(fmtMin(o.telatM)) + '</small>';
-      h += '<div class="rk-row"><div class="rk-no' + medal + '">' + x.no + '</div><div><div class="rk-nm">' + esc(o.nama) + '</div><div class="rk-det">' + esc(det) + '</div><div class="rk-bar"><i style="width:' + lebar + '%"></i></div></div><div class="rk-val">' + val + '</div></div>';
+      h += '<div class="rk-row"><div class="rk-no' + medal + '">' + x.no + '</div><div><div class="rk-nm"><button type="button" class="rk-link" data-nm="' + esc(o.nama) + '" aria-haspopup="dialog">' + esc(o.nama) + '</button></div><div class="rk-det">' + esc(det) + '</div><div class="rk-bar"><i style="width:' + lebar + '%"></i></div></div><div class="rk-val">' + val + '</div></div>';
     });
     if (daftar.length > maks) h += '<button type="button" class="pm-btn ghost sm rk-more" data-rk="' + kind + '">' + (semua ? 'Tampilkan 10 teratas' : 'Tampilkan semua (' + daftar.length + ')') + '</button>';
     return h + '</div>';
@@ -3185,12 +3209,59 @@
     h += '<div class="rk-tophead"><h3>Tabel lengkap</h3><span>' + rows.length + ' karyawan</span></div><div class="tablebox rk-scroll" tabindex="0" aria-label="Tabel lengkap peringkat, dapat digulir"><table><thead><tr>' +
       th('nama', 'Nama') + th('masuk', 'Hari masuk') + th('tepat', 'Tepat waktu') + th('telatN', 'Terlambat') + th('telatM', 'Menit terlambat') + th('izin', 'Izin terlambat') + th('rate', '% tepat') + th('cepat', 'Pulang cepat') + th('lembur', 'Lembur (menit)') +
       '</tr></thead><tbody>' + rows.map(function (o) {
-        return '<tr><td data-label="Nama">' + esc(o.nama) + '</td><td data-label="Hari masuk">' + o.masuk + '</td><td data-label="Tepat waktu">' + o.tepat + '</td><td data-label="Terlambat">' + o.telatN + '×</td>' +
+        return '<tr><td data-label="Nama"><button type="button" class="rk-link" data-nm="' + esc(o.nama) + '" aria-haspopup="dialog">' + esc(o.nama) + '</button></td><td data-label="Hari masuk">' + o.masuk + '</td><td data-label="Tepat waktu">' + o.tepat + '</td><td data-label="Terlambat">' + o.telatN + '×</td>' +
           '<td data-label="Menit terlambat">' + esc(fmtMin(o.telatM)) + '</td><td data-label="Izin terlambat">' + o.izin + '</td><td data-label="% tepat">' + (o.rate === null ? '–' : String(Math.round(o.rate * 1000) / 10).replace('.', ',') + '%') + '</td>' +
           '<td data-label="Pulang cepat">' + o.cepat + '×</td><td data-label="Lembur">' + esc(fmtMin(o.lembur)) + '</td></tr>';
       }).join('') + '</tbody></table></div>';
     $('rkBody').innerHTML = h;
   }
+
+  /* --- detail per karyawan (klik nama) --- */
+  function rkKlasifikasi(r) {
+    var s = r.bMasuk ? toMin(r.bMasuk) : null, m = r.masuk ? toMin(r.masuk) : null;
+    var sel = (s !== null && m !== null) ? m - s : null;
+    if (r.st === 'absen') return { k: 'skip', t: 'Tidak masuk', c: 'Tidak ada data absensi (tidak dihitung dalam peringkat)' };
+    if (r.st === 'izin') return { k: 'skip', t: 'Izin / sakit / cuti', c: (r.izBlok ? String(r.izBlok) + ' · ' : '') + 'tidak dihitung' };
+    if (r.st === 'libur') return { k: 'skip', t: 'Libur', c: 'Hari libur, tidak dihitung' };
+    if (r.st !== 'hadir') return null;
+    if (!r.masuk) return { k: 'skip', t: 'Tanpa jam masuk', c: 'Tidak dihitung' };
+    if (r.mg) return { k: 'skip', t: 'Hari libur', c: 'Masuk di hari libur/Minggu, tidak dihitung', sel: null };
+    if (r.malam) return { k: 'skip', t: 'Shift malam', c: 'Tidak dihitung', sel: null };
+    if (r.adj && r.adj.j === 'libur') return { k: 'skip', t: 'Libur pengganti lembur', c: 'Disetujui, tidak dihitung', sel: null };
+    if (r.telat) return { k: 'telat', t: 'Terlambat', c: 'Terlambat ' + fmtMin(r.telat), sel: sel };
+    if (r.telatIzin) return { k: 'tepat', t: 'Izin terlambat', c: 'Terlambat ' + fmtMin(r.telatIzin) + ' tetapi sudah disetujui, tidak dihitung terlambat', sel: sel };
+    if (sel !== null && sel < 0) return { k: 'awal', t: 'Lebih awal', c: 'Datang ' + fmtMin(-sel) + ' sebelum jam masuk jadwal', sel: sel };
+    return { k: 'tepat', t: 'Tepat waktu', c: 'Masuk tepat pada jam jadwal', sel: sel };
+  }
+  function rkSelTeks(sel) { return sel === null || sel === undefined ? '–' : (sel > 0 ? '+' : sel < 0 ? '−' : '') + Math.abs(sel) + ' m'; }
+
+  function rkDetail(nama) {
+    var o = rkHitung().filter(function (x) { return x.nama === nama; })[0];
+    if (!o) return;
+    var recs = o.recs.slice().sort(function (a, b) { return a.tgl < b.tgl ? -1 : a.tgl > b.tgl ? 1 : 0; });
+    var baris = recs.map(function (r) {
+      var c = rkKlasifikasi(r);
+      if (!c) return '';
+      return '<tr class="k-' + c.k + '"><td>' + esc(fmtTgl(r)) + '</td><td>' + esc(r.bMasuk || '–') + '</td><td>' + esc(r.masuk || '–') + '</td><td>' + esc(rkSelTeks(c.sel)) + '</td><td><span class="rkd-tag">' + esc(c.t) + '</span><br>' + esc(c.c) + '</td></tr>';
+    }).join('');
+    var persen = o.rate === null ? '–' : String(Math.round(o.rate * 1000) / 10).replace('.', ',') + '%';
+    $('rkdT').textContent = o.nama;
+    $('rkdP').textContent = 'Rincian harian · periode ' + periodeText(RK.pk);
+    $('rkdBody').innerHTML = '<div class="rkd-sum">' +
+      '<div><span>Hari masuk</span><b>' + o.masuk + '</b></div>' +
+      '<div><span>Tepat waktu</span><b>' + o.tepat + ' (' + persen + ')</b></div>' +
+      '<div><span>Lebih awal</span><b>' + o.awal + ' hari</b></div>' +
+      '<div><span>Total menit lebih awal</span><b>' + esc(fmtMin(o.awalM)) + '</b></div>' +
+      '<div><span>Terlambat</span><b>' + o.telatN + '×</b></div>' +
+      '<div><span>Total menit terlambat</span><b>' + esc(fmtMin(o.telatM)) + '</b></div>' +
+      '<div><span>Izin terlambat</span><b>' + o.izin + '</b></div></div>' +
+      '<div class="rkd-tbl"><table><thead><tr><th>Tanggal</th><th>Jadwal masuk</th><th>Jam masuk</th><th>Selisih</th><th>Keterangan</th></tr></thead><tbody>' +
+      (baris || '<tr><td colspan="5">Belum ada data.</td></tr>') + '</tbody></table></div>' +
+      '<p style="margin:8px 0 0;font-size:12.5px">Selisih: tanda − = lebih awal dari jadwal, + = terlambat. Baris abu-abu tidak ikut dihitung dalam peringkat.</p>';
+    $('rkdBack').hidden = false;
+    $('rkdTutup').focus();
+  }
+  function rkDetailTutup() { $('rkdBack').hidden = true; }
 
   /* ===================== CATATAN PERIODE ===================== */
   function tglTxt(iso) {
@@ -4455,7 +4526,12 @@
     $('rkPer').onchange = function () { RK.pk = $('rkPer').value; RK.semua = { tepat: false, telat: false }; rkSiap(); };
     $('rkMin').onchange = rkRender;
     $('rkCari').oninput = rkRender;
+    $('rkdTutup').onclick = rkDetailTutup;
+    $('rkdBack').addEventListener('mousedown', function (e) { if (e.target === $('rkdBack')) rkDetailTutup(); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('rkdBack').hidden) rkDetailTutup(); });
     $('rkBody').addEventListener('click', function (e) {
+      var nm = e.target.closest ? e.target.closest('[data-nm]') : null;
+      if (nm) { rkDetail(nm.getAttribute('data-nm')); return; }
       var b = e.target.closest ? e.target.closest('[data-rk]') : null;
       if (b) { var k = b.getAttribute('data-rk'); RK.semua[k] = !RK.semua[k]; rkRender(); return; }
       var th = e.target.closest ? e.target.closest('.rk-sort') : null;
