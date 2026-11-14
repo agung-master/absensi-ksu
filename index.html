@@ -3082,7 +3082,7 @@
     var pr = PMAP[RK.pk], per = {};
     DB.records.forEach(function (r) {
       if (r.tgl < pr.s || r.tgl > pr.e) return;
-      var o = per[r.nama] || (per[r.nama] = { nama: r.nama, hadir: 0, masuk: 0, tepat: 0, telatN: 0, telatM: 0, izin: 0, cepat: 0, lembur: 0, absen: 0, sumJam: 0, sumSel: 0 });
+      var o = per[r.nama] || (per[r.nama] = { nama: r.nama, hadir: 0, masuk: 0, tepat: 0, telatN: 0, telatM: 0, izin: 0, cepat: 0, lembur: 0, absen: 0, sumJam: 0, sumSel: 0, awal: 0, awalM: 0 });
       if (r.st === 'hadir') o.hadir++;
       if (r.st === 'absen') o.absen++;
       if (r.st === 'hadir' && r.masuk && !r.mg && !r.malam && !(r.adj && r.adj.j === 'libur')) {
@@ -3092,7 +3092,11 @@
         o.sumSel += jm - (r.bMasuk ? toMin(r.bMasuk) : jm); // selisih terhadap jam masuk jadwal (negatif = lebih pagi)
         if (r.telat) { o.telatN++; o.telatM += r.telat; }
         else if (r.telatIzin) o.izin++;
-        else o.tepat++;
+        else {
+          o.tepat++;
+          var bm = r.bMasuk ? toMin(r.bMasuk) : null;
+          if (bm !== null && jm < bm) { o.awal++; o.awalM += bm - jm; }   // datang sebelum jam masuk jadwal
+        }
       }
       if (r.cepat) o.cepat++;
       o.lembur += r.lembur || 0;
@@ -3101,6 +3105,7 @@
       var o = per[k], dasar = o.tepat + o.telatN;
       o.dasar = dasar;
       o.rate = dasar ? o.tepat / dasar : null;
+      o.awalRate = dasar ? o.awal / dasar : 0;                      // porsi hari datang lebih awal
       o.avgJam = o.masuk ? Math.round(o.sumJam / o.masuk) : null;   // rata-rata jam masuk
       o.avgSel = o.masuk ? o.sumSel / o.masuk : 0;                  // rata-rata selisih dari jadwal (menit)
       return o;
@@ -3127,11 +3132,12 @@
     tampil.forEach(function (x) {
       var o = x.o, medal = x.no <= 3 ? ' m' + x.no : '';
       var persen = o.rate === null ? 0 : Math.round(o.rate * 1000) / 10;
-      var lebar = kind === 'tepat' ? persen : (mx ? Math.round(o.telatM / mx * 100) : 0);
+      var lebar = kind === 'tepat' ? 0 : (mx ? Math.round(o.telatM / mx * 100) : 0);
+      if (kind === 'tepat') lebar = Math.round(o.awalRate * 1000) / 10;
       var det = kind === 'tepat'
-        ? 'Masuk ' + o.masuk + ' hari · tepat ' + o.tepat + ' (' + String(persen).replace('.', ',') + '%) · terlambat ' + o.telatN + (o.telatM ? ' (' + fmtMin(o.telatM) + ')' : '') + (o.izin ? ' · izin terlambat ' + o.izin : '')
+        ? 'Masuk ' + o.masuk + ' hari · tepat ' + o.tepat + ' (' + String(persen).replace('.', ',') + '%) · lebih awal ' + o.awal + ' hari' + (o.awalM ? ' (total ' + fmtMin(o.awalM) + ')' : '') + ' · terlambat ' + o.telatN + (o.telatM ? ' (' + fmtMin(o.telatM) + ')' : '') + (o.izin ? ' · izin terlambat ' + o.izin : '')
         : 'Masuk ' + o.masuk + ' hari · tepat ' + o.tepat + ' (' + String(persen).replace('.', ',') + '%) · terlambat ' + o.telatN + '×' + (o.telatN ? ' · rata-rata ' + fmtMin(Math.round(o.telatM / o.telatN)) + '/kali' : '') + (o.izin ? ' · izin terlambat ' + o.izin : '');
-      var val = kind === 'tepat' ? String(persen).replace('.', ',') + '%<small>tepat waktu</small>' : esc(fmtMin(o.telatM)) + '<small>' + o.telatN + '× terlambat</small>';
+      var val = kind === 'tepat' ? o.awal + ' hari<small>lebih awal</small>' : esc(fmtMin(o.telatM)) + '<small>' + o.telatN + '× terlambat</small>';
       h += '<div class="rk-row"><div class="rk-no' + medal + '">' + x.no + '</div><div><div class="rk-nm">' + esc(o.nama) + '</div><div class="rk-det">' + esc(det) + '</div><div class="rk-bar"><i style="width:' + lebar + '%"></i></div></div><div class="rk-val">' + val + '</div></div>';
     });
     if (daftar.length > maks) h += '<button type="button" class="pm-btn ghost sm rk-more" data-rk="' + kind + '">' + (semua ? 'Tampilkan 10 teratas' : 'Tampilkan semua (' + daftar.length + ')') + '</button>';
@@ -3141,8 +3147,8 @@
   function rkRender() {
     var all = rkHitung(), minH = +$('rkMin').value || 1, q = $('rkCari').value.trim().toLowerCase();
     var layak = all.filter(function (o) { return o.dasar >= minH; });
-    var tepat = rkPeringkat(layak, function (a, b) { return (b.rate - a.rate) || (a.telatM - b.telatM) || (b.tepat - a.tepat) || a.nama.localeCompare(b.nama, 'id'); },
-      function (o) { return o.rate + '|' + o.telatM + '|' + o.tepat; });
+    var tepat = rkPeringkat(layak, function (a, b) { return (b.rate - a.rate) || (b.awalRate - a.awalRate) || (b.awalM - a.awalM) || (a.telatM - b.telatM) || (b.tepat - a.tepat) || a.nama.localeCompare(b.nama, 'id'); },
+      function (o) { return o.rate + '|' + o.awalRate + '|' + o.awalM + '|' + o.telatM + '|' + o.tepat; });
     var telat = rkPeringkat(layak.filter(function (o) { return o.telatN > 0; }), function (a, b) { return (b.telatM - a.telatM) || (b.telatN - a.telatN) || (a.rate - b.rate) || a.nama.localeCompare(b.nama, 'id'); },
       function (o) { return o.telatM + '|' + o.telatN + '|' + o.rate; });
     if (q) {
@@ -3165,7 +3171,7 @@
       $('rkBody').innerHTML = h; return;
     }
     h += '<div class="rk-grid">' +
-      rkKartu('Paling tepat waktu', 'Diurutkan dari persentase tepat waktu tertinggi, lalu total menit terlambat paling sedikit, lalu jumlah hari tepat terbanyak.', tepat, 'tepat', 10, RK.semua.tepat) +
+      rkKartu('Paling tepat waktu', 'Diurutkan dari persentase tepat waktu tertinggi, lalu yang paling sering datang lebih awal dari jam masuk jadwal, lalu total menit datang lebih awal.', tepat, 'tepat', 10, RK.semua.tepat) +
       rkKartu('Paling sering terlambat', 'Diurutkan dari total menit terlambat terbanyak, lalu jumlah hari terlambat terbanyak, lalu persentase tepat waktu terendah.', telat, 'telat', 10, RK.semua.telat) + '</div>';
 
     var rows = layak.filter(function (o) { return !q || o.nama.toLowerCase().indexOf(q) >= 0; });
