@@ -3085,7 +3085,7 @@
       var o = per[r.nama] || (per[r.nama] = { nama: r.nama, hadir: 0, masuk: 0, tepat: 0, telatN: 0, telatM: 0, izin: 0, cepat: 0, lembur: 0, absen: 0, sumJam: 0, sumSel: 0 });
       if (r.st === 'hadir') o.hadir++;
       if (r.st === 'absen') o.absen++;
-      if (r.st === 'hadir' && r.masuk && !r.mg && !r.malam) {
+      if (r.st === 'hadir' && r.masuk && !r.mg && !r.malam && !(r.adj && r.adj.j === 'libur')) {
         o.masuk++;
         var jm = toMin(r.masuk);
         o.sumJam += jm;                                   // jam masuk (menit sejak 00:00)
@@ -3121,17 +3121,17 @@
   function rkKartu(judul, sub, daftar, kind, maks, semua) {
     var tampil = semua ? daftar : daftar.slice(0, maks);
     var mx = 0;
-    daftar.forEach(function (x) { var v = kind === 'tepat' ? x.o.rate : x.o.telatN; if (v > mx) mx = v; });
+    daftar.forEach(function (x) { var v = kind === 'tepat' ? x.o.rate : x.o.telatM; if (v > mx) mx = v; });
     var h = '<div class="rk-card' + (kind === 'telat' ? ' late' : '') + '"><h3>' + judul + '</h3><p class="rk-sub">' + sub + '</p>';
     if (!daftar.length) h += '<div class="pm-empty">Belum ada data yang memenuhi syarat.</div>';
     tampil.forEach(function (x) {
       var o = x.o, medal = x.no <= 3 ? ' m' + x.no : '';
       var persen = o.rate === null ? 0 : Math.round(o.rate * 1000) / 10;
-      var lebar = kind === 'tepat' ? persen : (mx ? Math.round(o.telatN / mx * 100) : 0);
+      var lebar = kind === 'tepat' ? persen : (mx ? Math.round(o.telatM / mx * 100) : 0);
       var det = kind === 'tepat'
         ? 'Masuk ' + o.masuk + ' hari · tepat ' + o.tepat + ' (' + String(persen).replace('.', ',') + '%) · terlambat ' + o.telatN + (o.telatM ? ' (' + fmtMin(o.telatM) + ')' : '') + (o.izin ? ' · izin terlambat ' + o.izin : '')
-        : 'Masuk ' + o.masuk + ' hari · tepat ' + o.tepat + ' · rata-rata masuk ' + mnJam(o.avgJam) + ' · total ' + fmtMin(o.telatM) + (o.telatN ? ' · rata-rata ' + fmtMin(Math.round(o.telatM / o.telatN)) + '/kali' : '') + (o.izin ? ' · izin terlambat ' + o.izin : '');
-      var val = kind === 'tepat' ? mnJam(o.avgJam) + '<small>rata-rata masuk</small>' : o.telatN + '×<small>' + esc(fmtMin(o.telatM)) + '</small>';
+        : 'Masuk ' + o.masuk + ' hari · tepat ' + o.tepat + ' (' + String(persen).replace('.', ',') + '%) · terlambat ' + o.telatN + '×' + (o.telatN ? ' · rata-rata ' + fmtMin(Math.round(o.telatM / o.telatN)) + '/kali' : '') + (o.izin ? ' · izin terlambat ' + o.izin : '');
+      var val = kind === 'tepat' ? String(persen).replace('.', ',') + '%<small>tepat waktu</small>' : esc(fmtMin(o.telatM)) + '<small>' + o.telatN + '× terlambat</small>';
       h += '<div class="rk-row"><div class="rk-no' + medal + '">' + x.no + '</div><div><div class="rk-nm">' + esc(o.nama) + '</div><div class="rk-det">' + esc(det) + '</div><div class="rk-bar"><i style="width:' + lebar + '%"></i></div></div><div class="rk-val">' + val + '</div></div>';
     });
     if (daftar.length > maks) h += '<button type="button" class="pm-btn ghost sm rk-more" data-rk="' + kind + '">' + (semua ? 'Tampilkan 10 teratas' : 'Tampilkan semua (' + daftar.length + ')') + '</button>';
@@ -3141,10 +3141,10 @@
   function rkRender() {
     var all = rkHitung(), minH = +$('rkMin').value || 1, q = $('rkCari').value.trim().toLowerCase();
     var layak = all.filter(function (o) { return o.dasar >= minH; });
-    var tepat = rkPeringkat(layak, function (a, b) { return (a.avgSel - b.avgSel) || (b.rate - a.rate) || (a.telatM - b.telatM) || (b.dasar - a.dasar) || a.nama.localeCompare(b.nama, 'id'); },
-      function (o) { return Math.round(o.avgSel * 10) + '|' + o.rate + '|' + o.telatM; });
-    var telat = rkPeringkat(layak.filter(function (o) { return o.telatN > 0; }), function (a, b) { return (b.telatN - a.telatN) || (b.avgSel - a.avgSel) || (b.telatM - a.telatM) || a.nama.localeCompare(b.nama, 'id'); },
-      function (o) { return o.telatN + '|' + Math.round(o.avgSel * 10) + '|' + o.telatM; });
+    var tepat = rkPeringkat(layak, function (a, b) { return (b.rate - a.rate) || (a.telatM - b.telatM) || (b.tepat - a.tepat) || a.nama.localeCompare(b.nama, 'id'); },
+      function (o) { return o.rate + '|' + o.telatM + '|' + o.tepat; });
+    var telat = rkPeringkat(layak.filter(function (o) { return o.telatN > 0; }), function (a, b) { return (b.telatM - a.telatM) || (b.telatN - a.telatN) || (a.rate - b.rate) || a.nama.localeCompare(b.nama, 'id'); },
+      function (o) { return o.telatM + '|' + o.telatN + '|' + o.rate; });
     if (q) {
       tepat = tepat.filter(function (x) { return x.o.nama.toLowerCase().indexOf(q) >= 0; });
       telat = telat.filter(function (x) { return x.o.nama.toLowerCase().indexOf(q) >= 0; });
@@ -3165,8 +3165,8 @@
       $('rkBody').innerHTML = h; return;
     }
     h += '<div class="rk-grid">' +
-      rkKartu('Paling tepat waktu', 'Diurutkan dari rata-rata jam masuk paling pagi (dibanding jam masuk jadwal), lalu persentase tepat waktu.', tepat, 'tepat', 10, RK.semua.tepat) +
-      rkKartu('Paling sering terlambat', 'Diurutkan dari jumlah hari terlambat terbanyak, lalu rata-rata jam masuk paling siang, lalu total menit terlambat.', telat, 'telat', 10, RK.semua.telat) + '</div>';
+      rkKartu('Paling tepat waktu', 'Diurutkan dari persentase tepat waktu tertinggi, lalu total menit terlambat paling sedikit, lalu jumlah hari tepat terbanyak.', tepat, 'tepat', 10, RK.semua.tepat) +
+      rkKartu('Paling sering terlambat', 'Diurutkan dari total menit terlambat terbanyak, lalu jumlah hari terlambat terbanyak, lalu persentase tepat waktu terendah.', telat, 'telat', 10, RK.semua.telat) + '</div>';
 
     var rows = layak.filter(function (o) { return !q || o.nama.toLowerCase().indexOf(q) >= 0; });
     var key = RK.urut, dir = RK.arah;
@@ -3177,10 +3177,10 @@
     });
     function th(k, l) { return '<th class="rk-sort" data-k="' + k + '" tabindex="0">' + l + (RK.urut === k ? (RK.arah > 0 ? ' ▲' : ' ▼') : '') + '</th>'; }
     h += '<div class="rk-tophead"><h3>Tabel lengkap</h3><span>' + rows.length + ' karyawan</span></div><div class="tablebox rk-scroll" tabindex="0" aria-label="Tabel lengkap peringkat, dapat digulir"><table><thead><tr>' +
-      th('nama', 'Nama') + th('masuk', 'Hari masuk') + th('tepat', 'Tepat waktu') + th('telatN', 'Terlambat') + th('telatM', 'Menit terlambat') + th('izin', 'Izin terlambat') + th('rate', '% tepat') + th('avgSel', 'Rata-rata jam masuk') + th('cepat', 'Pulang cepat') + th('lembur', 'Lembur (menit)') +
+      th('nama', 'Nama') + th('masuk', 'Hari masuk') + th('tepat', 'Tepat waktu') + th('telatN', 'Terlambat') + th('telatM', 'Menit terlambat') + th('izin', 'Izin terlambat') + th('rate', '% tepat') + th('cepat', 'Pulang cepat') + th('lembur', 'Lembur (menit)') +
       '</tr></thead><tbody>' + rows.map(function (o) {
         return '<tr><td data-label="Nama">' + esc(o.nama) + '</td><td data-label="Hari masuk">' + o.masuk + '</td><td data-label="Tepat waktu">' + o.tepat + '</td><td data-label="Terlambat">' + o.telatN + '×</td>' +
-          '<td data-label="Menit terlambat">' + esc(fmtMin(o.telatM)) + '</td><td data-label="Izin terlambat">' + o.izin + '</td><td data-label="% tepat">' + (o.rate === null ? '–' : String(Math.round(o.rate * 1000) / 10).replace('.', ',') + '%') + '</td><td data-label="Rata-rata jam masuk">' + (o.avgJam === null ? '–' : mnJam(o.avgJam)) + '</td>' +
+          '<td data-label="Menit terlambat">' + esc(fmtMin(o.telatM)) + '</td><td data-label="Izin terlambat">' + o.izin + '</td><td data-label="% tepat">' + (o.rate === null ? '–' : String(Math.round(o.rate * 1000) / 10).replace('.', ',') + '%') + '</td>' +
           '<td data-label="Pulang cepat">' + o.cepat + '×</td><td data-label="Lembur">' + esc(fmtMin(o.lembur)) + '</td></tr>';
       }).join('') + '</tbody></table></div>';
     $('rkBody').innerHTML = h;
