@@ -606,6 +606,51 @@
   .pm-res th { width: 38%; color: #3c5185; }
   .pm-err { color: var(--abs); font-weight: 600; margin-top: 10px; }
   .pm-login { max-width: 420px; }
+
+  /* ===== Login admin ===== */
+  .ad-login { padding: 0; max-width: 820px; margin-left: auto; margin-right: auto; display: grid; grid-template-columns: 5fr 6fr; overflow: hidden; border-radius: 20px; box-shadow: 0 18px 44px rgba(18, 57, 168, .16); }
+  .ad-login[hidden] { display: none; }
+  .adl-brand { position: relative; color: #fff; padding: 34px 30px; display: flex; flex-direction: column; justify-content: space-between; gap: 28px; overflow: hidden;
+    background: linear-gradient(155deg, #0e2f8f 0%, #1d5ff0 62%, #3aa0ff 100%); }
+  .adl-brand::before, .adl-brand::after { content: ""; position: absolute; border-radius: 50%; border: 1px solid rgba(255, 255, 255, .16); pointer-events: none; }
+  .adl-brand::before { width: 260px; height: 260px; right: -110px; bottom: -90px; }
+  .adl-brand::after { width: 170px; height: 170px; right: -60px; bottom: -40px; background: rgba(255, 255, 255, .05); }
+  .adl-badge { width: 54px; height: 54px; border-radius: 16px; background: rgba(255, 255, 255, .16); border: 1px solid rgba(255, 255, 255, .3); display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+  .adl-badge svg { width: 28px; height: 28px; stroke: #fff; }
+  .adl-brand h3 { margin: 18px 0 6px; font-size: 22px; line-height: 1.25; font-weight: 700; letter-spacing: -.01em; }
+  .adl-brand p { margin: 0; font-size: 13.5px; line-height: 1.55; color: rgba(255, 255, 255, .86); }
+  .adl-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 11px; position: relative; z-index: 1; }
+  .adl-list li { display: flex; align-items: center; gap: 10px; font-size: 13.5px; font-weight: 500; }
+  .adl-list li i { flex: 0 0 auto; width: 24px; height: 24px; border-radius: 50%; background: rgba(255, 255, 255, .18); display: flex; align-items: center; justify-content: center; }
+  .adl-list li i svg { width: 13px; height: 13px; stroke: #fff; }
+  .adl-form { padding: 36px 34px; display: flex; flex-direction: column; justify-content: center; background: #fff; }
+  .adl-form .pm-h { font-size: 24px; letter-spacing: -.01em; }
+  .adl-form .pm-sub { margin-bottom: 22px; }
+  .adl-form .field + .field { margin-top: 16px; }
+  .adl-in { position: relative; }
+  .adl-in > svg { position: absolute; left: 14px; top: 50%; width: 18px; height: 18px; transform: translateY(-50%); stroke: #7d8fb3; pointer-events: none; transition: stroke .15s; }
+  .adl-in:focus-within > svg { stroke: var(--brand); }
+  .adl-in input { padding-left: 42px; height: 48px; border-radius: 12px; background: #f6f9ff; }
+  .adl-in input:focus { background: #fff; outline: none; border-color: var(--brand); box-shadow: 0 0 0 4px rgba(29, 95, 240, .14); }
+  .adl-in.pw input { padding-right: 46px; }
+  .adl-eye { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; border: 0; background: transparent; border-radius: 9px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .adl-eye:hover { background: var(--brand-soft); }
+  .adl-eye svg { width: 18px; height: 18px; stroke: #7d8fb3; }
+  .adl-eye:focus-visible { outline: 2px solid var(--brand); }
+  .adl-form .pm-act { margin-top: 22px; }
+  .adl-form .pm-btn#adMasuk { width: 100%; height: 48px; border-radius: 12px; font-size: 15.5px; box-shadow: 0 8px 18px rgba(29, 95, 240, .3); }
+  .adl-form .pm-err { margin-top: 14px; padding: 10px 12px; background: var(--abs-soft); border-radius: 10px; font-size: 13.5px; }
+  .adl-form .pm-err[hidden] { display: none; }
+  .adl-note { margin: 18px 0 0; font-size: 12.5px; color: var(--muted); text-align: center; }
+  @media (max-width: 720px) {
+    .ad-login { grid-template-columns: 1fr; max-width: 440px; }
+    .adl-brand { padding: 22px 22px 20px; gap: 14px; flex-direction: row; align-items: center; }
+    .adl-brand > div { display: flex; align-items: center; gap: 14px; }
+    .adl-brand h3 { margin: 0; font-size: 18px; }
+    .adl-brand p, .adl-list { display: none; }
+    .adl-badge { width: 46px; height: 46px; border-radius: 14px; flex: 0 0 auto; }
+    .adl-form { padding: 24px 22px 26px; }
+  }
   .pm-top { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
   .pm-tools { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; align-items: center; }
   .pm-tools .field { flex: 1 1 160px; }
@@ -728,22 +773,60 @@
     .nav button { font-size: 11.5px; }
     .seg button { font-size: 12.5px; padding: 8px 4px; }
   }
+
+  /* ===== Header & menu utama (tampilan profesional) ===== */
+  header {
+    position: relative; overflow: hidden; border-radius: 14px; padding: 18px 22px;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    background: linear-gradient(120deg, #0e2f8f 0%, #1d5ff0 58%, #3aa0ff 100%);
+  }
+  header::before, header::after { content: ""; position: absolute; border-radius: 50%; pointer-events: none; border: 1px solid rgba(255, 255, 255, .16); }
+  header::before { width: 300px; height: 300px; right: -90px; top: -150px; }
+  header::after { width: 190px; height: 190px; right: 70px; top: -120px; background: rgba(255, 255, 255, .05); }
+  .hd-main { display: flex; align-items: center; gap: 14px; min-width: 0; position: relative; z-index: 1; }
+  .hd-logo { flex: 0 0 auto; width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center;
+    background: rgba(255, 255, 255, .16); border: 1px solid rgba(255, 255, 255, .35); font-weight: 800; font-size: 15px; letter-spacing: .02em; backdrop-filter: blur(4px); }
+  header h1 { font-size: 24px; line-height: 1.2; }
+  header p { margin-top: 2px; font-size: 13.5px; }
+  header .reload { margin: 0; position: relative; z-index: 1; flex: 0 0 auto; white-space: nowrap; }
+  header .reload[hidden] { display: none; }
+
+  .nav { gap: 4px; padding: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 2px 8px rgba(29, 95, 240, .07); }
+  .nav button { border: 0; box-shadow: none; background: transparent; color: var(--muted); transition: background .15s, color .15s; }
+  .nav button:hover { background: var(--brand-soft); color: var(--brand-dark); }
+  .nav button[aria-pressed="true"] { background: var(--brand); color: #fff; box-shadow: 0 4px 12px rgba(29, 95, 240, .28); }
+  .nav button:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+  .nav button .ni { display: inline-flex; }
+  .nav button .ni svg { width: 1em; height: 1em; }
+  @media (max-width: 640px) {
+    header { padding: 16px; flex-wrap: wrap; }
+    .hd-logo { width: 44px; height: 44px; font-size: 13px; border-radius: 12px; }
+    header h1 { font-size: 20px; }
+    header p { font-size: 12.5px; }
+    header .reload { width: 100%; text-align: center; }
+    .nav { gap: 6px; padding: 8px; }
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <h1>Absensi KSU</h1>
-    <p>Lihat kehadiran seluruh karyawan atau data Anda sendiri.</p>
+    <div class="hd-main">
+      <span class="hd-logo" aria-hidden="true">KSU</span>
+      <div class="hd-txt">
+        <h1>Absensi KSU</h1>
+        <p>Lihat kehadiran seluruh karyawan atau data Anda sendiri.</p>
+      </div>
+    </div>
     <button type="button" id="btnReload" class="reload" hidden>↻ Muat ulang data</button>
   </header>
 
   <nav class="nav" id="nav" aria-label="Menu utama" hidden>
-    <button type="button" id="nvAbs" aria-pressed="true"><span class="ni" aria-hidden="true">📊</span><span class="nl">Absensi</span></button>
-    <button type="button" id="nvRank" aria-pressed="false"><span class="ni" aria-hidden="true">🏆</span><span class="nl">Peringkat</span></button>
-    <button type="button" id="nvForm" aria-pressed="false"><span class="ni" aria-hidden="true">📝</span><span class="nl">Ajukan Permohonan</span></button>
-    <button type="button" id="nvIzin" aria-pressed="false"><span class="ni" aria-hidden="true">🗓</span><span class="nl">Ajukan Izin</span></button>
-    <button type="button" id="nvAdmin" aria-pressed="false"><span class="ni" aria-hidden="true">🔐</span><span class="nl">Admin</span></button>
+    <button type="button" id="nvAbs" aria-pressed="true"><span class="ni" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span><span class="nl">Absensi</span></button>
+    <button type="button" id="nvRank" aria-pressed="false"><span class="ni" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 01-10 0V4z"/><path d="M17 5h3v2a3 3 0 01-3 3M7 5H4v2a3 3 0 003 3"/></svg></span><span class="nl">Peringkat</span></button>
+    <button type="button" id="nvForm" aria-pressed="false"><span class="ni" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9l-6-6z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg></span><span class="nl">Ajukan Permohonan</span></button>
+    <button type="button" id="nvIzin" aria-pressed="false"><span class="ni" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><span class="nl">Ajukan Izin</span></button>
+    <button type="button" id="nvAdmin" aria-pressed="false"><span class="ni" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg></span><span class="nl">Admin</span></button>
   </nav>
 
   <div id="loading" class="loading">Memuat data absensi…</div>
@@ -1041,13 +1124,33 @@
   </section>
 
   <section id="adView" hidden>
-    <div class="panel pm-login" id="adLogin">
-      <h2 class="pm-h">Masuk Admin</h2>
-      <p class="pm-sub">Khusus admin / HRD untuk menyetujui, menolak, dan mencetak permohonan.</p>
-      <div class="field"><label for="adNama">Nama admin</label><input id="adNama" type="text" maxlength="60" autocomplete="off" placeholder="Nama Anda"></div>
-      <div class="field" style="margin-top:10px"><label for="adPin">PIN admin</label><input id="adPin" type="password" autocomplete="off" placeholder="PIN"></div>
-      <div class="pm-act"><button type="button" class="pm-btn" id="adMasuk">Masuk</button></div>
-      <div class="pm-err" id="adErr" hidden></div>
+    <div class="panel pm-login ad-login" id="adLogin">
+      <aside class="adl-brand" aria-hidden="true">
+        <div>
+          <span class="adl-badge"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8.2-7 10-4-1.8-7-5.5-7-10V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg></span>
+          <h3>Area khusus admin &amp; HRD</h3>
+          <p>Kelola permohonan karyawan dengan aman dan tercatat.</p>
+        </div>
+        <ul class="adl-list">
+          <li><i><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></i>Setujui atau tolak permohonan</li>
+          <li><i><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></i>Cetak dokumen permohonan</li>
+          <li><i><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></i>Atur shift dan pengaturan absensi</li>
+        </ul>
+      </aside>
+      <div class="adl-form">
+        <h2 class="pm-h">Masuk Admin</h2>
+        <p class="pm-sub">Masukkan nama dan PIN admin untuk melanjutkan.</p>
+        <div class="field"><label for="adNama">Nama admin</label>
+          <div class="adl-in"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          <input id="adNama" type="text" maxlength="60" autocomplete="off" placeholder="Nama Anda"></div></div>
+        <div class="field"><label for="adPin">PIN admin</label>
+          <div class="adl-in pw"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 018 0v3"/></svg>
+          <input id="adPin" type="password" autocomplete="off" placeholder="PIN">
+          <button type="button" class="adl-eye" id="adEye" aria-label="Tampilkan PIN"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
+        <div class="pm-act"><button type="button" class="pm-btn" id="adMasuk">Masuk</button></div>
+        <div class="pm-err" id="adErr" hidden></div>
+        <p class="adl-note">Lupa PIN? Hubungi HRD.</p>
+      </div>
     </div>
 
     <div class="panel" id="adPanel" hidden>
@@ -2964,11 +3067,14 @@
     var pr = PMAP[RK.pk], per = {};
     DB.records.forEach(function (r) {
       if (r.tgl < pr.s || r.tgl > pr.e) return;
-      var o = per[r.nama] || (per[r.nama] = { nama: r.nama, hadir: 0, masuk: 0, tepat: 0, telatN: 0, telatM: 0, izin: 0, cepat: 0, lembur: 0, absen: 0 });
+      var o = per[r.nama] || (per[r.nama] = { nama: r.nama, hadir: 0, masuk: 0, tepat: 0, telatN: 0, telatM: 0, izin: 0, cepat: 0, lembur: 0, absen: 0, sumJam: 0, sumSel: 0 });
       if (r.st === 'hadir') o.hadir++;
       if (r.st === 'absen') o.absen++;
       if (r.st === 'hadir' && r.masuk && !r.mg && !r.malam) {
         o.masuk++;
+        var jm = toMin(r.masuk);
+        o.sumJam += jm;                                   // jam masuk (menit sejak 00:00)
+        o.sumSel += jm - (r.bMasuk ? toMin(r.bMasuk) : jm); // selisih terhadap jam masuk jadwal (negatif = lebih pagi)
         if (r.telat) { o.telatN++; o.telatM += r.telat; }
         else if (r.telatIzin) o.izin++;
         else o.tepat++;
@@ -2980,6 +3086,8 @@
       var o = per[k], dasar = o.tepat + o.telatN;
       o.dasar = dasar;
       o.rate = dasar ? o.tepat / dasar : null;
+      o.avgJam = o.masuk ? Math.round(o.sumJam / o.masuk) : null;   // rata-rata jam masuk
+      o.avgSel = o.masuk ? o.sumSel / o.masuk : 0;                  // rata-rata selisih dari jadwal (menit)
       return o;
     });
   }
@@ -3006,9 +3114,9 @@
       var persen = o.rate === null ? 0 : Math.round(o.rate * 1000) / 10;
       var lebar = kind === 'tepat' ? persen : (mx ? Math.round(o.telatN / mx * 100) : 0);
       var det = kind === 'tepat'
-        ? 'Masuk ' + o.masuk + ' hari · tepat ' + o.tepat + ' · terlambat ' + o.telatN + (o.telatM ? ' (' + fmtMin(o.telatM) + ')' : '') + (o.izin ? ' · izin terlambat ' + o.izin : '')
-        : 'Masuk ' + o.masuk + ' hari · tepat ' + o.tepat + ' · total ' + fmtMin(o.telatM) + (o.telatN ? ' · rata-rata ' + fmtMin(Math.round(o.telatM / o.telatN)) + '/kali' : '') + (o.izin ? ' · izin terlambat ' + o.izin : '');
-      var val = kind === 'tepat' ? (String(persen).replace('.', ',') + '%') + '<small>tepat waktu</small>' : o.telatN + '×<small>' + esc(fmtMin(o.telatM)) + '</small>';
+        ? 'Masuk ' + o.masuk + ' hari · tepat ' + o.tepat + ' (' + String(persen).replace('.', ',') + '%) · terlambat ' + o.telatN + (o.telatM ? ' (' + fmtMin(o.telatM) + ')' : '') + (o.izin ? ' · izin terlambat ' + o.izin : '')
+        : 'Masuk ' + o.masuk + ' hari · tepat ' + o.tepat + ' · rata-rata masuk ' + mnJam(o.avgJam) + ' · total ' + fmtMin(o.telatM) + (o.telatN ? ' · rata-rata ' + fmtMin(Math.round(o.telatM / o.telatN)) + '/kali' : '') + (o.izin ? ' · izin terlambat ' + o.izin : '');
+      var val = kind === 'tepat' ? mnJam(o.avgJam) + '<small>rata-rata masuk</small>' : o.telatN + '×<small>' + esc(fmtMin(o.telatM)) + '</small>';
       h += '<div class="rk-row"><div class="rk-no' + medal + '">' + x.no + '</div><div><div class="rk-nm">' + esc(o.nama) + '</div><div class="rk-det">' + esc(det) + '</div><div class="rk-bar"><i style="width:' + lebar + '%"></i></div></div><div class="rk-val">' + val + '</div></div>';
     });
     if (daftar.length > maks) h += '<button type="button" class="pm-btn ghost sm rk-more" data-rk="' + kind + '">' + (semua ? 'Tampilkan 10 teratas' : 'Tampilkan semua (' + daftar.length + ')') + '</button>';
@@ -3018,10 +3126,10 @@
   function rkRender() {
     var all = rkHitung(), minH = +$('rkMin').value || 1, q = $('rkCari').value.trim().toLowerCase();
     var layak = all.filter(function (o) { return o.dasar >= minH; });
-    var tepat = rkPeringkat(layak, function (a, b) { return (b.rate - a.rate) || (a.telatM - b.telatM) || (b.dasar - a.dasar) || a.nama.localeCompare(b.nama, 'id'); },
-      function (o) { return o.rate + '|' + o.telatM; });
-    var telat = rkPeringkat(layak.filter(function (o) { return o.telatN > 0; }), function (a, b) { return (b.telatN - a.telatN) || (b.telatM - a.telatM) || a.nama.localeCompare(b.nama, 'id'); },
-      function (o) { return o.telatN + '|' + o.telatM; });
+    var tepat = rkPeringkat(layak, function (a, b) { return (a.avgSel - b.avgSel) || (b.rate - a.rate) || (a.telatM - b.telatM) || (b.dasar - a.dasar) || a.nama.localeCompare(b.nama, 'id'); },
+      function (o) { return Math.round(o.avgSel * 10) + '|' + o.rate + '|' + o.telatM; });
+    var telat = rkPeringkat(layak.filter(function (o) { return o.telatN > 0; }), function (a, b) { return (b.telatN - a.telatN) || (b.avgSel - a.avgSel) || (b.telatM - a.telatM) || a.nama.localeCompare(b.nama, 'id'); },
+      function (o) { return o.telatN + '|' + Math.round(o.avgSel * 10) + '|' + o.telatM; });
     if (q) {
       tepat = tepat.filter(function (x) { return x.o.nama.toLowerCase().indexOf(q) >= 0; });
       telat = telat.filter(function (x) { return x.o.nama.toLowerCase().indexOf(q) >= 0; });
@@ -3042,8 +3150,8 @@
       $('rkBody').innerHTML = h; return;
     }
     h += '<div class="rk-grid">' +
-      rkKartu('Paling tepat waktu', 'Diurutkan dari persentase tepat waktu tertinggi, lalu menit terlambat paling sedikit.', tepat, 'tepat', 10, RK.semua.tepat) +
-      rkKartu('Paling sering terlambat', 'Diurutkan dari jumlah hari terlambat terbanyak, lalu total menit terlambat.', telat, 'telat', 10, RK.semua.telat) + '</div>';
+      rkKartu('Paling tepat waktu', 'Diurutkan dari rata-rata jam masuk paling pagi (dibanding jam masuk jadwal), lalu persentase tepat waktu.', tepat, 'tepat', 10, RK.semua.tepat) +
+      rkKartu('Paling sering terlambat', 'Diurutkan dari jumlah hari terlambat terbanyak, lalu rata-rata jam masuk paling siang, lalu total menit terlambat.', telat, 'telat', 10, RK.semua.telat) + '</div>';
 
     var rows = layak.filter(function (o) { return !q || o.nama.toLowerCase().indexOf(q) >= 0; });
     var key = RK.urut, dir = RK.arah;
@@ -3054,10 +3162,10 @@
     });
     function th(k, l) { return '<th class="rk-sort" data-k="' + k + '" tabindex="0">' + l + (RK.urut === k ? (RK.arah > 0 ? ' ▲' : ' ▼') : '') + '</th>'; }
     h += '<h3 style="margin:18px 0 4px;font-size:16px">Tabel lengkap</h3><div class="tablebox"><table><thead><tr>' +
-      th('nama', 'Nama') + th('masuk', 'Hari masuk') + th('tepat', 'Tepat waktu') + th('telatN', 'Terlambat') + th('telatM', 'Menit terlambat') + th('izin', 'Izin terlambat') + th('rate', '% tepat') + th('cepat', 'Pulang cepat') + th('lembur', 'Lembur (menit)') +
+      th('nama', 'Nama') + th('masuk', 'Hari masuk') + th('tepat', 'Tepat waktu') + th('telatN', 'Terlambat') + th('telatM', 'Menit terlambat') + th('izin', 'Izin terlambat') + th('rate', '% tepat') + th('avgSel', 'Rata-rata jam masuk') + th('cepat', 'Pulang cepat') + th('lembur', 'Lembur (menit)') +
       '</tr></thead><tbody>' + rows.map(function (o) {
         return '<tr><td data-label="Nama">' + esc(o.nama) + '</td><td data-label="Hari masuk">' + o.masuk + '</td><td data-label="Tepat waktu">' + o.tepat + '</td><td data-label="Terlambat">' + o.telatN + '×</td>' +
-          '<td data-label="Menit terlambat">' + esc(fmtMin(o.telatM)) + '</td><td data-label="Izin terlambat">' + o.izin + '</td><td data-label="% tepat">' + (o.rate === null ? '–' : String(Math.round(o.rate * 1000) / 10).replace('.', ',') + '%') + '</td>' +
+          '<td data-label="Menit terlambat">' + esc(fmtMin(o.telatM)) + '</td><td data-label="Izin terlambat">' + o.izin + '</td><td data-label="% tepat">' + (o.rate === null ? '–' : String(Math.round(o.rate * 1000) / 10).replace('.', ',') + '%') + '</td><td data-label="Rata-rata jam masuk">' + (o.avgJam === null ? '–' : mnJam(o.avgJam)) + '</td>' +
           '<td data-label="Pulang cepat">' + o.cepat + '×</td><td data-label="Lembur">' + esc(fmtMin(o.lembur)) + '</td></tr>';
       }).join('') + '</tbody></table></div>';
     $('rkBody').innerHTML = h;
@@ -4363,6 +4471,13 @@
 
     $('adMasuk').onclick = adMasuk;
     $('adPin').addEventListener('keydown', function (e) { if (e.key === 'Enter') adMasuk(); });
+    $('adNama').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); $('adPin').focus(); } });
+    $('adEye').onclick = function () {
+      var p = $('adPin'), tampil = p.type === 'password';
+      p.type = tampil ? 'text' : 'password';
+      this.setAttribute('aria-label', tampil ? 'Sembunyikan PIN' : 'Tampilkan PIN');
+      p.focus();
+    };
     $('adMuat').onclick = adMuat;
     $('adIzBaru').onclick = izaBuka;
     $('adPmBaru').onclick = pmaBuka;
