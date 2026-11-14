@@ -1452,7 +1452,7 @@
   // Tempel URL Web App dari Apps Script di antara tanda kutip.
   // Contoh: 'https://script.google.com/macros/s/XXXX/exec'
   // ============================================================
-  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzzg7AOTS33A26Qc8DjMzIcHzm_20LHjWXXhPoSk1qsG8iRls1RL0UpH0UFz8-NViRDhg/exec';
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwVDIR8Biva68zMD1MSDYE0YIJ_2eWqHHXl4DDQMsNZepDTerUvXq-MNbDJEkoy7f2eWA/exec';
   // ============================================================
 
   function p2(n) { return (n < 10 ? '0' : '') + n; }
@@ -3289,7 +3289,7 @@
     var s = r.bMasuk ? toMin(r.bMasuk) : null, m = r.masuk ? toMin(r.masuk) : null;
     var sel = (s !== null && m !== null) ? m - s : null;
     if (r.st === 'absen') return { k: 'skip', t: 'Tidak masuk', c: 'Tidak ada data absensi (tidak dihitung dalam peringkat)' };
-    if (r.st === 'izin') return { k: 'skip', t: 'Izin / sakit / cuti', c: (r.izBlok ? String(r.izBlok) + ' · ' : '') + 'tidak dihitung' };
+    if (r.st === 'izin') return { k: 'skip', t: 'Izin / sakit / cuti', c: (r.izBlok && r.izBlok.j ? r.izBlok.j + ' · ' : '') + 'tidak dihitung' };
     if (r.st === 'libur') return { k: 'skip', t: 'Libur', c: 'Hari libur, tidak dihitung' };
     if (r.st !== 'hadir') return null;
     if (!r.masuk) return { k: 'skip', t: 'Tanpa jam masuk', c: 'Tidak dihitung' };
@@ -4193,7 +4193,7 @@
   function izGerbang() {
     var j = $('izJenis').value, ok = !!$('izNama').value.trim() && !!j && !!$('izTgl').value && $('izKet').value.trim().length >= 3;
     if (j === 'keluar' && (!$('izJam1').value || !$('izJam2').value)) ok = false;
-    if ($('izAkhir').value && $('izAkhir').value < $('izTgl').value) ok = false;
+    if (($('izAkhir').value && $('izAkhir').value < $('izTgl').value) && (j === 'tidakmasuk' || j === 'dinas')) ok = false;
     $('izKirim').disabled = !ok || IZ_KIRIM_JALAN;
   }
   function izKosongkan(simpanHasil) {
@@ -4282,7 +4282,7 @@
   function izaGerbang() {
     var j = $('izaJenis').value, ok = !!$('izaNama').value.trim() && !!j && !!$('izaTgl').value && $('izaKet').value.trim().length >= 3;
     if (j === 'keluar' && (!$('izaJam1').value || !$('izaJam2').value)) ok = false;
-    if ($('izaAkhir').value && $('izaAkhir').value < $('izaTgl').value) ok = false;
+    if (($('izaAkhir').value && $('izaAkhir').value < $('izaTgl').value) && (j === 'tidakmasuk' || j === 'dinas')) ok = false;
     $('izaSimpan').disabled = !ok || IZA_JALAN;
   }
   function izaBuka() {
@@ -4333,7 +4333,7 @@
     $('adPanel').hidden = !AD.token;
     $('adWho').textContent = AD.admin ? 'Masuk sebagai ' + AD.admin : '';
   }
-  function adKeluarLokal() { AD.token = ''; AD.admin = ''; AD.data = { menunggu: [], riwayat: [] }; AD.iz = { menunggu: [], riwayat: [] }; adTampilPanel(); }
+  function adKeluarLokal() { AD.token = ''; AD.admin = ''; AD.data = { menunggu: [], riwayat: [] }; AD.iz = { menunggu: [], riwayat: [] }; AS = { sub: 'pg', pg: null, tk: null, sh: null, cari: '', pilMg: '', pilPt: '' }; adTampilPanel(); }
   function adKeluar() {
     var t = AD.token; adKeluarLokal();
     if (t) apiPost({ action: 'logout', token: t }, function () {}, function () {});
