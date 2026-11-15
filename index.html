@@ -243,6 +243,41 @@
   .chip { margin-right: 0; }
   html, body { overflow-x: hidden; }
 
+
+  /* ===== Tabel Harian: tampilan rapi & profesional (laptop/tablet) ===== */
+  tr.s-ok   { border-left-color: #16a34a; }
+  tr.s-inc  { border-left-color: #eab308; }
+  tr.s-bad  { border-left-color: #ef4444; }
+  tr.libur  { border-left-color: #cbd5e1; }
+  td.c-tgl b { font-weight: 700; color: var(--ink); }
+  td.c-tgl small { color: var(--muted); font-weight: 500; font-size: 12.5px; }
+  .chip.today { background: var(--brand); color: #fff; margin-left: 6px; font-size: 11px; padding: 1px 7px; vertical-align: 1px; }
+  @media (min-width: 641px) {
+    .tbl-h { table-layout: fixed; min-width: 640px; }
+    .tbl-h th, .tbl-h td { padding: 13px 16px; vertical-align: middle; }
+    .tbl-h th { font-size: 13px; font-weight: 700; color: #3f568a; background: #f4f7fd; border-bottom: 2px solid var(--line); letter-spacing: .01em; }
+    .tbl-h th.c-tgl, .tbl-h td.c-tgl { width: 168px; padding-left: 20px; }
+    .tbl-h th.c-nama, .tbl-h td.c-nama { width: 190px; font-weight: 600; }
+    .tbl-h th.c-jam, .tbl-h td.c-jam { width: 92px; text-align: center; }
+    .tbl-h th.c-dur, .tbl-h td.c-dur { width: 104px; text-align: center; }
+    .tbl-h td.c-jam, .tbl-h td.c-dur { font-weight: 600; font-size: 15px; }
+    .tbl-h td.c-tgl b, .tbl-h td.c-tgl small { display: block; line-height: 1.3; }
+    .tbl-h td.c-tgl .chip.today { display: inline-block; margin: 3px 0 0; }
+    .tbl-h td.c-ket { white-space: normal; }
+    .tbl-h td.c-ket .chips { gap: 6px; }
+    .tbl-h td .dim { color: #a3b0c6; font-weight: 400; }
+    .tbl-h tbody tr:nth-child(even):not(.libur) td { background: #fafcff; }
+    .tbl-h tbody tr:hover td { background: #eef4ff; }
+    .tbl-h tbody tr.libur td { background: #f2f6fc; color: var(--muted); }
+    .tbl-h tbody tr.libur:hover td { background: #eaf0fa; }
+    .tbl-h tbody tr:last-child td { border-bottom: 0; }
+    .tbl-h td:first-child { box-shadow: inset 4px 0 0 transparent; }
+    .tbl-h tr.s-ok td:first-child   { box-shadow: inset 4px 0 0 #16a34a; }
+    .tbl-h tr.s-inc td:first-child  { box-shadow: inset 4px 0 0 #eab308; }
+    .tbl-h tr.s-bad td:first-child  { box-shadow: inset 4px 0 0 #ef4444; }
+    .tbl-h tr.libur td:first-child  { box-shadow: inset 4px 0 0 #cbd5e1; }
+  }
+
   @media (max-width: 900px) {
     .field.wide { grid-column: 1 / -1; }
   }
@@ -2434,13 +2469,24 @@
     var shown = list.slice(from, from + S.size);
     var showNama = S.mode === 'all';
 
-    var h = '<table><thead><tr><th>Tanggal</th>' + (showNama ? '<th>Nama</th>' : '') +
-            '<th class="num">Masuk</th><th class="num">Pulang</th><th>Keterangan</th></tr></thead><tbody>';
+    function kelasBaris(r) {
+      if (r.st === 'libur') return 'libur';
+      if (r.st === 'absen' || r.telat || r.cepat) return 's-bad';
+      if (r.st === 'belum' || !r.masuk || !r.pulang) return 's-inc';
+      return 's-ok';
+    }
+    var h = '<table class="tbl-h"><thead><tr><th class="c-tgl">Tanggal</th>' + (showNama ? '<th class="c-nama">Nama</th>' : '') +
+            '<th class="c-jam">Masuk</th><th class="c-jam">Pulang</th><th class="c-dur">Durasi</th><th class="c-ket">Keterangan</th></tr></thead><tbody>';
     shown.forEach(function (r) {
-      h += '<tr' + (r.st === 'libur' ? ' class="libur"' : '') + '><td data-label="Tanggal">' + fmtTgl(r) + '</td>' + (showNama ? '<td data-label="Nama">' + esc(r.nama) + '</td>' : '') +
-           '<td class="num" data-label="Masuk">' + (r.masuk || '<span class="dim">–</span>') + '</td>' +
-           '<td class="num" data-label="Pulang">' + (r.pulang || '<span class="dim">–</span>') + '</td>' +
-           '<td data-label="Keterangan"><span class="chips">' + chips(r) + '</span></td></tr>';
+      var dur = durKerja(r);
+      h += '<tr class="' + kelasBaris(r) + '">' +
+           '<td class="c-tgl" data-label="Tanggal"><b>' + r.d + ' ' + BULAN[r.m - 1].slice(0, 3) + ' ' + r.y + '</b>' +
+             '<small>' + HARI_PANJANG[r.dow] + (r.tgl === TODAY ? ' <span class="chip today">Hari ini</span>' : '') + '</small></td>' +
+           (showNama ? '<td class="c-nama" data-label="Nama">' + esc(r.nama) + '</td>' : '') +
+           '<td class="c-jam" data-label="Masuk">' + (r.masuk || '<span class="dim">–</span>') + '</td>' +
+           '<td class="c-jam" data-label="Pulang">' + (r.pulang || '<span class="dim">–</span>') + '</td>' +
+           '<td class="c-dur" data-label="Durasi">' + (dur || '<span class="dim">–</span>') + '</td>' +
+           '<td class="c-ket" data-label="Keterangan"><span class="chips">' + chips(r) + '</span></td></tr>';
     });
     $('tableBox').innerHTML = h + '</tbody></table>';
     $('count').textContent = 'Menampilkan ' + (from + 1) + '–' + (from + shown.length) + ' dari ' + total + ' baris';
