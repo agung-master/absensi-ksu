@@ -1452,7 +1452,7 @@
   // Tempel URL Web App dari Apps Script di antara tanda kutip.
   // Contoh: 'https://script.google.com/macros/s/XXXX/exec'
   // ============================================================
-  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwVDIR8Biva68zMD1MSDYE0YIJ_2eWqHHXl4DDQMsNZepDTerUvXq-MNbDJEkoy7f2eWA/exec';
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyaW4Cty-uvidIJKESbBiNP9N2KQP6FzjR_gDqSn9x-_6L36to1Z_or4BiPdA2-9eDkmg/exec';
   // ============================================================
 
   function p2(n) { return (n < 10 ? '0' : '') + n; }
@@ -1595,7 +1595,7 @@
     if (r.pulang) {
       var p = toMin(r.pulang);
       if (p > mulaiL) r.lembur = p - mulaiL;
-      if (!bebas && p < bPulang) {
+      if (!bebas && p < bPulang - (c.toleransiCepat || 0)) {
         r.cepat = bPulang - p;
         if (adj && adj.j === 'cepat' && adj.m && bPulang < baseP) r.langgar = 'cepat';
       }
@@ -1991,7 +1991,7 @@
         var semua = {}, k;
         for (k in awal) semua[k] = awal[k];
         for (k in (tambahan || {})) semua[k] = tambahan[k];
-        DB.records = []; DB.names = {}; LOADED = {}; SEEN = {};
+        DB.records = []; DB.names = {}; LOADED = {}; SEEN = {}; JAD = {};   // JAD wajib dikosongkan: jadwal lama yang sudah dihapus/diubah tidak boleh tersisa
         TODAY = hariIni();
         addSheets(semua, []);
         isiOpsiTahun();
@@ -2402,7 +2402,7 @@
     if (S.status.length && list.length && !(S.mode === 'me' && S.tampil === 'kal')) $('count').textContent += ' · difilter dari ' + base.length + ' baris';
 
     $('note').textContent = 'Terlambat jika masuk lewat ' + DB.config.jamMasuk + (DB.config.toleransi ? ' (toleransi ' + DB.config.toleransi + ' menit)' : ' (tanpa toleransi)') + '. Lembur hari kerja dihitung setelah pukul ' +
-      DB.config.lemburMulai + '. Pulang cepat jika sebelum ' + DB.config.jamPulang + '. Hari Minggu dan hari libur menurut jadwal karyawan tidak dihitung terlambat / pulang cepat; jika masuk, lembur dihitung dari absen pertama sampai absen terakhir.' +
+      DB.config.lemburMulai + '. Pulang cepat jika sebelum ' + DB.config.jamPulang + (DB.config.toleransiCepat ? ' (toleransi ' + DB.config.toleransiCepat + ' menit)' : '') + '. Hari Minggu dan hari libur menurut jadwal karyawan tidak dihitung terlambat / pulang cepat; jika masuk, lembur dihitung dari absen pertama sampai absen terakhir.' +
       (SHIFT_MALAM_AKTIF ? ' Shift malam hari kerja (jam pulang lebih kecil dari jam masuk, mis. masuk 20:00 pulang 06:00) tidak dihitung terlambat atau pulang cepat; lembur dihitung dari pukul ' + DB.config.lemburMulai + ' (atau jam masuk bila lebih malam) sampai jam pulang.' : '') +
       (LIBUR_JIKA_SEMUA_KOSONG ? ' Hari kerja tanpa absen dari seluruh karyawan dianggap libur.' : '') +
       ' "Belum absen" = hari hadir dengan scan masuk atau pulang yang kosong (scan pulang hari ini yang masih berjalan tidak dihitung).';
