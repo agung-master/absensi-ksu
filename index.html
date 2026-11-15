@@ -1172,6 +1172,57 @@
     .tablebox { background: transparent; border: 0; -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none; }
     .tablebox .kal { background: var(--glass); border: 1px solid var(--glass-b); }
   }
+
+  /* ===================== PERBAIKAN v4 ===================== */
+  :root { --sk1: #e6eaf2; --sk2: #f4f6fa; }
+  :root[data-theme="dark"] { --sk1: rgba(255,255,255,.06); --sk2: rgba(255,255,255,.13); }
+
+  /* 1 · loading awal: kerangka meniru tata letak asli, mengikuti tema */
+  .loading::before, .loading::after { content: none; display: none; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .sk { border-radius: var(--r-k); background: linear-gradient(100deg, var(--sk1) 30%, var(--sk2) 50%, var(--sk1) 70%) 0 0 / 200% 100%; animation: sk 1.4s linear infinite; }
+  .sk-hero { height: 128px; background: linear-gradient(100deg, #14213d 30%, #22345f 50%, #14213d 70%) 0 0 / 200% 100%; box-shadow: 0 10px 30px rgba(20,33,61,.18); }
+  .sk-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-top: 16px; }
+  .sk-card { height: 96px; } .sk-panel { height: 210px; margin-top: 16px; }
+  @media (prefers-reduced-motion: reduce) { .sk { animation: none; } }
+
+  /* 4 · kalender: kotak berwarna (bukan titik) */
+  .kal-c::before { display: none; }
+  .kal-c.ok   { background: var(--ok-soft);    border-color: rgba(47,111,85,.28);  color: var(--ok); }
+  .kal-c.warn { background: var(--gold-soft);  border-color: rgba(184,137,59,.40); color: var(--gold-ink); }
+  .kal-c.abs  { background: var(--abs-soft);   border-color: rgba(163,58,58,.28);  color: var(--abs); }
+  .kal-c.off  { background: var(--off-soft);   border-color: var(--line-2);        color: var(--muted); }
+  .kal-c.izn  { background: var(--ot-soft);    border-color: rgba(74,85,162,.28);  color: var(--ot); }
+  .kal-c.mg   { background: var(--brand-soft); border-color: var(--line-2);        color: var(--ink); }
+  .kal-c.viol { background: #9b2c2c; border-color: #7f2222; color: #fff; }
+  .kal-c.none { background: transparent; border: 1px dashed var(--line-2); color: var(--muted); }
+  .kal-d { color: var(--ink); } .kal-c.viol .kal-d { color: #fff; }
+  .kal-t, .kal-s, .kal-c.warn .kal-s, .kal-c.abs .kal-s { color: inherit; }
+  .kal-s { font-weight: 600; }
+  .kal-legend i { width: 13px; height: 13px; border-radius: 4px; border: 1.5px solid transparent; }
+  .kal-legend i.ok   { background: var(--ok-soft);    border-color: rgba(47,111,85,.45); }
+  .kal-legend i.warn { background: var(--gold-soft);  border-color: rgba(184,137,59,.6); }
+  .kal-legend i.abs  { background: var(--abs-soft);   border-color: rgba(163,58,58,.45); }
+  .kal-legend i.off  { background: var(--off-soft);   border-color: var(--line-2); }
+  .kal-legend i.izn  { background: var(--ot-soft);    border-color: rgba(74,85,162,.45); }
+  .kal-legend i.mg   { background: var(--brand-soft); border-color: var(--line-2); }
+  .kal-legend i.viol { background: #9b2c2c; border-color: #7f2222; }
+  .kal-legend i.none { background: transparent; border: 1.5px dashed var(--line-2); }
+
+  /* 3 · judul periode di kalender: rapi di HP */
+  .kal-head b { font-family: inherit; font-weight: 700; font-size: 16px; line-height: 1.3; min-width: 0; }
+  .kal-head { align-items: center; gap: 12px; }
+  .kal-nav { flex: 0 0 auto; }
+  .kal-nav button { border-radius: var(--r-c); }
+  @media (max-width: 640px) {
+    .kal-head b { font-size: 14px; }
+    .kal-nav button { width: 34px; height: 34px; font-size: 18px; }
+
+    /* 2 · menu bawah: lima kolom sama lebar, rata penuh */
+    .nav { grid-template-columns: none; }
+    .nav button .nl { overflow-wrap: normal; word-break: normal; hyphens: none; line-height: 1.15; font-size: 10.5px; text-align: center; }
+    .nav button, .nav button:nth-child(n+4) { min-width: 0; justify-content: center; }
+  }
 </style>
 </head>
 <body>
@@ -5197,6 +5248,12 @@
   if (tb) new MutationObserver(function () {
     tb.querySelectorAll('tbody tr').forEach(function (r, i) { r.style.animationDelay = Math.min(i, 12) * 22 + 'ms'; });
   }).observe(tb, { childList: true });
+})();
+</script>
+<script>
+(function () {
+  var l = document.getElementById('loading'); if (!l) return;
+  l.innerHTML = '<span class="sr">Memuat data absensi…</span><div class="sk sk-hero"></div><div class="sk-grid"><div class="sk sk-card"></div><div class="sk sk-card"></div><div class="sk sk-card"></div><div class="sk sk-card"></div></div><div class="sk sk-panel"></div>';
 })();
 </script>
 </body>
