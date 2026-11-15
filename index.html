@@ -2156,9 +2156,15 @@
       e.preventDefault();
       if (li) pick(li.getAttribute('data-v'));
     });
-    $('arrowNama').addEventListener('mousedown', function (e) {
+    // Panah: mousedown hanya menjaga fokus kolom; buka/tutup lewat 'click' supaya jalan juga di layar sentuh, keyboard, dan WebView.
+    $('arrowNama').addEventListener('mousedown', function (e) { e.preventDefault(); });
+    $('arrowNama').addEventListener('click', function (e) {
       e.preventDefault();
       if (list.hidden) { inp.focus(); build(''); open(); } else close();
+    });
+    list.addEventListener('click', function (e) {
+      var li = e.target.closest ? e.target.closest('li[data-v]') : null;
+      if (li) pick(li.getAttribute('data-v'));
     });
   }
 
@@ -3204,9 +3210,15 @@
       e.preventDefault();
       if (li) pick(li.getAttribute('data-v'));
     });
-    $(arrowId || 'arrowPmNama').addEventListener('mousedown', function (e) {
+    var arrEl = $(arrowId || 'arrowPmNama');
+    arrEl.addEventListener('mousedown', function (e) { e.preventDefault(); });
+    arrEl.addEventListener('click', function (e) {
       e.preventDefault();
       if (list.hidden) { inp.focus(); build(''); open(); } else close();
+    });
+    list.addEventListener('click', function (e) {
+      var li = e.target.closest ? e.target.closest('li[data-v]') : null;
+      if (li) pick(li.getAttribute('data-v'));
     });
   }
 
@@ -3648,9 +3660,16 @@
       e.preventDefault();
       if (li) pick(li.getAttribute('data-v'));
     });
-    if (arrow) arrow.addEventListener('mousedown', function (e) {
-      e.preventDefault();
-      if (list.hidden) { inp.focus(); build(''); open(); } else close();
+    if (arrow) {
+      arrow.addEventListener('mousedown', function (e) { e.preventDefault(); });
+      arrow.addEventListener('click', function (e) {
+        e.preventDefault();
+        if (list.hidden) { inp.focus(); build(''); open(); } else close();
+      });
+    }
+    list.addEventListener('click', function (e) {
+      var li = e.target.closest ? e.target.closest('li[data-v]') : null;
+      if (li) pick(li.getAttribute('data-v'));
     });
   }
   function asNamaPt() {
