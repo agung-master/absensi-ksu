@@ -1283,6 +1283,18 @@
   :root[data-theme="dark"] .rkd-tbl tr.k-awal td { background: var(--ok-soft); }
   :root[data-theme="dark"] .rk-scroll tbody tr:hover td:first-child { background: var(--surface); }
   :root[data-theme="dark"] .adl-in > svg { stroke: var(--muted); }
+
+  /* ===================== PERBAIKAN v8: semua kolom isian & pilihan satu tinggi ===================== */
+  .field select, .field input[type="text"], .field input[type="search"], .field input[type="date"], .field input[type="time"],
+  .field input[type="number"], .field input[type="password"], .field input[type="email"], .field input:not([type]), .sf-btn {
+    box-sizing: border-box; height: 46px; min-height: 46px; padding-top: 0; padding-bottom: 0; line-height: 1.2; font-size: 15px;
+  }
+  .sf-btn { align-items: center; }
+  .combo input { padding-right: 36px; }
+  @media (max-width: 640px) {
+    .field select, .field input[type="text"], .field input[type="search"], .field input[type="date"], .field input[type="time"],
+    .field input[type="number"], .field input[type="password"], .field input[type="email"], .field input:not([type]), .sf-btn { font-size: 16px; }
+  }
 </style>
 </head>
 <body>
