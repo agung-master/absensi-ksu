@@ -1452,7 +1452,7 @@
   // Tempel URL Web App dari Apps Script di antara tanda kutip.
   // Contoh: 'https://script.google.com/macros/s/XXXX/exec'
   // ============================================================
-  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyaW4Cty-uvidIJKESbBiNP9N2KQP6FzjR_gDqSn9x-_6L36to1Z_or4BiPdA2-9eDkmg/exec';
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyNbZuwxuQZWqqfkUxdd_zPMc9l1DWDru35PjPOkI-xH_bBCUs5Jtm0a4m_Wguy1zh3eQ/exec';
   // ============================================================
 
   function p2(n) { return (n < 10 ? '0' : '') + n; }
@@ -1545,7 +1545,11 @@
 
   function api(action, names, ok, fail, fresh) {
     function hasil(res) {
-      if (res && res.error) fail(new Error(res.error)); else ok(res);
+      if (res && res.error) fail(new Error(res.error));
+      else {
+        if (action === 'init' && res && res.periods) { try { localStorage.setItem('absInit', JSON.stringify(res)); } catch (e) {} }
+        ok(res);
+      }
     }
     if (APPS_SCRIPT_URL) {
       var url = APPS_SCRIPT_URL + (APPS_SCRIPT_URL.indexOf('?') >= 0 ? '&' : '?') + 'action=' + action +
@@ -1563,7 +1567,20 @@
     }
   }
 
-  api('init', null, init, showError);
+  (function mulaiAwal() {
+    var cached = null;
+    try { cached = JSON.parse(localStorage.getItem('absInit') || 'null'); } catch (e) { cached = null; }
+    if (cached && cached.periods && cached.config) {
+      try {
+        init(cached);   // tampil instan dari data terakhir, lalu segarkan di latar belakang
+        var tries = 0, iv = setInterval(function () {
+          if (!LOADING || ++tries > 100) { clearInterval(iv); muatUlang(true); }
+        }, 150);
+        return;
+      } catch (e) { try { localStorage.removeItem('absInit'); } catch (e2) {} }
+    }
+    api('init', null, init, showError);
+  })();
 
   function hitungShiftMalam(r) {
     if (!SHIFT_MALAM_AKTIF || !r.masuk || !r.pulang) return false;
@@ -3065,9 +3082,14 @@
   // =====================================================================
   //  PERMOHONAN PENGGANTIAN LEMBUR
   // =====================================================================
+  var POST_CACHE = {};
   function apiPost(payload, ok, fail) {
+    var cKey = (payload && (payload.action === 'absen' || payload.action === 'info')) ? JSON.stringify(payload) : null;
+    if (!cKey) POST_CACHE = {};   // aksi tulis: buang cache baca
+    if (cKey && POST_CACHE[cKey] && Date.now() - POST_CACHE[cKey].t < 60000) { var c = POST_CACHE[cKey].v; setTimeout(function () { ok(c); }, 0); return; }
     function hasil(res) {
-      if (res && res.error) { var e = new Error(res.error); e.auth = !!res.auth; e.bisaPaksa = !!res.bisaPaksa; fail(e); } else ok(res);
+      if (res && res.error) { var e = new Error(res.error); e.auth = !!res.auth; e.bisaPaksa = !!res.bisaPaksa; fail(e); }
+      else { if (cKey) POST_CACHE[cKey] = { t: Date.now(), v: res }; ok(res); }
     }
     if (APPS_SCRIPT_URL) {
       fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) })
@@ -3353,6 +3375,7 @@
     AS.sub = t; AS.cari = '';
     ['Pg', 'Tk', 'Sh'].forEach(function (k) { $('as' + k).setAttribute('aria-pressed', k.toLowerCase() === t); });
     asErr(''); asOk('');
+    if (AS[t]) asRender();
     asMuat();
   }
   function asRender() {
