@@ -1242,6 +1242,20 @@
   .empty { padding: 16px 18px; font-size: 13.5px; line-height: 1.5; }
   .empty::before { display: inline-block; vertical-align: -4px; width: 18px; height: 18px; margin: 0 8px 0 0; border-radius: 0; background: var(--muted); -webkit-mask: var(--ic-search) center / contain no-repeat; mask: var(--ic-search) center / contain no-repeat; }
   .empty::after { content: none; display: none; }
+
+  /* ===================== PERBAIKAN v6: loading awal hanya satu kartu, rata tengah ===================== */
+  .sk-grid, .sk-card, .sk-panel { display: none; }
+  .sk-hero { display: flex; align-items: center; justify-content: center; height: auto; min-height: 150px; padding: 28px 20px; }
+  .sk-msg { flex-direction: column; gap: 12px; text-align: center; }
+  .sk-msg > div { text-align: center; }
+  .sk-msg b { font-size: 17px; }
+  .sk-msg small { margin-top: 2px; }
+  .sk-spin { width: 28px; height: 28px; }
+  @media (max-width: 640px) {
+    .sk-hero { min-height: 132px; padding: 22px 16px; }
+    .sk-msg b { font-size: 16px; }
+    .sk-msg small { font-size: 12.5px; }
+  }
 </style>
 </head>
 <body>
@@ -5272,7 +5286,7 @@
 <script>
 (function () {
   var l = document.getElementById('loading'); if (!l) return;
-  l.innerHTML = '<span class="sr">Memuat data absensi…</span><div class="sk sk-hero" aria-hidden="true"><div class="sk-msg"><span class="sk-spin"></span><div><b>Mohon tunggu</b><small>Sedang memuat data absensi…</small></div></div></div><div class="sk-grid"><div class="sk sk-card"></div><div class="sk sk-card"></div><div class="sk sk-card"></div><div class="sk sk-card"></div></div><div class="sk sk-panel"></div>';
+  l.innerHTML = '<span class="sr">Memuat data absensi…</span><div class="sk sk-hero" aria-hidden="true"><div class="sk-msg"><span class="sk-spin"></span><div><b>Mohon tunggu</b><small>Sedang memuat data absensi…</small></div></div></div>';
 })();
 </script>
 </body>
