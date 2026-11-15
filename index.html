@@ -3,11 +3,12 @@
 <head>
 <base target="_top">
 <meta charset="utf-8">
+<meta name="theme-color" content="#14213d">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Absensi KSU</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #e9f1ff;
@@ -905,6 +906,177 @@
     .rk-scroll { border: 1px solid var(--line); background: var(--surface); padding: 8px; border-radius: 12px; max-height: 70vh; overflow-y: auto; overflow-x: hidden; }
     .rk-scroll td:first-child { position: static; box-shadow: none; }
   }
+
+  /* ===================== SKIN v2 — Navy & Emas (formal, klasik) ===================== */
+  :root {
+    color-scheme: light;
+    --bg: #f3f5f9; --surface: #fff; --ink: #14213d; --muted: #5f6b7f; --line: #e2e7ef; --line-2: #cfd6e3;
+    --brand: #14213d; --brand-dark: #0b1530; --brand-soft: #eef1f7;
+    --gold: #b8893b; --gold-lt: #d9b06a; --gold-ink: #8a6420; --gold-soft: #f7efdc;
+    --ok: #2f6f55; --ok-soft: #e5f1ea; --late: #b4651f; --late-soft: #f8ebdb;
+    --ot: #4a55a2; --ot-soft: #e9eaf6; --early: #a2456b; --early-soft: #f6e4ec;
+    --abs: #a33a3a; --abs-soft: #f6e3e3; --off-soft: #eceff4; --warn-soft: #eceff4;
+    --r-c: 10px; --r-k: 16px;
+    --sh: 0 1px 2px rgba(20,33,61,.04), 0 6px 18px rgba(20,33,61,.05);
+    --serif: "Fraunces", Georgia, "Times New Roman", serif;
+  }
+  /* 1 · latar tenang */
+  body { background: var(--bg); }
+  body::before { display: none; }
+
+  /* 3 · header ringan + tab bergaris bawah */
+  header { background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: var(--r-k); padding: 14px 20px; box-shadow: var(--sh); }
+  header::before, header::after { display: none; }
+  .hd-logo { width: 42px; height: 42px; border-radius: var(--r-c); background: var(--brand); border: 0; color: var(--gold-lt); font-size: 13px; letter-spacing: .06em; backdrop-filter: none; }
+  header h1 { font-family: var(--serif); font-weight: 600; font-size: 22px; letter-spacing: 0; color: var(--ink); }
+  header p { color: var(--muted); font-size: 13px; margin-top: 1px; }
+  header .reload { background: #fff; color: var(--brand); border: 1px solid var(--line-2); border-radius: var(--r-c); padding: 8px 14px; }
+  header .reload:hover { background: var(--brand-soft); }
+  .nav { background: transparent; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; box-shadow: none; padding: 0; gap: 2px; margin-top: 10px; }
+  .nav button { background: transparent; color: var(--muted); border-radius: 0; padding: 12px 18px; box-shadow: none; }
+  .nav button:hover { background: transparent; color: var(--ink); }
+  .nav button[aria-pressed="true"] { background: transparent; color: var(--ink); box-shadow: inset 0 -2px 0 var(--gold); }
+
+  /* 4 · satu bahasa bentuk */
+  .panel, .tablebox, .hc, .gr { border-radius: var(--r-k); box-shadow: var(--sh); border-color: var(--line); }
+  .per { border-radius: var(--r-c); background: var(--brand-soft); border-color: var(--line); }
+  .dt, .kd, .hd { border-top-width: 3px; box-shadow: 0 24px 60px rgba(20,33,61,.28); }
+  .dt-back, .sf-backdrop { background: rgba(11,21,48,.5); }
+
+  /* 5 · tipografi: serif untuk judul & angka besar */
+  .pm-h, .dt-head h2, .adl-form .pm-h, .adl-brand h3, .rk-tophead h3, .gr-ctr b, .kal-head b { font-family: var(--serif); font-weight: 600; letter-spacing: 0; }
+  .sf-gh, .hd-gh { text-transform: none; letter-spacing: 0; font-size: 12.5px; color: var(--muted); }
+
+  /* kontrol formulir */
+  .field label, .per-l { color: var(--muted); font-size: 12.5px; font-weight: 600; }
+  .field select, .field input, .field textarea, .sf-btn, .dt-tools input, .dt-tools select, .pager .size select, .pm-bukti-row input { border-color: var(--line-2); border-radius: var(--r-c); }
+  .field select:hover, .field input:hover, .sf-btn:hover { border-color: var(--brand); }
+  button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+  .sf-btn.active { background: var(--gold-soft); border-color: var(--gold); color: var(--ink); }
+  .sf-panel, .combo-list { border-color: var(--line); box-shadow: 0 16px 40px rgba(20,33,61,.16); }
+  .combo-list li.active, .combo-list li:hover, .field label.sf-opt:hover { background: var(--brand-soft); }
+  .seg, .sf-seg { background: var(--brand-soft); border-color: var(--line); border-radius: var(--r-c); }
+  .seg button[aria-pressed="true"] { background: var(--brand); color: #fff; box-shadow: none; }
+  .sf-seg button[aria-pressed="true"] { background: #fff; color: var(--ink); box-shadow: 0 1px 3px rgba(20,33,61,.15); }
+  .kal-nav button, .per-nav, .dt-x { background: #fff; color: var(--ink); border-color: var(--line-2); }
+  .per-nav:hover:not(:disabled), .dt-x:hover { background: var(--brand-soft); }
+  .more { color: var(--brand); border-color: var(--line-2); }
+  .pm-btn.ok { background: var(--ok); } .pm-btn.no { background: var(--abs); }
+  .pm-btn.ghost { background: var(--brand-soft); color: var(--brand); }
+  .per-info { color: var(--ink); }
+  .pm-grp { background: #fafbfd; } .pm-grp > legend { color: var(--ink); }
+  .pm-saran { background: var(--brand-soft); border-color: var(--line-2); color: var(--ink); }
+  .pm-bukti { background: #fafbfd; border-color: var(--line-2); }
+  .gr-donut .gr-bg { stroke: #e9edf4; }
+
+  /* 9 · filter lanjutan */
+  .filters, .filters.per-on { gap: 12px; }
+  @media (min-width: 641px) { .filters, .filters.per-on { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); } .field.wide { grid-column: auto; } }
+  .adv-tog { grid-column: 1 / -1; }
+  .adv-tog button { font: inherit; font-size: 13px; font-weight: 600; color: var(--ink); background: transparent; border: 1px solid var(--line-2); border-radius: var(--r-c); padding: 7px 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+  .adv-tog button:hover { background: var(--brand-soft); }
+  .adv-tog button::after { content: ""; width: 6px; height: 6px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); margin-top: -3px; }
+  .adv-tog button[aria-expanded="true"]::after { transform: rotate(225deg); margin-top: 3px; }
+  .adv-n { min-width: 18px; padding: 0 6px; border-radius: 999px; background: var(--gold); color: #fff; font-size: 11.5px; line-height: 18px; text-align: center; }
+  .adv-n:empty { display: none; }
+  .filters:not(.adv-open) .field.adv { display: none; }
+
+  /* 6 · kartu kehadiran hari ini: satu-satunya elemen yang menonjol */
+  .hc, .hc.off { background: var(--brand); color: #fff; border: 0; padding: 20px 24px 16px; box-shadow: 0 10px 30px rgba(20,33,61,.22); }
+  .hc.off { background: #2b3550; }
+  .hc-ic, .hc.off .hc-ic { width: 10px; height: 10px; border-radius: 50%; background: var(--gold-lt); box-shadow: 0 0 0 5px rgba(217,176,106,.22); font-size: 0; margin: 0 5px 0 3px; }
+  .hc.off .hc-ic { background: #8b95a8; box-shadow: 0 0 0 5px rgba(139,149,168,.25); }
+  .hc-lbl { color: #fff; font-weight: 600; font-size: 15px; }
+  .hc-date { color: rgba(255,255,255,.68); }
+  .hc-num b { font-family: var(--serif); font-weight: 500; font-size: 56px; color: var(--gold-lt); letter-spacing: -.02em; }
+  .hc-num span { color: rgba(255,255,255,.72); }
+  .hc-bar { height: 4px; background: rgba(255,255,255,.16); }
+  .hc-bar i { background: var(--gold-lt); }
+  .hc-sub { color: rgba(255,255,255,.7); }
+  .hc-sub .chip-t { background: rgba(255,255,255,.12); color: #fff; }
+  .hc-sub .chip-t.warn { background: rgba(217,176,106,.22); color: var(--gold-lt); }
+  .hc-sub button.chip-t:hover { filter: none; background: rgba(255,255,255,.2); box-shadow: none; transform: none; }
+  .hc-sub button.chip-t:focus-visible { outline-color: var(--gold-lt); }
+
+  /* 4 · kartu statistik: titik status kecil, tanpa garis atas warna-warni */
+  .stats .stat { align-items: flex-start; justify-content: flex-start; text-align: left; border: 1px solid var(--line); border-radius: var(--r-k); padding: 16px 16px 12px; gap: 3px; min-height: 96px; box-shadow: var(--sh); --sc: var(--ok); }
+  .stats .stat b { font-family: var(--serif); font-weight: 600; font-size: 30px; color: var(--ink); }
+  .stats .stat span { display: flex; align-items: center; gap: 7px; }
+  .stats .stat span::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--sc); flex: none; }
+  .stats .stat.late { --sc: var(--late); } .stats .stat.early { --sc: var(--early); } .stats .stat.ot { --sc: var(--ot); }
+  .stats .stat.absent { --sc: var(--abs); } .stats .stat.forgot { --sc: var(--gold); }
+  .stat:hover { transform: none; border-color: var(--line-2); box-shadow: 0 10px 26px rgba(20,33,61,.10); }
+  .stat::after { color: var(--gold-ink); }
+
+  /* 7 · kalender tenang: sel putih, status ditandai titik */
+  .kal-c { background: #fff; color: var(--ink); border: 1px solid var(--line); border-radius: var(--r-c); }
+  .kal-c::before { content: ""; position: absolute; right: 8px; bottom: 8px; width: 7px; height: 7px; border-radius: 50%; background: transparent; }
+  .kal-c.ok, .kal-c.warn, .kal-c.abs, .kal-c.off, .kal-c.izn, .kal-c.mg { background: #fff; color: var(--ink); border-color: var(--line); }
+  .kal-c.none { background: transparent; color: #9aa3b5; border: 1px dashed var(--line); }
+  .kal-c.viol { background: #9b2c2c; color: #fff; border-color: #9b2c2c; }
+  .kal-c.ok::before { background: #3f8a6a; } .kal-c.warn::before { background: var(--gold); } .kal-c.abs::before { background: #b84a4a; }
+  .kal-c.off::before { background: #a3acbd; } .kal-c.izn::before { background: #6b5b95; } .kal-c.mg::before { background: var(--brand); } .kal-c.viol::before { background: #fff; }
+  .kal-d { font-weight: 600; }
+  .kal-t, .kal-s { color: var(--muted); } .kal-s { font-weight: 500; }
+  .kal-c.warn .kal-s { color: var(--gold-ink); } .kal-c.abs .kal-s { color: var(--abs); }
+  .kal-c.viol .kal-t, .kal-c.viol .kal-s { color: #fff; }
+  .kal-legend i { width: 9px; height: 9px; border: 0; border-radius: 50%; }
+  .kal-legend i.ok { background: #3f8a6a; } .kal-legend i.warn { background: var(--gold); } .kal-legend i.abs { background: #b84a4a; }
+  .kal-legend i.viol { background: #9b2c2c; } .kal-legend i.off { background: #a3acbd; } .kal-legend i.izn { background: #6b5b95; } .kal-legend i.mg { background: var(--brand); }
+  .kal-legend i.none { background: transparent; border: 1px dashed #a3acbd; }
+  button.kal-c:hover { transform: none; border-color: var(--line-2); box-shadow: 0 4px 12px rgba(20,33,61,.10); }
+  .kal-c.today { box-shadow: 0 0 0 2px var(--gold); }
+  button.kal-c.today:hover { box-shadow: 0 0 0 2px var(--gold), 0 4px 12px rgba(20,33,61,.12); }
+  .kal-cek { background: var(--gold-soft); border-color: #ecd9a8; } .kal-cek > b { color: var(--gold-ink); }
+  .kal-cek.baik { background: var(--ok-soft); border-color: #b9dccb; color: var(--ok); }
+  .kal-lupa { background: #fff; color: var(--gold-ink); border: 1px solid #ecd9a8; } .kal-lupa:hover { background: var(--gold-soft); }
+  .kd-note { background: var(--gold-soft); color: var(--gold-ink); }
+
+  /* 8 · tabel ala laporan */
+  th, .tbl-h th { background: #fff; color: var(--muted); font-size: 12.5px; font-weight: 600; letter-spacing: 0; border-bottom: 1px solid var(--line-2); }
+  .rk-scroll th:first-child { background: #fff; }
+  tbody tr:hover td, .tbl-h tbody tr:hover td { background: #f7f8fb; }
+  .tbl-h tbody tr:nth-child(even):not(.libur) td { background: transparent; }
+  .tbl-h tbody tr:nth-child(even):not(.libur):hover td { background: #f7f8fb; }
+  tr.libur td, .tbl-h tbody tr.libur td { background: #f7f8fb; color: var(--muted); }
+  .tbl-h tr.s-ok td:first-child { box-shadow: inset 3px 0 0 #3f8a6a; } .tbl-h tr.s-inc td:first-child { box-shadow: inset 3px 0 0 var(--gold); }
+  .tbl-h tr.s-bad td:first-child { box-shadow: inset 3px 0 0 #b84a4a; } .tbl-h tr.libur td:first-child { box-shadow: inset 3px 0 0 var(--line-2); }
+  tr.s-ok { border-left-color: #3f8a6a; } tr.s-inc { border-left-color: var(--gold); } tr.s-bad { border-left-color: #b84a4a; } tr.libur { border-left-color: var(--line-2); }
+  .chip.izn { background: #ece9f5; color: #5a4a85; } .chip.forgot { background: var(--gold-soft); color: var(--gold-ink); }
+  .chip.night { background: #e3e7f3; color: #26356b; } .chip.viol { background: #9b2c2c; color: #fff; }
+  .hd-row.wait .hd-av { background: var(--gold-soft); color: var(--gold-ink); }
+
+  /* panel admin */
+  .adl-brand { background: linear-gradient(155deg, #0b1530 0%, #14213d 65%, #24365f 100%); }
+  .adl-badge { background: rgba(217,176,106,.16); border-color: rgba(217,176,106,.4); } .adl-badge svg { stroke: var(--gold-lt); }
+
+  /* 10 · detail kecil: skeleton memuat & satu fade-in saat data tampil */
+  .loading { font-size: 0; color: transparent; padding: 0; margin-top: 16px; }
+  .loading::before, .loading::after { content: ""; display: block; border-radius: var(--r-k); background: linear-gradient(100deg, #e8ecf3 30%, #f5f7fb 50%, #e8ecf3 70%) 0 0 / 200% 100%; animation: sk 1.4s linear infinite; }
+  .loading::before { height: 124px; } .loading::after { height: 168px; margin-top: 14px; }
+  @keyframes sk { to { background-position: -200% 0; } }
+  @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
+  #app:not([hidden]) { animation: fadein .35s ease both; }
+  @media (prefers-reduced-motion: reduce) { .loading::before, .loading::after { animation: none; } #app:not([hidden]) { animation: none; } }
+
+  /* ponsel: menu jadi bilah bawah, kartu menyesuaikan */
+  @media (max-width: 640px) {
+    .wrap { padding-bottom: 96px; }
+    header { padding: 12px 14px; }
+    header h1 { font-size: 19px; }
+    header .reload { width: auto; padding: 7px 12px; font-size: 12px; }
+    .nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 90; margin: 0; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 0;
+      padding: 6px 6px calc(6px + env(safe-area-inset-bottom, 0px)); background: rgba(255,255,255,.97); backdrop-filter: blur(8px);
+      border: 0; border-top: 1px solid var(--line); border-radius: 0; box-shadow: 0 -4px 16px rgba(20,33,61,.07); }
+    .nav button, .nav button:nth-child(n+4) { grid-column: auto; flex-direction: column; gap: 3px; min-height: 52px; padding: 6px 2px; font-size: 11px; border-radius: var(--r-c); }
+    .nav button .ni, .nav button:nth-child(n+4) .ni { font-size: 20px; }
+    .nav button[aria-pressed="true"] { background: var(--gold-soft); color: var(--ink); box-shadow: none; }
+    .tablebox { box-shadow: none; }
+    .hc, .hc.off { padding: 16px 16px 14px; }
+    .hc-num b { font-size: 44px; }
+    .stats .stat { padding: 12px; min-height: 84px; } .stats .stat b { font-size: 24px; }
+    .kal-c::before { right: 5px; bottom: 5px; width: 6px; height: 6px; }
+  }
 </style>
 </head>
 <body>
@@ -928,7 +1100,7 @@
     <button type="button" id="nvAdmin" aria-pressed="false"><span class="ni" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg></span><span class="nl">Admin</span></button>
   </nav>
 
-  <div id="loading" class="loading">Memuat data absensi…</div>
+  <div id="loading" class="loading" role="status" aria-live="polite">Memuat data absensi…</div>
   <div id="error" class="error" hidden></div>
 
   <main id="app" hidden>
@@ -980,19 +1152,20 @@
             <div class="sf-panel" id="sfPanel" role="dialog" aria-label="Filter status" hidden></div>
           </div>
         </div>
-        <div class="field">
+        <div class="adv-tog"><button type="button" id="advTog" aria-expanded="false" aria-controls="selTahun">Filter lanjutan <span class="adv-n" id="advN"></span></button></div>
+        <div class="field adv">
           <label for="selTahun">Tahun</label>
           <select id="selTahun"></select>
         </div>
-        <div class="field">
+        <div class="field adv">
           <label for="selBulan">Bulan</label>
           <select id="selBulan"></select>
         </div>
-        <div class="field">
+        <div class="field adv">
           <label for="selTanggal">Tanggal</label>
           <select id="selTanggal"></select>
         </div>
-        <div class="field">
+        <div class="field adv">
           <label for="selUrut">Urutkan</label>
           <select id="selUrut">
             <option value="baru">Tanggal terbaru</option>
@@ -1862,7 +2035,7 @@
 
     var hadirList = d.hadirList || [], belumList = d.belumList || [];
     hadirList.forEach(rapikanScanGanda);
-    $('hdPanel').style.setProperty('--hd-c', jenis === 'hadir' ? '#22c55e' : '#eab308');
+    $('hdPanel').style.setProperty('--hd-c', jenis === 'hadir' ? '#3f8a6a' : '#b8893b');
     $('hdTitle').textContent = jenis === 'hadir' ? 'Hadir hari ini' : 'Belum absen hari ini';
     $('hdSub').textContent = hdTglTeks(d) + (d.jam ? ' · diperbarui ' + d.jam : '');
 
@@ -2388,12 +2561,12 @@
       return;
     }
     var K = [
-      { l: 'Tepat waktu', c: '#047857', n: 0 },
-      { l: 'Terlambat', c: '#c2410c', n: 0 },
-      { l: 'Pulang cepat', c: '#be185d', n: 0 },
-      { l: 'Izin / dinas', c: '#4338ca', n: 0 },
-      { l: 'Tidak hadir', c: '#b91c1c', n: 0 },
-      { l: 'Belum absen', c: '#94a3b8', n: 0 }
+      { l: 'Tepat waktu', c: '#2f6f55', n: 0 },
+      { l: 'Terlambat', c: '#b4651f', n: 0 },
+      { l: 'Pulang cepat', c: '#a2456b', n: 0 },
+      { l: 'Izin / dinas', c: '#4a55a2', n: 0 },
+      { l: 'Tidak hadir', c: '#a33a3a', n: 0 },
+      { l: 'Belum absen', c: '#a3acbd', n: 0 }
     ];
     base.forEach(function (r) {
       if (r.st === 'hadir') { if (r.telat > 0) K[1].n++; else if (r.cepat > 0) K[2].n++; else K[0].n++; }
@@ -2542,7 +2715,7 @@
   var HARI_PJG = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
   var KAL = { recs: {}, tgl: '', buka: false };
   var KAL_LBL = { izn: 'Izin / dinas', ok: 'Tepat waktu', warn: 'Terlambat / belum lengkap', abs: 'Tidak hadir', viol: 'Melanggar jam izin', off: 'Libur', mg: 'Masuk saat libur', none: 'Belum ada data' };
-  var KAL_WARNA = { izn: '#7c3aed', ok: '#10b981', warn: '#eab308', abs: '#ef4444', viol: '#dc2626', off: '#94a3b8', mg: '#1d5ff0', none: '#94a3b8' };
+  var KAL_WARNA = { izn: '#6b5b95', ok: '#3f8a6a', warn: '#b8893b', abs: '#b84a4a', viol: '#9b2c2c', off: '#a3acbd', mg: '#14213d', none: '#a3acbd' };
 
   function kalKelas(r) {
     if (!r) return 'none';
@@ -2801,7 +2974,7 @@
 
   var CARDS = {
     hadir: {
-      t: 'Hari hadir', col: '#1d5ff0', chip: 'ok',
+      t: 'Hari hadir', col: '#14213d', chip: 'ok',
       d: 'Semua hari dengan minimal satu scan absen (masuk dan/atau pulang), termasuk masuk di hari libur.',
       test: function (r) { return r.st === 'hadir'; },
       cols: [['Masuk', 'num', function (r) { return tm(r.masuk); }], ['Pulang', 'num', function (r) { return tm(r.pulang); }],
@@ -2818,7 +2991,7 @@
       }
     },
     absen: {
-      t: 'Tidak hadir', col: '#ef4444', chip: 'abs',
+      t: 'Tidak hadir', col: '#b84a4a', chip: 'abs',
       d: 'Hari kerja yang tidak memiliki scan masuk maupun pulang sama sekali (hari Minggu dan hari libur tidak dihitung).',
       test: function (r) { return r.st === 'absen'; },
       cols: [['Keterangan', '', function () { return '<span class="chip abs">Tidak hadir · tanpa scan</span>'; }]],
@@ -2826,7 +2999,7 @@
       sum: function (L) { var d = {}; L.forEach(function (r) { d[r.tgl] = 1; }); return [['Total tidak hadir', L.length + ' hari'], ['Tanggal berbeda', Object.keys(d).length]]; }
     },
     lupa: {
-      t: 'Belum absen', col: '#eab308', chip: 'forgot',
+      t: 'Belum absen', col: '#b8893b', chip: 'forgot',
       d: 'Hari hadir tetapi scan masuk atau scan pulang kosong (lupa absen), serta hari ini bila belum scan sama sekali. Scan pulang hari ini yang masih berjalan tidak dihitung.',
       test: isLupa,
       cols: [['Masuk', 'num', function (r) { return tm(r.masuk); }], ['Pulang', 'num', function (r) { return tm(r.pulang); }],
@@ -2846,7 +3019,7 @@
       }
     },
     telat: {
-      t: 'Terlambat', col: '#f97316', chip: 'late', vk: 'telat', vl: 'Terlambat terlama',
+      t: 'Terlambat', col: '#b4651f', chip: 'late', vk: 'telat', vl: 'Terlambat terlama',
       d: function () { return 'Hari kerja dengan scan masuk setelah pukul ' + DB.config.jamMasuk + (DB.config.toleransi ? ' (toleransi ' + DB.config.toleransi + ' menit)' : ' (tanpa toleransi)') + '.'; },
       test: function (r) { return r.telat > 0; },
       cols: [['Jam masuk', 'num', function (r) { return tm(r.masuk); }], ['Batas masuk', 'num', function (r) { return r.bMasuk || DB.config.jamMasuk; }],
@@ -2856,7 +3029,7 @@
       sum: function (L) { return sumMenit(L, 'telat', 'Kali terlambat'); }
     },
     cepat: {
-      t: 'Pulang cepat', col: '#ec4899', chip: 'early', vk: 'cepat', vl: 'Pulang cepat terlama',
+      t: 'Pulang cepat', col: '#a2456b', chip: 'early', vk: 'cepat', vl: 'Pulang cepat terlama',
       d: function () { return 'Hari kerja dengan scan pulang sebelum pukul ' + DB.config.jamPulang + '.'; },
       test: function (r) { return r.cepat > 0; },
       cols: [['Masuk', 'num', function (r) { return tm(r.masuk); }], ['Jam pulang', 'num', function (r) { return tm(r.pulang); }],
@@ -2866,7 +3039,7 @@
       sum: function (L) { return sumMenit(L, 'cepat', 'Kali pulang cepat'); }
     },
     lembur: {
-      t: 'Total lembur', col: '#6366f1', chip: 'ot', vk: 'lembur', vl: 'Lembur terbanyak',
+      t: 'Total lembur', col: '#4a55a2', chip: 'ot', vk: 'lembur', vl: 'Lembur terbanyak',
       d: function () { return 'Hari kerja dihitung dari pukul ' + DB.config.lemburMulai + ' sampai scan pulang. Hari Minggu/libur dihitung dari scan pertama sampai scan terakhir.'; },
       test: function (r) { return r.lembur > 0; },
       cols: [['Masuk', 'num', function (r) { return tm(r.masuk); }], ['Pulang', 'num', function (r) { return tm(r.pulang); }],
@@ -4416,7 +4589,7 @@
 
   var AD = { token: '', admin: '', tab: 'menunggu', mode: 'lembur', data: { menunggu: [], riwayat: [] }, iz: { menunggu: [], riwayat: [] } };
 
-  function adErr(id, msg, ok) { var e = $(id); e.hidden = !msg; e.textContent = msg || ''; e.style.color = ok ? '#047857' : ''; }
+  function adErr(id, msg, ok) { var e = $(id); e.hidden = !msg; e.textContent = msg || ''; e.style.color = ok ? '#2f6f55' : ''; }
 
   function adMasuk() {
     var nama = $('adNama').value.trim(), pin = $('adPin').value;
@@ -4861,6 +5034,26 @@
   }, true);
   window.addEventListener('resize', tutup);
   window.addEventListener('scroll', function (e) { if (pop && !pop.contains(e.target)) tutup(); }, true);
+})();
+</script>
+<script>
+(function () {
+  var f = document.querySelector('.filters'), b = document.getElementById('advTog'), n = document.getElementById('advN');
+  if (!f || !b || !n) return;
+  function $(id) { return document.getElementById(id); }
+  function upd() {
+    var c = 0;
+    if ($('selBulan') && $('selBulan').value !== '' && !$('selBulan').parentNode.hidden) c++;
+    if ($('selTanggal') && $('selTanggal').value !== '') c++;
+    if ($('selUrut') && $('selUrut').value !== 'baru') c++;
+    n.textContent = c ? String(c) : '';
+  }
+  b.addEventListener('click', function () {
+    var o = f.classList.toggle('adv-open');
+    b.setAttribute('aria-expanded', o ? 'true' : 'false');
+  });
+  document.addEventListener('change', function () { setTimeout(upd, 0); }, true);
+  document.addEventListener('click', function () { setTimeout(upd, 0); }, true);
 })();
 </script>
 </body>
