@@ -2610,6 +2610,7 @@
     });
     inp.addEventListener('blur', function () {
       setTimeout(function () {
+        if (comboArrowAktif(inp)) return;   // panah baru ditekan / kolom sudah fokus lagi: biarkan tombol panah yang mengatur daftar
         close();
         var v = inp.value.trim().toLowerCase();
         var exact = NAMA_LIST.filter(function (n) { return n.toLowerCase() === v; })[0];
@@ -3662,6 +3663,7 @@
     });
     inp.addEventListener('blur', function () {
       setTimeout(function () {
+        if (comboArrowAktif(inp)) return;   // panah baru ditekan / kolom sudah fokus lagi: biarkan tombol panah yang mengatur daftar
         close();
         if (!NAMA_LIST.length) return;
         var v = inp.value.trim().toLowerCase();
@@ -4179,7 +4181,7 @@
       else if (e.key === 'Enter') { if (!list.hidden && items.length) { e.preventDefault(); pick(items[act >= 0 ? act : 0]); } }
       else if (e.key === 'Escape') close();
     });
-    inp.addEventListener('blur', function () { setTimeout(close, 120); });
+    inp.addEventListener('blur', function () { setTimeout(function () { if (!comboArrowAktif(inp)) close(); }, 120); });
     list.addEventListener('mousedown', function (e) {
       var li = e.target.closest ? e.target.closest('li[data-v]') : null;
       e.preventDefault();
@@ -5577,6 +5579,18 @@
   var l = document.getElementById('loading'); if (!l) return;
   l.innerHTML = '<span class="sr">Memuat data absensi…</span><div class="sk sk-hero" aria-hidden="true"><div class="sk-msg"><span class="sk-spin"></span><div><b>Mohon tunggu</b><small>Sedang memuat data absensi…</small></div></div></div>';
 })();
+</script>
+<script>
+/* Tombol panah pada kolom nama: di iOS Safari dan sebagian WebView, mengetuk tombol tetap membuat kolom kehilangan fokus (blur)
+   sebelum 'click'. Timer blur lalu menutup daftar tepat setelah klik panah membukanya, sehingga panah terasa tidak bisa diklik.
+   Penjaga ini mencatat waktu panah ditekan agar timer blur tidak menutup daftar pada saat itu. */
+window.__arrowT = 0;
+window.comboArrowAktif = function (inp) { return document.activeElement === inp || Date.now() - window.__arrowT < 350; };
+['pointerdown', 'touchstart', 'mousedown', 'pointerup', 'touchend', 'click'].forEach(function (ev) {
+  document.addEventListener(ev, function (e) {
+    var t = e.target; if (t && t.closest && t.closest('.combo-arrow')) window.__arrowT = Date.now();
+  }, true);
+});
 </script>
 </body>
 </html>
