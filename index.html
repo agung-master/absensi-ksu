@@ -1329,15 +1329,30 @@
     .tbl-h td.c-ket .chips { justify-content: flex-start; gap: 6px; }
     .tbl-h td.c-ket .chip { border-radius: 10px; padding: 4px 10px; line-height: 1.4; white-space: normal; text-align: left; max-width: 100%; overflow-wrap: anywhere; }
   }
+
+  /* ===== Logo & profil perusahaan ===== */
+  header .hd-logo.has-img { width: auto; height: 40px; min-width: 0; max-width: 170px; padding: 0; background: transparent; border: 0; border-radius: 0; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
+  header .hd-logo.has-img img { display: block; height: 100%; width: auto; max-width: 100%; object-fit: contain; }
+  header .hd-logo.has-img.plate { background: #fff; padding: 4px 8px; border-radius: 10px; box-sizing: content-box; height: 32px; }
+  @media (max-width: 640px) {
+    header .hd-logo.has-img { height: 36px; max-width: 130px; }
+    header .hd-logo.has-img.plate { height: 28px; }
+  }
+  .pf-logo-row { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
+  .pf-prev { display: flex; align-items: center; justify-content: center; min-width: 120px; max-width: 220px; height: 64px; padding: 8px 14px; border-radius: 12px; background: #14213d; border: 1px solid var(--line); color: #e8c987; font-weight: 800; letter-spacing: .06em; }
+  .pf-prev.plate { background: #fff; }
+  .pf-prev img { display: block; height: 100%; width: auto; max-width: 100%; object-fit: contain; }
+  .pf-logo-ctl { flex: 1 1 260px; min-width: 0; }
+  .pf-logo-ctl .field input[type=file] { padding: 8px; }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
     <div class="hd-main">
-      <span class="hd-logo" aria-hidden="true">KSU</span>
+      <span class="hd-logo" id="hdLogo" aria-hidden="true">KSU</span>
       <div class="hd-txt">
-        <h1>Absensi KSU</h1>
+        <h1 id="hdNama">Absensi KSU</h1>
         <p>Lihat kehadiran seluruh karyawan atau data Anda sendiri.</p>
       </div>
     </div>
@@ -1727,6 +1742,7 @@
             <button type="button" id="asPg" aria-pressed="true">Penyesuaian lembur</button>
             <button type="button" id="asTk" aria-pressed="false">Tukar shift</button>
             <button type="button" id="asSh" aria-pressed="false">Shift aktif</button>
+            <button type="button" id="asPf" aria-pressed="false">Profil perusahaan</button>
           </div>
         </div>
         <p class="pm-sub" id="asInfo" style="margin-top:10px"></p>
@@ -1925,7 +1941,7 @@
   // Tempel URL Web App dari Apps Script di antara tanda kutip.
   // Contoh: 'https://script.google.com/macros/s/XXXX/exec'
   // ============================================================
-  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwBuL2Rqq8tv2qXOM9wBP3Aq6rHxUqoE1968K_C4tkBpuuoVMMWGl0_rdLmFh00FVggwg/exec';
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx7E72Wt4BETJQzGfMxcRHh-B5Sudqe5NcDqsQXHcrr60xMhVrC7cU6I8nLWme7hRZmNg/exec';
   // ============================================================
 
   function p2(n) { return (n < 10 ? '0' : '') + n; }
@@ -2409,6 +2425,7 @@
     DB.periods = data.periods || [];
     DB.config = data.config;
     DB.hariIni = data.hariIni || null;
+    if (data.profil) { window.KSU_PROFIL = data.profil; if (window.terapkanProfil) window.terapkanProfil(); }
     SESUAI = petaSesuai(data.sesuai); IZT = petaSesuai(data.izt); IZN = petaIzin(data.izn); CTT = data.ctt || []; TKS = data.tks || { l: [], j: {} }; GANTI = petaSesuai(CTT.map(function (x) { return { n: x.n, t: x.tl }; }));
 
     if (!DB.periods.length) { showError(new Error('Tidak ada sheet bulanan yang terbaca dari spreadsheet')); return; }
@@ -2472,6 +2489,7 @@
       DB.periods = data.periods || [];
       DB.config = data.config;
       DB.hariIni = data.hariIni || null;
+    if (data.profil) { window.KSU_PROFIL = data.profil; if (window.terapkanProfil) window.terapkanProfil(); }
       SESUAI = petaSesuai(data.sesuai); IZT = petaSesuai(data.izt); IZN = petaIzin(data.izn); CTT = data.ctt || []; TKS = data.tks || { l: [], j: {} }; GANTI = petaSesuai(CTT.map(function (x) { return { n: x.n, t: x.tl }; }));
       renderHariIni();
       buildPeriods();
@@ -3856,7 +3874,7 @@
   }
 
   /* ===================== MENU ADMIN: PENGATURAN ===================== */
-  var AS = { sub: 'pg', pg: null, tk: null, sh: null, cari: '', pilMg: '', pilPt: '' };
+  var AS = { sub: 'pg', pg: null, tk: null, sh: null, pf: null, cari: '', pilMg: '', pilPt: '' };
 
   function asErr(msg) { var e = $('asErr'); e.hidden = !msg; e.textContent = msg || ''; if (msg) { $('asOk').hidden = true; } }
   function asOk(msg) { var o = $('asOk'); o.hidden = !msg; o.textContent = msg || ''; if (msg) { $('asErr').hidden = true; } }
@@ -3869,18 +3887,18 @@
   }
   function asTab(t) {
     AS.sub = t; AS.cari = '';
-    ['Pg', 'Tk', 'Sh'].forEach(function (k) { $('as' + k).setAttribute('aria-pressed', k.toLowerCase() === t); });
+    ['Pg', 'Tk', 'Sh', 'Pf'].forEach(function (k) { $('as' + k).setAttribute('aria-pressed', k.toLowerCase() === t); });
     asErr(''); asOk('');
     if (AS[t]) asRender();
     asMuat();
   }
   function asRender() {
-    $('asPg').setAttribute('aria-pressed', AS.sub === 'pg'); $('asTk').setAttribute('aria-pressed', AS.sub === 'tk'); $('asSh').setAttribute('aria-pressed', AS.sub === 'sh');
+    $('asPg').setAttribute('aria-pressed', AS.sub === 'pg'); $('asTk').setAttribute('aria-pressed', AS.sub === 'tk'); $('asSh').setAttribute('aria-pressed', AS.sub === 'sh'); $('asPf').setAttribute('aria-pressed', AS.sub === 'pf');
     if (!AS[AS.sub]) { asMuat(); return; }
-    if (AS.sub === 'pg') asRenderPg(); else if (AS.sub === 'tk') asRenderTk(); else asRenderSh();
+    if (AS.sub === 'pg') asRenderPg(); else if (AS.sub === 'tk') asRenderTk(); else if (AS.sub === 'pf') asRenderPf(); else asRenderSh();
   }
   function asMuat() {
-    var aksi = AS.sub === 'pg' ? 'admPgDaftar' : AS.sub === 'tk' ? 'admTkDaftar' : 'admShBaca';
+    var aksi = AS.sub === 'pg' ? 'admPgDaftar' : AS.sub === 'tk' ? 'admTkDaftar' : AS.sub === 'pf' ? 'admPfBaca' : 'admShBaca';
     var b = $('adMuat'); b.disabled = true; b.textContent = '↻ Memuat…';
     $('asBody').innerHTML = AS[AS.sub] ? $('asBody').innerHTML : '<div class="pm-empty">Memuat data…</div>';
     var sub = AS.sub;
@@ -4153,6 +4171,107 @@
     }
     asCombo(id, names, cari);
   }
+
+  /* ===================== MENU ADMIN: PROFIL PERUSAHAAN ===================== */
+  var PF_LOGO_BARU = '';
+  function pfNama() { var p = window.KSU_PROFIL; return (p && p.nama) ? p.nama : 'Absensi KSU'; }
+  function pfKopLogo() {
+    var p = window.KSU_PROFIL;
+    return (p && p.logo) ? '<img src="' + p.logo + '" alt="" style="display:block;margin:0 auto 4px;max-height:18mm;max-width:60mm">' : '';
+  }
+  function pfTerap(pr) {
+    window.KSU_PROFIL = pr;
+    try { var c = JSON.parse(localStorage.getItem('absInit') || 'null'); if (c) { c.profil = pr; localStorage.setItem('absInit', JSON.stringify(c)); } } catch (e) {}
+    if (window.terapkanProfil) window.terapkanProfil();
+  }
+  function pfProses(file, selesai, gagal) {
+    if (!/^image\/(png|jpeg|webp|svg\+xml)$/.test(file.type)) { gagal('Format file harus PNG, JPG, WEBP, atau SVG.'); return; }
+    if (file.size > 8 * 1024 * 1024) { gagal('Ukuran file terlalu besar (maksimal 8 MB).'); return; }
+    var fr = new FileReader();
+    fr.onerror = function () { gagal('File tidak bisa dibaca.'); };
+    fr.onload = function () {
+      var im = new Image();
+      im.onerror = function () { gagal('File bukan gambar yang valid.'); };
+      im.onload = function () {
+        var w = im.naturalWidth || 300, h = im.naturalHeight || 300, svg = file.type === 'image/svg+xml';
+        var sk = Math.min(160 / h, 480 / w); if (!svg) sk = Math.min(1, sk);   // tinggi maks 160 px, lebar maks 480 px; bentuk asli dipertahankan
+        for (var i = 0; i < 8; i++) {
+          var cw = Math.max(1, Math.round(w * sk)), ch = Math.max(1, Math.round(h * sk));
+          var cv = document.createElement('canvas'); cv.width = cw; cv.height = ch;
+          cv.getContext('2d').drawImage(im, 0, 0, cw, ch);
+          var url = cv.toDataURL('image/png');
+          if (url.length <= 150000) { selesai(url, cw, ch); return; }
+          sk *= 0.8;
+        }
+        gagal('Logo terlalu detail/besar. Gunakan gambar yang lebih sederhana.');
+      };
+      im.src = fr.result;
+    };
+    fr.readAsDataURL(file);
+  }
+  function pfPrevIsi(logo, inisial) {
+    var b = $('pfPrev'); if (!b) return;
+    b.textContent = '';
+    if (logo) { var im = document.createElement('img'); im.src = logo; im.alt = 'Pratinjau logo'; b.appendChild(im); }
+    else b.textContent = inisial || 'KSU';
+  }
+  function asRenderPf() {
+    var P = (AS.pf && AS.pf.profil) || {};
+    PF_LOGO_BARU = '';
+    $('asInfo').textContent = 'Atur logo dan identitas perusahaan yang tampil di header aplikasi. Perubahan langsung berlaku untuk semua pengguna (maksimal sekitar 1 menit).';
+    var h = '<div class="ads-sec"><h3>Logo perusahaan</h3>' +
+      '<p class="pm-sub" style="margin:0">Unggah PNG, JPG, WEBP, atau SVG. Bentuk logo dipertahankan apa adanya; tingginya otomatis disesuaikan dengan header. PNG transparan paling rapi.</p>' +
+      '<div class="pf-logo-row"><div class="pf-prev' + (P.latar === 'Putih' ? ' plate' : '') + '" id="pfPrev"></div>' +
+      '<div class="pf-logo-ctl"><div class="field"><label for="pfFile">Pilih file logo</label><input id="pfFile" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml"></div>' +
+      '<div class="pm-act" style="margin-top:8px"><button type="button" class="pm-btn sm" id="pfLogoSimpan" disabled>Simpan logo</button>' +
+      '<button type="button" class="pm-btn no sm" id="pfLogoHapus"' + (P.logo ? '' : ' hidden') + '>Hapus logo</button></div>' +
+      '<div class="pm-hint" id="pfLogoInfo"></div></div></div></div>' +
+
+      '<div class="ads-sec"><h3>Profil perusahaan</h3><p class="pm-sub" style="margin:0">Teks yang tampil di header di sebelah logo.</p>' +
+      '<div class="ads-grid">' +
+      '<div class="field"><label for="pfNama">Nama perusahaan</label><input id="pfNama" type="text" maxlength="60" value="' + esc(P.nama || '') + '" autocomplete="off"></div>' +
+      '<div class="field"><label for="pfInisial">Inisial (jika belum ada logo)</label><input id="pfInisial" type="text" maxlength="5" value="' + esc(P.inisial || '') + '" autocomplete="off"></div>' +
+      '<div class="field"><label for="pfTagline">Teks di bawah nama (opsional)</label><input id="pfTagline" type="text" maxlength="90" value="' + esc(P.tagline || '') + '" placeholder="Kosong = sapaan otomatis (Selamat pagi, dst.)" autocomplete="off"></div>' +
+      '<div class="field"><label for="pfWaktu">Tampilkan tanggal &amp; jam</label><select id="pfWaktu"><option value="Ya"' + (P.waktu === 'Tidak' ? '' : ' selected') + '>Ya</option><option value="Tidak"' + (P.waktu === 'Tidak' ? ' selected' : '') + '>Tidak</option></select></div>' +
+      '<div class="field"><label for="pfLatar">Latar logo di header</label><select id="pfLatar"><option value="Transparan"' + (P.latar === 'Putih' ? '' : ' selected') + '>Transparan</option><option value="Putih"' + (P.latar === 'Putih' ? ' selected' : '') + '>Putih (untuk logo berwarna gelap)</option></select></div>' +
+      '</div><div class="pm-act" style="margin-top:10px"><button type="button" class="pm-btn sm" id="pfSimpan">Simpan profil</button></div></div>';
+    $('asBody').innerHTML = h;
+    pfPrevIsi(P.logo, P.inisial);
+
+    $('pfLatar').onchange = function () { $('pfPrev').classList.toggle('plate', this.value === 'Putih'); };
+    $('pfFile').onchange = function () {
+      var f = this.files && this.files[0], info = $('pfLogoInfo'), b = $('pfLogoSimpan');
+      PF_LOGO_BARU = ''; b.disabled = true; info.textContent = '';
+      if (!f) return;
+      info.textContent = 'Memproses gambar…';
+      pfProses(f, function (url, w, h2) {
+        PF_LOGO_BARU = url; pfPrevIsi(url, ''); b.disabled = false;
+        info.textContent = 'Pratinjau siap (' + w + '×' + h2 + ' px, ' + Math.round(url.length * 0.75 / 1024) + ' KB). Klik “Simpan logo” untuk menerapkan.';
+      }, function (msg) { info.textContent = ''; asErr(msg); $('pfFile').value = ''; });
+    };
+    $('pfLogoSimpan').onclick = function () {
+      if (!PF_LOGO_BARU) return;
+      var b = this; b.disabled = true; b.textContent = 'Menyimpan…'; asErr('');
+      asApi({ action: 'admPfLogo', logo: PF_LOGO_BARU }, function (res) {
+        AS.pf = res; pfTerap(res.profil); asRenderPf(); asOk('Logo tersimpan.');
+      }, function (e) { b.disabled = false; b.textContent = 'Simpan logo'; asErr(e.message); });
+    };
+    $('pfLogoHapus').onclick = function () {
+      if (!window.confirm('Hapus logo perusahaan? Header akan kembali memakai inisial.')) return;
+      var b = this; b.disabled = true; asErr('');
+      asApi({ action: 'admPfLogo', hapus: true }, function (res) {
+        AS.pf = res; pfTerap(res.profil); asRenderPf(); asOk('Logo dihapus.');
+      }, function (e) { b.disabled = false; asErr(e.message); });
+    };
+    $('pfSimpan').onclick = function () {
+      var b = this; b.disabled = true; b.textContent = 'Menyimpan…'; asErr('');
+      asApi({ action: 'admPfSimpan', nama: $('pfNama').value, inisial: $('pfInisial').value, tagline: $('pfTagline').value,
+              waktu: $('pfWaktu').value, latar: $('pfLatar').value }, function (res) {
+        AS.pf = res; pfTerap(res.profil); asRenderPf(); asOk('Profil perusahaan tersimpan.');
+      }, function (e) { b.disabled = false; b.textContent = 'Simpan profil'; asErr(e.message); });
+    };
+  }
+
   function asRenderSh() {
     var D = AS.sh;
     $('asInfo').textContent = 'Pengaturan jam shift, aturan lembur, toleransi, jadwal mingguan, dan aturan pertukaran lembur. Perubahan ditulis ke sheet Shift Aktif dan semua sheet bulan dihitung ulang otomatis (±1,5 menit).';
@@ -4859,7 +4978,7 @@
     $('adPanel').hidden = !AD.token;
     $('adWho').textContent = AD.admin ? 'Masuk sebagai ' + AD.admin : '';
   }
-  function adKeluarLokal() { AD.token = ''; AD.admin = ''; AD.data = { menunggu: [], riwayat: [] }; AD.iz = { menunggu: [], riwayat: [] }; AS = { sub: 'pg', pg: null, tk: null, sh: null, cari: '', pilMg: '', pilPt: '' }; adTampilPanel(); }
+  function adKeluarLokal() { AD.token = ''; AD.admin = ''; AD.data = { menunggu: [], riwayat: [] }; AD.iz = { menunggu: [], riwayat: [] }; AS = { sub: 'pg', pg: null, tk: null, sh: null, pf: null, cari: '', pilMg: '', pilPt: '' }; adTampilPanel(); }
   function adKeluar() {
     var t = AD.token; adKeluarLokal();
     if (t) apiPost({ action: 'logout', token: t }, function () {}, function () {});
@@ -5047,7 +5166,7 @@
     var now = new Date();
     var cetakTxt = now.getDate() + ' ' + BULAN[now.getMonth()] + ' ' + now.getFullYear() + ' ' + p2(now.getHours()) + ':' + p2(now.getMinutes());
 
-    var h = '<div class="pr-kop"><h1>ABSENSI KSU</h1><h2>FORMULIR PERMOHONAN PENGGANTIAN LEMBUR</h2><p>Arsip hard file kantor</p></div>' +
+    var h = '<div class="pr-kop">' + pfKopLogo() + '<h1>' + esc(pfNama().toUpperCase()) + '</h1><h2>FORMULIR PERMOHONAN PENGGANTIAN LEMBUR</h2><p>Arsip hard file kantor</p></div>' +
       '<div class="pr-meta"><div><b>No. Dokumen:</b> ' + v(o.id) + '</div><div><b>Dicetak:</b> ' + esc(cetakTxt) + (AD.admin ? ' oleh ' + esc(AD.admin) : '') + '</div></div>' +
       '<div class="pr-stamp"><span>' + esc(stempel) + '</span></div>' +
 
@@ -5113,6 +5232,7 @@
     $('asPg').onclick = function () { asTab('pg'); };
     $('asTk').onclick = function () { asTab('tk'); };
     $('asSh').onclick = function () { asTab('sh'); };
+    $('asPf').onclick = function () { asTab('pf'); };
     $('adfOk').onclick = adfSimpan;
     $('adfBatal').onclick = adfTutup;
     $('adfBack').addEventListener('mousedown', function (e) { if (e.target === $('adfBack')) adfTutup(); });
@@ -5317,14 +5437,41 @@
   function setT(t, save) { root.setAttribute('data-theme', t); var m = document.querySelector('meta[name=theme-color]'); if (m) m.content = t === 'dark' ? '#0a1020' : '#14213d'; if (save) { try { localStorage.setItem(KEY, t); } catch (e) {} } }
   setT(root.getAttribute('data-theme') || 'light');
   if ($('btnTheme')) $('btnTheme').addEventListener('click', function () { setT(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark', true); });
+  /* profil perusahaan (nama, inisial, logo, teks header) dari pengaturan admin */
+  var PR_DEF = { nama: 'Absensi KSU', inisial: 'KSU', tagline: '', waktu: 'Ya', latar: 'Transparan', logo: '' }, PR = PR_DEF;
+  function bacaProfil() {
+    var p = window.KSU_PROFIL;
+    if (!p) { try { var c = JSON.parse(localStorage.getItem('absInit') || 'null'); if (c && c.profil) p = c.profil; } catch (e) {} }
+    var o = {}; for (var k in PR_DEF) o[k] = (p && typeof p[k] === 'string') ? p[k] : PR_DEF[k];
+    if (!o.nama) o.nama = PR_DEF.nama;
+    return o;
+  }
+  function escH(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+  window.terapkanProfil = function () {
+    PR = bacaProfil();
+    var lg = $('hdLogo'), h1 = $('hdNama');
+    if (h1) h1.textContent = PR.nama;
+    document.title = PR.nama;
+    if (lg) {
+      lg.textContent = '';
+      lg.classList.toggle('has-img', !!PR.logo);
+      lg.classList.toggle('plate', !!PR.logo && PR.latar === 'Putih');
+      if (PR.logo) { var im = document.createElement('img'); im.src = PR.logo; im.alt = ''; lg.appendChild(im); }
+      else lg.textContent = PR.inisial;
+    }
+    if (typeof tick === 'function') tick();
+  };
+  PR = bacaProfil();
   /* sapaan, tanggal, jam */
   var H = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'], B = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
   function p2(n) { return n < 10 ? '0' + n : '' + n; }
   function tick() {
     var el = document.querySelector('header p'); if (!el) return;
     var d = new Date(), h = d.getHours(), s = h < 4 ? 'Selamat malam' : h < 11 ? 'Selamat pagi' : h < 15 ? 'Selamat siang' : h < 18 ? 'Selamat sore' : 'Selamat malam';
-    el.innerHTML = '<span class="hd-sp">' + s + '</span><span class="hd-dt">' + H[d.getDay()] + ', ' + d.getDate() + ' ' + B[d.getMonth()] + ' ' + d.getFullYear() + ' · ' + p2(h) + '.' + p2(d.getMinutes()) + '</span>';
+    if (PR.tagline) s = PR.tagline;
+    el.innerHTML = '<span class="hd-sp">' + escH(s) + '</span>' + (PR.waktu === 'Tidak' ? '' : '<span class="hd-dt">' + H[d.getDay()] + ', ' + d.getDate() + ' ' + B[d.getMonth()] + ' ' + d.getFullYear() + ' · ' + p2(h) + '.' + p2(d.getMinutes()) + '</span>');
   }
+  window.terapkanProfil();
   tick(); setInterval(tick, 30000);
   /* indikator tab yang bergeser */
   var nav = $('nav');
