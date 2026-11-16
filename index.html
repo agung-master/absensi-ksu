@@ -1353,6 +1353,52 @@
   .rk-how p { margin: 8px 0 0; color: var(--muted); }
   .rk-how ul { margin: 6px 0 0; padding-left: 20px; color: var(--muted); }
   .rk-how li { margin-top: 4px; }
+
+  /* ===================== PERBAIKAN v9: scroll mulus ===================== */
+  /* Penyebab patah-patah: backdrop-filter (blur) pada puluhan kartu + background-attachment: fixed.
+     Keduanya dihitung ulang GPU di setiap frame scroll. Diganti permukaan hampir-solid dan latar fixed yang di-composite sendiri. */
+  :root { --glass: rgba(255,255,255,.94); --pop: rgba(255,255,255,.98); }
+  :root[data-theme="dark"] { --glass: rgba(22,31,52,.95); --pop: rgba(18,26,44,.98); }
+  body { background: var(--bg); background-attachment: scroll; }
+  body::before {
+    display: block; content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: 1;
+    background: radial-gradient(900px 500px at 6% -6%, rgba(20,33,61,.12), transparent 62%), radial-gradient(700px 420px at 100% 8%, rgba(184,137,59,.14), transparent 60%);
+    transform: translateZ(0); will-change: transform;
+  }
+  :root[data-theme="dark"] body::before { background: radial-gradient(900px 500px at 6% -6%, rgba(59,86,148,.18), transparent 62%), radial-gradient(700px 420px at 100% 8%, rgba(201,154,74,.10), transparent 60%); }
+  .panel, .tablebox, .gr, .kal, .stats .stat, .nav, .hc, header, .tablebox .kal {
+    -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+  }
+  .gr-donut svg { filter: none; }
+  /* kartu di luar layar tidak dihitung tata letaknya */
+  .stats .stat, .rk-card, .pm-it, .ads-card { content-visibility: auto; contain-intrinsic-size: auto 110px; }
+  .tablebox, .kal, .gr { contain: layout style; }
+  /* nav menempel: promosikan ke layer sendiri */
+  .nav { will-change: transform; transform: translateZ(0); }
+  html { scroll-behavior: auto; }
+  @media (max-width: 640px) {
+    .nav { background: var(--surface); }
+    .tablebox .kal { background: var(--surface); }
+    .tablebox tbody tr { animation: none; }
+  }
+  @media (hover: none) { .stats .stat:hover { transform: none; } }
+
+  /* ===================== TEKSTUR LATAR (diam saat scroll) ===================== */
+  /* Lapisan position:fixed, jadi tidak ikut bergerak saat halaman di-scroll.
+     Noise SVG di-raster sekali sebagai gambar ubin, jadi ringan untuk GPU. */
+  body::after {
+    content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n' x='0' y='0' width='100%25' height='100%25'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .08  0 0 0 0 .13  0 0 0 0 .25  0 0 0 .55 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"),
+      radial-gradient(rgba(20,33,61,.07) 1px, transparent 1.2px);
+    background-size: 180px 180px, 22px 22px;
+    opacity: .5;
+    transform: translateZ(0);
+  }
+  :root[data-theme="dark"] body::after {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n' x='0' y='0' width='100%25' height='100%25'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .8  0 0 0 0 .85  0 0 0 0 1  0 0 0 .5 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"),
+      radial-gradient(rgba(255,255,255,.06) 1px, transparent 1.2px);
+    opacity: .22;
+  }
 </style>
 </head>
 <body>
