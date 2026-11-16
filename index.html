@@ -1400,6 +1400,12 @@
     opacity: 1;
     transform: translateZ(0);
   }
+  /* ===================== Header admin: tombol aksi rapi di layar kecil ===================== */
+  @media (max-width: 640px) {
+    #adPanel > .pm-top > .pm-act { width: 100%; flex-wrap: nowrap; gap: 8px; margin: 0; }
+    #adPanel > .pm-top > .pm-act .pm-btn { flex: 1 1 0; min-width: 0; padding-left: 8px; padding-right: 8px; white-space: nowrap; }
+    .ex-lb2 { display: none; }
+  }
 </style>
 </head>
 <body>
@@ -1756,7 +1762,7 @@
       <div class="pm-top">
         <div><h2 class="pm-h" id="adJudul">Permohonan Lembur</h2><p class="pm-sub" id="adWho" style="margin:0"></p></div>
         <div class="pm-act" style="margin:0">
-          <button type="button" class="pm-btn ghost sm" id="adEks">⬇ Ekspor absensi</button>
+          <button type="button" class="pm-btn ghost sm" id="adEks" aria-label="Ekspor absensi">⬇ Ekspor<span class="ex-lb2"> absensi</span></button>
           <button type="button" class="pm-btn ghost sm" id="adMuat">↻ Muat ulang</button>
           <button type="button" class="pm-btn ghost sm" id="adKeluar">Keluar</button>
         </div>
@@ -2014,7 +2020,7 @@
   // Tempel URL Web App dari Apps Script di antara tanda kutip.
   // Contoh: 'https://script.google.com/macros/s/XXXX/exec'
   // ============================================================
-  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbye-pRyJMuUSvS6ouGS9rMiAgwaZOqjJPAfz1-GLMLvIUv0TT-ALMCw5zl5t6uWTlkKMg/exec';
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxfh302LuOslTdQcKckknH7DxCMtTZPor-5fr9XkvFKkTFh_k9uDoKXBf7trf0vpqo96A/exec';
   // ============================================================
 
   function p2(n) { return (n < 10 ? '0' : '') + n; }
@@ -2086,7 +2092,7 @@
   var S = { periode: '', mode: 'me', nama: '', cari: '', tahun: '', bulan: '', tanggal: '', urut: 'baru', status: [], smode: 'or', view: 'harian', tampil: 'kal', page: 1, size: 10 };
 
   function $(id) { return document.getElementById(id); }
-  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function esc(s) { return (s === null || s === undefined ? '' : String(s)).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 
   function fmtMin(m) {
     if (!m) return '0 menit';
@@ -3674,9 +3680,13 @@
       else { if (cKey) POST_CACHE[cKey] = { t: Date.now(), v: res }; ok(res); }
     }
     if (APPS_SCRIPT_URL) {
-      fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) })
-        .then(function (r) { return r.json(); }).then(hasil).catch(function (e) {
-          if (e && e.name === 'SyntaxError') e = new Error('Respons server bukan data yang valid. Pastikan Web App sudah di-deploy ulang (versi baru) dengan akses "Anyone"');
+      var ctl = (typeof AbortController === 'function') ? new AbortController() : null;
+      var tmo = ctl ? setTimeout(function () { ctl.abort(); }, (payload && payload.action === 'exEkspor') ? 180000 : 90000) : null;
+      fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload), signal: ctl ? ctl.signal : undefined })
+        .then(function (r) { if (tmo) clearTimeout(tmo); return r.json(); }).then(hasil).catch(function (e) {
+          if (tmo) clearTimeout(tmo);
+          if (e && e.name === 'AbortError') e = new Error('Server terlalu lama merespons. Coba lagi beberapa saat lagi');
+          else if (e && e.name === 'SyntaxError') e = new Error('Respons server bukan data yang valid. Pastikan Web App sudah di-deploy ulang (versi baru) dengan akses "Anyone"');
           else if (e && e.name === 'TypeError') e = new Error('Tidak bisa terhubung ke server. Periksa koneksi internet Anda');
           fail(e);
         });
