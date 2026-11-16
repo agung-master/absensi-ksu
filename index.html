@@ -1383,21 +1383,22 @@
   }
   @media (hover: none) { .stats .stat:hover { transform: none; } }
 
-  /* ===================== TEKSTUR LATAR (diam saat scroll) ===================== */
-  /* Lapisan position:fixed, jadi tidak ikut bergerak saat halaman di-scroll.
-     Noise SVG di-raster sekali sebagai gambar ubin, jadi ringan untuk GPU. */
+  /* ===================== TEKSTUR LATAR: titik-titik berjarak (diam saat scroll) ===================== */
+  /* Lapisan position:fixed, jadi titik tidak ikut bergerak saat halaman di-scroll.
+     Atur tampilan lewat 3 variabel: warna titik, jarak antar titik, dan ukuran titik. */
+  :root {
+    --dot-color: rgba(20, 33, 61, .17);
+    --dot-gap: 26px;
+    --dot-size: 1.3px;
+  }
+  :root[data-theme="dark"] { --dot-color: rgba(255, 255, 255, .11); }
   body::after {
     content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n' x='0' y='0' width='100%25' height='100%25'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .08  0 0 0 0 .13  0 0 0 0 .25  0 0 0 .55 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"),
-      radial-gradient(rgba(20,33,61,.07) 1px, transparent 1.2px);
-    background-size: 180px 180px, 22px 22px;
-    opacity: .5;
+    background-image: radial-gradient(circle at center, var(--dot-color) var(--dot-size), transparent calc(var(--dot-size) + .5px));
+    background-size: var(--dot-gap) var(--dot-gap);
+    background-position: center top;
+    opacity: 1;
     transform: translateZ(0);
-  }
-  :root[data-theme="dark"] body::after {
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n' x='0' y='0' width='100%25' height='100%25'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .8  0 0 0 0 .85  0 0 0 0 1  0 0 0 .5 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"),
-      radial-gradient(rgba(255,255,255,.06) 1px, transparent 1.2px);
-    opacity: .22;
   }
 </style>
 </head>
