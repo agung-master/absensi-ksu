@@ -344,8 +344,8 @@
     .pagenav button { padding: 10px 8px; font-size: 14px; }
   }
 
-  .per { width: fit-content; max-width: 100%; margin-top: 14px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: #f3f8ff; }
-  .per > .seg { margin-bottom: 10px; }
+  .per { width: fit-content; max-width: 100%; margin-top: 14px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: #f3f8ff; display: flex; flex-direction: column; justify-content: center; }
+  .per > .seg { margin-bottom: 10px; align-self: flex-start; }
   .per-wrap { display: flex; flex-wrap: wrap; gap: 14px; align-items: stretch; margin-top: 14px; }
   .per-wrap > .per { margin-top: 0; }
   .gr { flex: 1 1 340px; min-width: 260px; padding: 12px 16px; border: 1px solid var(--line); border-radius: 12px; background: #fff; display: flex; flex-direction: column; }
@@ -2020,7 +2020,7 @@
   // Tempel URL Web App dari Apps Script di antara tanda kutip.
   // Contoh: 'https://script.google.com/macros/s/XXXX/exec'
   // ============================================================
-  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwLCROAsAEUpdOSgbbGD_TSw3FSW80yUh7H-ddhozAkC-_ZFS3JYh--tJeBSS7Bc17E2w/exec';
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwHf1y9ThllxHH4b6O5DgdhENR2A7v6FDU5cU8_ci1v1Y4oi9RJUMDo9oE4iSLFlu1-lQ/exec';
   // ============================================================
 
   function p2(n) { return (n < 10 ? '0' : '') + n; }
@@ -3135,7 +3135,7 @@
       if (!r) { cells += '<div class="' + cls + '"><span class="kal-d">' + lbl + '</span></div>'; return; }
 
       var isi;
-      if (r.st === 'izin') isi = '<span class="kal-s">' + esc(r.izBlok.j === 'Dinas' ? 'DINAS' : 'IJIN') + '</span>' + (r.izBlok.k ? '<span class="kal-t">' + esc(r.izBlok.k.length > 18 ? r.izBlok.k.slice(0, 17) + '…' : r.izBlok.k) + '</span>' : '');
+      if (r.st === 'izin') isi = '<span class="kal-s">' + esc(r.izBlok.j === 'Dinas' ? 'DINAS' : 'IJIN') + '</span>';   // keterangan lengkap hanya di panel detail (klik tanggal)
       else if (r.st === 'libur') isi = '<span class="kal-s">Libur</span>';
       else if (r.st === 'absen') isi = '<span class="kal-s">Absen</span>';
       else if (r.st === 'belum') isi = '<span class="kal-s">Belum absen</span>';
@@ -3146,7 +3146,11 @@
       var aria = d + ' ' + BULAN[m - 1] + ': ' + KAL_LBL[k] +
                  (r.masuk ? ', masuk ' + r.masuk : '') + (r.pulang ? ', pulang ' + r.pulang : '') +
                  (lupa || r.st === 'belum' ? ', ' + lupaApa(r).toLowerCase() : '');
-      if (r.st === 'hadir' && r.iz && r.iz.length) isi += '<span class="kal-s">' + esc(r.iz.map(function (x) { return x.j.replace(/^Ijin /, 'Izin ').replace('Absensi Terlambat', 'Izin telat'); }).join(', ')) + '</span>';
+      if (r.st === 'hadir' && r.iz && r.iz.length) {
+        var izLbl = [];
+        r.iz.forEach(function (x) { var t = x.j.replace(/^Ijin /, 'Izin ').replace('Absensi Terlambat', 'Izin telat'); if (izLbl.indexOf(t) < 0) izLbl.push(t); });
+        isi += '<span class="kal-s">' + esc(izLbl[0]) + (izLbl.length > 1 ? ' +' + (izLbl.length - 1) : '') + '</span>';   // rincian lengkap ada di panel detail
+      }
       if (r.iz && r.iz.length) aria += ', ' + izTxt(r);
       cells += '<button type="button" class="' + cls + '" data-tgl="' + tgl + '" aria-label="' + esc(aria) + '">' +
                '<span class="kal-d">' + lbl + '</span>' + isi + '</button>';
