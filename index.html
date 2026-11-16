@@ -1756,6 +1756,7 @@
       <div class="pm-top">
         <div><h2 class="pm-h" id="adJudul">Permohonan Lembur</h2><p class="pm-sub" id="adWho" style="margin:0"></p></div>
         <div class="pm-act" style="margin:0">
+          <button type="button" class="pm-btn ghost sm" id="adEks">⬇ Ekspor absensi</button>
           <button type="button" class="pm-btn ghost sm" id="adMuat">↻ Muat ulang</button>
           <button type="button" class="pm-btn ghost sm" id="adKeluar">Keluar</button>
         </div>
@@ -1845,6 +1846,22 @@
       <div class="pm-act">
         <button type="button" class="pm-btn" id="pmaSimpan" disabled>Simpan &amp; terapkan</button>
         <button type="button" class="pm-btn ghost" id="pmaBatal">Batal</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="pm-back" id="exBack" hidden>
+    <div class="pm-dlg" role="dialog" aria-modal="true" aria-labelledby="exT">
+      <h3 id="exT">Ekspor data absensi</h3>
+      <p class="pm-sub" style="margin-top:0">Pilih bulan yang ingin diunduh. Hasilnya berupa file Excel (.xlsx) yang sama seperti sheet bulan tersebut di spreadsheet.</p>
+      <div class="field">
+        <label for="exBulan">Bulan</label>
+        <select id="exBulan" autocomplete="off" disabled><option value="">Memuat daftar bulan…</option></select>
+      </div>
+      <div class="pm-err" id="exErr" hidden></div>
+      <div class="pm-act">
+        <button type="button" class="pm-btn" id="exUnduh" disabled>⬇ Unduh Excel</button>
+        <button type="button" class="pm-btn ghost" id="exBatal">Batal</button>
       </div>
     </div>
   </div>
@@ -1997,7 +2014,7 @@
   // Tempel URL Web App dari Apps Script di antara tanda kutip.
   // Contoh: 'https://script.google.com/macros/s/XXXX/exec'
   // ============================================================
-  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx7E72Wt4BETJQzGfMxcRHh-B5Sudqe5NcDqsQXHcrr60xMhVrC7cU6I8nLWme7hRZmNg/exec';
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbye-pRyJMuUSvS6ouGS9rMiAgwaZOqjJPAfz1-GLMLvIUv0TT-ALMCw5zl5t6uWTlkKMg/exec';
   // ============================================================
 
   function p2(n) { return (n < 10 ? '0' : '') + n; }
@@ -5055,6 +5072,56 @@
     $('izaBack').hidden = false;
     $('izaNama').focus();
   }
+  // ---- Ekspor absensi (admin) ----
+  var EX_JALAN = false;
+  function exBuka() {
+    if (!AD.token) return;
+    var sel = $('exBulan'), btn = $('exUnduh');
+    sel.disabled = true; btn.disabled = true; btn.textContent = '⬇ Unduh Excel'; $('exBatal').disabled = false;
+    sel.innerHTML = '<option value="">Memuat daftar bulan…</option>';
+    $('exErr').hidden = true; EX_JALAN = false;
+    $('exBack').hidden = false;
+    apiPost({ action: 'exDaftar', token: AD.token }, function (res) {
+      var d = res.daftar || [];
+      if (!d.length) { sel.innerHTML = '<option value="">Belum ada sheet bulanan</option>'; return; }
+      sel.innerHTML = d.map(function (x) { return '<option value="' + esc(x.name) + '">' + esc(x.name) + '</option>'; }).join('');
+      sel.disabled = false; btn.disabled = false;
+    }, function (e) {
+      if (e.auth) { $('exBack').hidden = true; adKeluarLokal(); adErr('adErr', e.message); return; }
+      sel.innerHTML = '<option value="">Gagal memuat</option>';
+      $('exErr').hidden = false; $('exErr').textContent = e.message;
+    });
+  }
+  function exTutup() { if (!EX_JALAN) $('exBack').hidden = true; }
+  function exSimpanBerkas(nama, b64, mime) {
+    var bin = atob(b64), arr = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+    var blob = new Blob([arr], { type: mime || 'application/octet-stream' });
+    if (window.navigator && navigator.msSaveBlob) { navigator.msSaveBlob(blob, nama); return; }
+    var url = URL.createObjectURL(blob), a = document.createElement('a');
+    a.href = url; a.download = nama; a.style.display = 'none';
+    document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(url); if (a.parentNode) a.parentNode.removeChild(a); }, 5000);
+  }
+  function exUnduh() {
+    var sheet = $('exBulan').value;
+    if (EX_JALAN || !AD.token || !sheet) return;
+    EX_JALAN = true;
+    var btn = $('exUnduh'); btn.disabled = true; btn.textContent = 'Menyiapkan file… mohon tunggu';
+    $('exBatal').disabled = true; $('exBulan').disabled = true; $('exErr').hidden = true;
+    function selesai() { EX_JALAN = false; btn.textContent = '⬇ Unduh Excel'; btn.disabled = false; $('exBatal').disabled = false; $('exBulan').disabled = false; }
+    apiPost({ action: 'exEkspor', token: AD.token, sheet: sheet }, function (res) {
+      selesai();
+      try { exSimpanBerkas(res.nama, res.data, res.mime); }
+      catch (err) { $('exErr').hidden = false; $('exErr').textContent = 'File siap tetapi gagal diunduh di perangkat ini: ' + err.message; return; }
+      $('exBack').hidden = true;
+      adErr('adErr2', 'File "' + res.nama + '" diunduh.', true);
+    }, function (e) {
+      selesai();
+      if (e.auth) { $('exBack').hidden = true; adKeluarLokal(); adErr('adErr', e.message); return; }
+      $('exErr').hidden = false; $('exErr').textContent = e.message;
+    });
+  }
   function izaTutup() { if (!IZA_JALAN) $('izaBack').hidden = true; }
   function izaSimpan() {
     if (IZA_JALAN || !AD.token) return;
@@ -5408,6 +5475,9 @@
       p.focus();
     };
     $('adMuat').onclick = adMuat;
+    $('adEks').onclick = exBuka;
+    $('exBatal').onclick = exTutup;
+    $('exUnduh').onclick = exUnduh;
     $('adIzBaru').onclick = izaBuka;
     $('adPmBaru').onclick = pmaBuka;
     $('pmaBatal').onclick = pmaTutup;
