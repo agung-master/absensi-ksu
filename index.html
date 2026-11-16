@@ -2020,7 +2020,7 @@
   // Tempel URL Web App dari Apps Script di antara tanda kutip.
   // Contoh: 'https://script.google.com/macros/s/XXXX/exec'
   // ============================================================
-  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwHf1y9ThllxHH4b6O5DgdhENR2A7v6FDU5cU8_ci1v1Y4oi9RJUMDo9oE4iSLFlu1-lQ/exec';
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw7JkaUzio8Pj9MSliDF46gkREPFzKJ1fBuSHsWajdYIdE4HQgzqpzBqnjH2W6F_wdewQ/exec';
   // ============================================================
 
   function p2(n) { return (n < 10 ? '0' : '') + n; }
@@ -3799,7 +3799,7 @@
    * beberapa hari bisa mendapat 100% sementara yang masuk sebulan penuh tidak.
    * Komponen (bobot bisa diubah di sini, jumlahnya 1):
    *   tepat  : tepat waktu / (tepat + terlambat + tidak masuk) - izin terlambat yang disetujui tidak dihitung
-   *   hadir  : hari hadir / (hari hadir + tidak masuk tanpa izin) - izin, sakit, cuti, dinas, libur tidak mengurangi
+   *   hadir  : (hari hadir + dinas) / (hari hadir + dinas + tidak masuk tanpa izin) - Dinas dihitung hadir; izin, sakit, cuti, libur tidak mengurangi
    *   menit  : rata-rata menit terlambat per hari masuk; 0 menit = penuh, RK_BATAS_MENIT atau lebih = nol
    *   pulang : 1 - (pulang cepat / hari hadir)
    * Lalu skor ditarik ke rata-rata tim sesuai sedikitnya hari yang dinilai (partial pooling), dan karyawan yang
@@ -3808,15 +3808,22 @@
   var RK_BATAS_MENIT = 15, RK_MIN_PERSEN = 0.5;
   function rkFmt1(x) { return (Math.round(x * 10) / 10).toFixed(1).replace('.', ','); }
 
+  /** Hari Dinas tanpa scan (st 'izin' dengan izin jenis Dinas). Minggu dan libur pengganti lembur tidak dihitung sebagai hari kerja.
+   *  Dinas yang ada scan-nya sudah berstatus 'hadir' dan dihitung lewat jalur hadir biasa. */
+  function isDinasHari(r) {
+    return r.st === 'izin' && !!r.izBlok && r.izBlok.j === 'Dinas' && r.dow !== 0 && !(r.adj && r.adj.j === 'libur');
+  }
+
   function rkHitung() {
     var pr = PMAP[RK.pk], per = {};
     DB.records.forEach(function (r) {
       if (r.tgl < pr.s || r.tgl > pr.e) return;
-      var o = per[r.nama] || (per[r.nama] = { nama: r.nama, recs: [], hadir: 0, hadirWajib: 0, masuk: 0, tepat: 0, telatN: 0, telatM: 0, izin: 0, cepat: 0, lembur: 0, absen: 0, sumJam: 0, sumSel: 0, awal: 0, awalM: 0 });
+      var o = per[r.nama] || (per[r.nama] = { nama: r.nama, recs: [], hadir: 0, hadirWajib: 0, masuk: 0, tepat: 0, telatN: 0, telatM: 0, izin: 0, cepat: 0, lembur: 0, absen: 0, dinas: 0, sumJam: 0, sumSel: 0, awal: 0, awalM: 0 });
       o.recs.push(r);
       if (r.st === 'hadir') o.hadir++;
       if (r.st === 'hadir' && !r.mg && !(r.adj && r.adj.j === 'libur')) o.hadirWajib++;   // hari kerja yang benar-benar dihadiri
       if (r.st === 'absen') o.absen++;                                                   // hari kerja tanpa scan dan tanpa izin
+      if (isDinasHari(r)) o.dinas++;                                                     // Dinas tanpa scan = hari kerja yang dihadiri (tidak dinilai tepat/terlambat)
       if (r.st === 'hadir' && r.masuk && !r.mg && !r.malam && !(r.adj && r.adj.j === 'libur')) {
         o.masuk++;
         var jm = toMin(r.masuk);
@@ -3840,9 +3847,9 @@
       o.awalRate = dasar ? o.awal / dasar : 0;                      // porsi hari datang lebih awal
       o.avgJam = o.masuk ? Math.round(o.sumJam / o.masuk) : null;   // rata-rata jam masuk
       o.avgSel = o.masuk ? o.sumSel / o.masuk : 0;                  // rata-rata selisih dari jadwal (menit)
-      o.n = o.hadirWajib + o.absen;                                 // hari kerja yang dinilai
+      o.n = o.hadirWajib + o.dinas + o.absen;                       // hari kerja yang dinilai (hadir + dinas + tidak masuk)
       o.kTepat = (dasar + o.absen) ? o.tepat / (dasar + o.absen) : 1;   // hari tidak masuk tanpa izin dihitung sebagai tidak tepat
-      o.kHadir = o.n ? o.hadirWajib / o.n : 1;
+      o.kHadir = o.n ? (o.hadirWajib + o.dinas) / o.n : 1;          // Dinas dihitung hadir
       o.kMenit = dasar ? 1 - Math.min(1, (o.telatM / dasar) / RK_BATAS_MENIT) : 1;
       o.kPulang = o.hadirWajib ? 1 - Math.min(1, o.cepat / o.hadirWajib) : 1;
       o.mentah = 100 * (RK_BOBOT.tepat * o.kTepat + RK_BOBOT.hadir * o.kHadir + RK_BOBOT.menit * o.kMenit + RK_BOBOT.pulang * o.kPulang);
@@ -3892,7 +3899,7 @@
       var persen = o.rate === null ? 0 : Math.round(o.rate * 1000) / 10;
       var lebar = kind === 'tepat' ? Math.max(0, Math.min(100, o.skor)) : (mx ? Math.round(o.telatN / mx * 100) : 0);
       var det = kind === 'tepat'
-        ? 'Hadir ' + o.hadirWajib + ' dari ' + o.n + ' hari kerja · tepat ' + o.tepat + ' (' + String(persen).replace('.', ',') + '%) · terlambat ' + o.telatN + (o.telatM ? ' (' + fmtMin(o.telatM) + ')' : '') + (o.absen ? ' · tidak masuk ' + o.absen : '') + (o.cepat ? ' · pulang cepat ' + o.cepat : '') + (o.awal ? ' · lebih awal ' + o.awal + ' hari' : '') + (o.izin ? ' · izin terlambat ' + o.izin : '')
+        ? 'Hadir ' + (o.hadirWajib + o.dinas) + ' dari ' + o.n + ' hari kerja' + (o.dinas ? ' (termasuk dinas ' + o.dinas + ' hari)' : '') + ' · tepat ' + o.tepat + ' (' + String(persen).replace('.', ',') + '%) · terlambat ' + o.telatN + (o.telatM ? ' (' + fmtMin(o.telatM) + ')' : '') + (o.absen ? ' · tidak masuk ' + o.absen : '') + (o.cepat ? ' · pulang cepat ' + o.cepat : '') + (o.awal ? ' · lebih awal ' + o.awal + ' hari' : '') + (o.izin ? ' · izin terlambat ' + o.izin : '')
         : 'Masuk ' + o.masuk + ' hari · tepat ' + o.tepat + ' (' + String(persen).replace('.', ',') + '%) · terlambat ' + o.telatN + '×' + (o.telatN ? ' · rata-rata ' + fmtMin(Math.round(o.telatM / o.telatN)) + '/kali' : '') + (o.izin ? ' · izin terlambat ' + o.izin : '');
       var val = kind === 'tepat' ? rkFmt1(o.skor) + '<small>skor</small>' : o.telatN + '×<small>' + esc(fmtMin(o.telatM)) + '</small>';
       h += '<div class="rk-row"><div class="rk-no' + medal + '">' + x.no + '</div><div><div class="rk-nm"><button type="button" class="rk-link" data-nm="' + esc(o.nama) + '" aria-haspopup="dialog">' + esc(o.nama) + '</button></div><div class="rk-det">' + esc(det) + '</div><div class="rk-bar"><i style="width:' + lebar + '%"></i></div></div><div class="rk-val">' + val + '</div></div>';
@@ -3932,7 +3939,7 @@
     h += '<details class="rk-how"><summary>Cara skor disiplin dihitung</summary><div>' +
       '<p>Skor 0–100 menggabungkan beberapa hal, bukan hanya ketepatan waktu:</p><ul>' +
       '<li><b>Ketepatan waktu (' + pct(RK_BOBOT.tepat) + '%)</b>: hari tepat ÷ (hari tepat + hari terlambat + hari tidak masuk tanpa izin). Izin terlambat yang disetujui tidak dihitung.</li>' +
-      '<li><b>Kehadiran (' + pct(RK_BOBOT.hadir) + '%)</b>: hari hadir ÷ (hari hadir + hari tidak masuk tanpa izin). Izin, sakit, cuti, dinas, dan libur tidak mengurangi nilai.</li>' +
+      '<li><b>Kehadiran (' + pct(RK_BOBOT.hadir) + '%)</b>: (hari hadir + dinas) ÷ (hari hadir + dinas + hari tidak masuk tanpa izin). <b>Dinas dihitung sebagai hari hadir</b> (tidak dinilai tepat atau terlambat karena tidak ada jam scan). Izin, sakit, cuti, dan libur tidak mengurangi nilai.</li>' +
       '<li><b>Lama keterlambatan (' + pct(RK_BOBOT.menit) + '%)</b>: rata-rata menit terlambat per hari masuk. 0 menit = nilai penuh, ' + RK_BATAS_MENIT + ' menit atau lebih = nol.</li>' +
       '<li><b>Pulang cepat (' + pct(RK_BOBOT.pulang) + '%)</b>: berkurang untuk setiap hari pulang sebelum waktunya.</li></ul>' +
       '<p><b>Agar adil untuk yang hari kerjanya sedikit:</b> semakin sedikit hari yang dinilai, skor semakin ditarik ke rata-rata tim (pada periode ini efeknya setara ' + N.m + ' hari rata-rata). ' +
@@ -3951,12 +3958,12 @@
     });
     function th(k, l) { return '<th class="rk-sort" data-k="' + k + '" tabindex="0">' + l + (RK.urut === k ? (RK.arah > 0 ? ' ▲' : ' ▼') : '') + '</th>'; }
     h += '<div class="rk-tophead"><h3>Tabel lengkap</h3><span>' + rows.length + ' karyawan</span></div><div class="tablebox rk-scroll" tabindex="0" aria-label="Tabel lengkap peringkat, dapat digulir"><table><thead><tr>' +
-      th('no', '#') + th('nama', 'Nama') + th('skor', 'Skor') + th('masuk', 'Hari masuk') + th('absen', 'Tidak masuk') + th('tepat', 'Tepat waktu') + th('telatN', 'Terlambat') + th('telatM', 'Menit terlambat') + th('izin', 'Izin terlambat') + th('rate', '% tepat') + th('cepat', 'Pulang cepat') + th('lembur', 'Lembur (menit)') +
+      th('no', '#') + th('nama', 'Nama') + th('skor', 'Skor') + th('masuk', 'Hari masuk') + th('dinas', 'Dinas') + th('absen', 'Tidak masuk') + th('tepat', 'Tepat waktu') + th('telatN', 'Terlambat') + th('telatM', 'Menit terlambat') + th('izin', 'Izin terlambat') + th('rate', '% tepat') + th('cepat', 'Pulang cepat') + th('lembur', 'Lembur (menit)') +
       '</tr></thead><tbody>' + rows.map(function (o) {
         return '<tr' + (o.cukup ? '' : ' class="rk-nodata"') + '><td data-label="#">' + (o.cukup ? o.no : '–') + '</td>' +
           '<td data-label="Nama"><button type="button" class="rk-link" data-nm="' + esc(o.nama) + '" aria-haspopup="dialog">' + esc(o.nama) + '</button>' +
           (o.cukup ? '' : '<span class="rk-lite" title="Baru dinilai ' + o.n + ' hari kerja; minimal ' + N.minN + ' hari untuk diberi peringkat">Data belum cukup</span>') + '</td>' +
-          '<td data-label="Skor"><b>' + rkFmt1(o.skor) + '</b></td><td data-label="Hari masuk">' + o.masuk + '</td><td data-label="Tidak masuk">' + o.absen + '</td><td data-label="Tepat waktu">' + o.tepat + '</td><td data-label="Terlambat">' + o.telatN + '×</td>' +
+          '<td data-label="Skor"><b>' + rkFmt1(o.skor) + '</b></td><td data-label="Hari masuk">' + o.masuk + '</td><td data-label="Dinas">' + o.dinas + '</td><td data-label="Tidak masuk">' + o.absen + '</td><td data-label="Tepat waktu">' + o.tepat + '</td><td data-label="Terlambat">' + o.telatN + '×</td>' +
           '<td data-label="Menit terlambat">' + esc(fmtMin(o.telatM)) + '</td><td data-label="Izin terlambat">' + o.izin + '</td><td data-label="% tepat">' + (o.rate === null ? '–' : String(Math.round(o.rate * 1000) / 10).replace('.', ',') + '%') + '</td>' +
           '<td data-label="Pulang cepat">' + o.cepat + '×</td><td data-label="Lembur">' + esc(fmtMin(o.lembur)) + '</td></tr>';
       }).join('') + '</tbody></table></div>';
@@ -3967,6 +3974,7 @@
     var s = r.bMasuk ? toMin(r.bMasuk) : null, m = r.masuk ? toMin(r.masuk) : null;
     var sel = (s !== null && m !== null) ? m - s : null;
     if (r.st === 'absen') return { k: 'telat', t: 'Tidak masuk', c: 'Tidak ada data absensi dan tidak ada izin; mengurangi nilai kehadiran' };
+    if (isDinasHari(r)) return { k: 'tepat', t: 'Dinas', c: (r.izBlok.k ? r.izBlok.k + ' · ' : '') + 'Dihitung sebagai hari hadir (tidak dinilai tepat/terlambat)', sel: null };
     if (r.st === 'izin') return { k: 'skip', t: 'Izin / sakit / cuti', c: (r.izBlok && r.izBlok.j ? r.izBlok.j + ' · ' : '') + 'tidak dihitung' };
     if (r.st === 'libur') return { k: 'skip', t: 'Libur', c: 'Hari libur, tidak dihitung' };
     if (r.st !== 'hadir') return null;
@@ -3998,7 +4006,7 @@
     $('rkdBody').innerHTML = '<div class="rkd-sum">' +
       (adaSkor ? '<div><span>Skor disiplin</span><b>' + rkFmt1(o.skor) + '</b></div>' +
         '<div><span>Peringkat</span><b>' + (o.cukup ? o.no + ' dari ' + N.rank.length : 'Data belum cukup') + '</b></div>' : '') +
-      '<div><span>Hari kerja dinilai</span><b>' + o.n + ' (hadir ' + o.hadirWajib + ', tidak masuk ' + o.absen + ')</b></div>' +
+      '<div><span>Hari kerja dinilai</span><b>' + o.n + ' (hadir ' + o.hadirWajib + (o.dinas ? ', dinas ' + o.dinas : '') + ', tidak masuk ' + o.absen + ')</b></div>' +
       '<div><span>Hari masuk</span><b>' + o.masuk + '</b></div>' +
       '<div><span>Tepat waktu</span><b>' + o.tepat + ' (' + persen + ')</b></div>' +
       '<div><span>Lebih awal</span><b>' + o.awal + ' hari</b></div>' +
