@@ -2020,7 +2020,7 @@
   // Tempel URL Web App dari Apps Script di antara tanda kutip.
   // Contoh: 'https://script.google.com/macros/s/XXXX/exec'
   // ============================================================
-  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyNCvVoX5ObgoWEMSJdmwX2ewxMsS_XKjLgHH8qlzsDm1DeFhDAA9B2VHP3oJN9EqGcuA/exec';
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxRdtCZ-OT_MJseJVhBPoadsi7FCfbpmUpeoa6kcnvMgLMmMAC5reooLtYIMoFdGuR2og/exec';
   // ============================================================
 
   function p2(n) { return (n < 10 ? '0' : '') + n; }
@@ -2121,8 +2121,8 @@
     }
     if (APPS_SCRIPT_URL) {
       var url = APPS_SCRIPT_URL + (APPS_SCRIPT_URL.indexOf('?') >= 0 ? '&' : '?') + 'action=' + action +
-                (names ? '&names=' + encodeURIComponent(names.join('|')) : '') + (fresh ? '&fresh=1&_=' + Date.now() : '');
-      fetch(url).then(function (r) { return r.json(); }).then(hasil).catch(function (e) {
+                (names ? '&names=' + encodeURIComponent(names.join('|')) : '') + (fresh ? '&fresh=1' : '') + '&_=' + Date.now();   // selalu unik: browser/proxy tidak boleh memakai respons lama
+      fetch(url, { cache: 'no-store' }).then(function (r) { return r.json(); }).then(hasil).catch(function (e) {
         if (e && e.name === 'SyntaxError') e = new Error('Respons server bukan data yang valid. Pastikan Web App di-deploy dengan akses "Anyone" dan URL /exec sudah yang terbaru');
         else if (e && e.name === 'TypeError') e = new Error('Tidak bisa terhubung ke server. Periksa koneksi internet Anda');
         fail(e);
@@ -2142,7 +2142,7 @@
       try {
         init(cached);   // tampil instan dari data terakhir, lalu segarkan di latar belakang
         var tries = 0, iv = setInterval(function () {
-          if (!LOADING || ++tries > 100) { clearInterval(iv); muatUlang(true); }
+          if (!LOADING || ++tries > 100) { clearInterval(iv); muatUlang(true, true); }   // true,true = diam-diam tapi paksa data terbaru
         }, 150);
         return;
       } catch (e) { try { localStorage.removeItem('absInit'); } catch (e2) {} }
@@ -2548,20 +2548,23 @@
     return sheetsFor(S.tahun, S.bulan);
   }
 
-  function muatUlang(silent) {
+  var ANTRI_FRESH = false;
+  function muatUlang(silent, paksa) {
     var btn = $('btnReload');
-    if (LOADING) return;
+    var tampil = silent !== true;                 // tampilkan status "Memuat…" & pesan error
+    var fresh = tampil || paksa === true;         // lewati cache server
+    if (LOADING) { if (fresh) ANTRI_FRESH = true; return; }   // sedang memuat: ulangi segar setelah selesai, jangan diabaikan
     LOADING = true;
-    var fresh = silent !== true;
-    if (fresh) { btn.disabled = true; btn.textContent = '↻ Memuat…'; $('error').hidden = true; }
+    if (tampil) { btn.disabled = true; btn.textContent = '↻ Memuat…'; $('error').hidden = true; }
 
     function selesai() {
       LOADING = false;
       btn.disabled = false; btn.textContent = '↻ Muat ulang data';
+      if (ANTRI_FRESH) { ANTRI_FRESH = false; setTimeout(function () { muatUlang(true, true); }, 0); }
     }
     function gagal(e) {
       selesai();
-      if (fresh) showError(e);
+      if (tampil) showError(e);
     }
 
     api('init', null, function (data) {
