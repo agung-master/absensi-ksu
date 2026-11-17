@@ -1540,6 +1540,19 @@
     .panel .filters > .gr { align-self: start; }
   }
   @media (max-width: 420px) { .gr-big b { font-size: 38px; } .gr-main { gap: 14px; } }
+
+  /* ===== Kartu ringkasan di HP: 3 kolom x 2 baris ===== */
+  @media (max-width: 640px) {
+    .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+    .stats .stat:last-child:nth-child(odd) { grid-column: auto; }
+    .stats .stat { padding: 10px 10px 8px; min-height: 0; gap: 2px; }
+    .stats .stat b { font-size: 22px; white-space: nowrap; }
+    .stats .stat span { font-size: 12px; gap: 5px; min-width: 0; }
+    .stats .stat span::before { width: 7px; height: 7px; }
+    .stats .stat small { font-size: 11px; }
+    .stats .stat.forgot small { display: none; }
+    .stats .stat::after { font-size: 11px; margin-top: auto; padding-top: 4px; }
+  }
 </style>
 </head>
 <body>
@@ -3110,8 +3123,8 @@
       statBtn('hadir', 'hadir', hadir, 'Hari hadir', '') +
       statBtn('absen', 'absent', absen, 'Tidak hadir', '') +
       statBtn('lupa', 'forgot', lupaN, 'Belum absen', 'scan terlewat') +
-      statBtn('telat', 'late', telatN + '×', 'Terlambat', fmtMin(telatM)) +
-      statBtn('cepat', 'early', cepatN + '×', 'Pulang cepat', '') +
+      statBtn('telat', 'late', telatN, 'Terlambat', fmtMin(telatM)) +
+      statBtn('cepat', 'early', cepatN, 'Pulang cepat', '') +
       statBtn('lembur', 'ot', fmtMin(lemburM), 'Total lembur', '');
 
     if (S.mode === 'me' && S.tampil === 'kal') {
@@ -3457,7 +3470,7 @@
   }
   function sumMenit(L, k, lbl) {
     var t = tot(L, k);
-    return [[lbl, L.length + '×'], ['Total menit', fmtMin(t)], ['Rata-rata', L.length ? fmtMin(Math.round(t / L.length)) : '–'], ['Terlama', recTxt(maxRec(L, k), k)]];
+    return [[lbl, L.length], ['Total menit', fmtMin(t)], ['Rata-rata', L.length ? fmtMin(Math.round(t / L.length)) : '–'], ['Terlama', recTxt(maxRec(L, k), k)]];
   }
 
   var CARDS = {
