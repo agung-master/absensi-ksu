@@ -1439,6 +1439,78 @@
     }
   @media (max-width: 340px) { .ck-d { width: 32px; height: 46px; } .ck-d .n { font-size: 32px; } }
   @media (prefers-reduced-motion: reduce) { .ck-d .n.in, .ck-d .n.out, .ck-c i { animation: none; } .ck-d .n.out { display: none; } }
+
+  /* ===== Tata letak v2: [Periode | Hadir hari ini] lalu [Nama/Status | Grafik] ===== */
+  .panel .per-wrap { display: flex; flex-wrap: wrap; gap: 14px; align-items: stretch; margin-top: 14px; }
+  .panel .per-wrap > .per { flex: 1 1 380px; width: auto; max-width: none; min-width: 0; margin: 0; }
+  .panel .per-wrap > .hc { flex: 1.7 1 400px; min-width: 0; margin: 0; display: flex; flex-direction: column; justify-content: flex-start; }
+  .panel .per-wrap > .hc[hidden] { display: none; }
+  .panel .per-wrap > .hc .hc-top { margin-bottom: 12px; }
+  .panel .per-wrap > .hc .hc-bar { margin-top: auto; }
+  .panel .per-wrap > .hc .hc-sub { margin-top: 12px; }
+
+  .panel .filters, .panel .filters.per-on { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: start; }
+  .panel .filters > .fl-left { display: flex; flex-direction: column; gap: 12px; min-width: 0; grid-column: 1 / -1; }
+  .panel .filters > .fl-left > .field, .panel .filters > .fl-left > .field.wide { grid-column: auto; }
+  .panel .filters > .fl-left > .field[hidden] { display: none; }
+  .panel .filters > .gr { grid-column: 1 / -1; min-width: 0; margin: 0; }
+  .panel .filters > .field.adv, .panel .filters > .field.adv.wide { grid-column: span 1; }
+  .panel .gr-b { gap: 16px; }
+  .panel .gr-leg { flex: 1 1 170px; min-width: 150px; }
+  .panel .gr-leg li { min-width: 0; }
+
+  @media (min-width: 761px) {
+    /* 12 kolom: pembagian kiri/kanan SAMA dengan baris atas (periode | hadir hari ini) agar tepi-tepinya lurus */
+    .panel .filters, .panel .filters.per-on { grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: 14px; row-gap: 12px; }
+    .panel .filters > .fl-left { grid-column: 1 / span 5; grid-row: 1; justify-content: space-between; align-self: stretch; }
+    .panel .filters > .gr { grid-column: 6 / span 7; grid-row: 1; align-self: stretch; }
+    .panel .filters > .field.adv, .panel .filters > .field.adv.wide { grid-column: span 3; grid-row: auto; }
+  }
+  @media (min-width: 900px) {
+    .panel .per-wrap { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 14px; }
+    .panel .per-wrap > .per { grid-column: 1 / span 5; }
+    .panel .per-wrap > .hc { grid-column: 6 / span 7; }
+    .panel .per-wrap:has(> .hc[hidden]) > .per { grid-column: 1 / -1; }
+  }
+  @media (max-width: 380px) {
+    .panel .filters, .panel .filters.per-on { grid-template-columns: minmax(0, 1fr); }
+    .panel .filters > .field.adv { grid-column: 1 / -1; }
+    .panel .gr-donut { width: 116px; height: 116px; }
+  }
+  @media (max-width: 640px) {
+    .panel .per-wrap { gap: 10px; }
+    .panel .per-wrap > .per, .panel .per-wrap > .hc { flex: 1 1 100%; }
+  }
+
+  /* ===== Jam di HP: lebih kecil ===== */
+  @media (max-width: 640px) {
+    .ck-row { gap: 5px; } .ck-g { gap: 3px; }
+    .ck-d { width: 24px; height: 34px; border-radius: 8px; } .ck-d .n { font-size: 23px; }
+    .ck-c { gap: 8px; } .ck-c i { width: 4px; height: 4px; }
+    header .hd-clock { margin: 0; }
+  }
+  @media (max-width: 340px) { .ck-d { width: 22px; height: 31px; } .ck-d .n { font-size: 21px; } }
+
+  /* ===== HP & tablet sempit: urutan Nama, Status, Grafik, lalu Filter lanjutan ===== */
+  @media (max-width: 760px) {
+    .panel .filters > .fl-left { display: contents; }
+    .panel .filters > .fl-left > .field, .panel .filters > .fl-left > .field.wide { grid-column: 1 / -1; }
+    .panel .filters > .fl-left > .adv-tog { grid-column: 1 / -1; order: 2; }
+    .panel .filters > .gr { order: 1; }
+    .panel .filters > .field.adv { order: 3; }
+  }
+  @media (max-width: 640px) {
+    .panel .per-wrap > .hc .hc-date { font-size: 12px; white-space: nowrap; }
+    .panel .per-wrap > .hc .hc-num b { font-size: 40px; }
+    .panel .per-wrap > .hc .hc-num span { font-size: 11.5px; white-space: nowrap; }
+    .panel .per-wrap > .hc .hc-ic { width: 32px; height: 32px; }
+    .panel .per-wrap > .hc .hc-id { gap: 10px; }
+  }
+
+  @media (max-width: 640px) {
+    .panel .gr-b { justify-content: center; row-gap: 14px; }
+    .panel .gr-leg { flex: 1 1 100%; }
+  }
 </style>
 </head>
 <body>
@@ -1470,8 +1542,6 @@
   <div id="error" class="error" hidden></div>
 
   <main id="app" hidden>
-    <section class="hc" id="hadirCard" aria-label="Kehadiran hari ini" hidden></section>
-
     <section class="panel" aria-label="Filter data">
       <div class="seg" role="group" aria-label="Pilih data">
         <button type="button" id="mMe" aria-pressed="true">Data saya</button>
@@ -1494,10 +1564,11 @@
           <p class="per-info" id="perInfo"></p>
         </div>
       </div>
-      <section class="gr" id="grafik" aria-label="Grafik kehadiran"></section>
+      <section class="hc" id="hadirCard" aria-label="Kehadiran hari ini" hidden></section>
       </div>
 
       <div class="filters">
+        <div class="fl-left">
         <div class="field wide" id="fNama">
           <label for="selNama">Nama Anda</label>
           <div class="combo" id="comboNama">
@@ -1519,6 +1590,8 @@
           </div>
         </div>
         <div class="adv-tog"><button type="button" id="advTog" aria-expanded="false" aria-controls="selTahun">Filter lanjutan <span class="adv-n" id="advN"></span></button></div>
+        </div>
+        <section class="gr" id="grafik" aria-label="Grafik kehadiran"></section>
         <div class="field adv">
           <label for="selTahun">Tahun</label>
           <select id="selTahun"></select>
@@ -2056,7 +2129,7 @@
   // Tempel URL Web App dari Apps Script di antara tanda kutip.
   // Contoh: 'https://script.google.com/macros/s/XXXX/exec'
   // ============================================================
-  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwcsCSl_gfILwWZ3m2DhFgi-MBntl2L8pWcattsnE6oFCuPQXUmmZkG53I_qE8bPRbw8A/exec';
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwsOqAf4zO5mhWJ6Dad22h2cCGSCA7dnH-hoRAKgX3Yp5DmRQ2MdYfEoUdQeyC1npZ1FA/exec';
   // ============================================================
 
   function p2(n) { return (n < 10 ? '0' : '') + n; }
