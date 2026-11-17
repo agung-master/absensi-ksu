@@ -1491,13 +1491,19 @@
   }
   @media (max-width: 340px) { .ck-d { width: 22px; height: 31px; } .ck-d .n { font-size: 21px; } }
 
-  /* ===== HP & tablet sempit: urutan Nama, Status, Grafik, lalu Filter lanjutan ===== */
+  /* ===== HP & tablet sempit: Hadir hari ini paling atas, lalu Data saya, periode, Nama, Status, Filter lanjutan, Grafik ===== */
   @media (max-width: 760px) {
+    .panel { display: flex; flex-direction: column; }
+    .panel .per-wrap { display: contents; }
+    .panel .per-wrap > .hc { order: 1; flex: 0 0 auto; width: auto; margin: 12px 0 0; }
+    .panel > .seg { order: 2; margin-top: 14px; }
+    .panel .per-wrap > .per { order: 3; flex: 0 0 auto; width: auto; margin: 14px 0 0; }
+    .panel > .filters { order: 4; }
     .panel .filters > .fl-left { display: contents; }
-    .panel .filters > .fl-left > .field, .panel .filters > .fl-left > .field.wide { grid-column: 1 / -1; }
-    .panel .filters > .fl-left > .adv-tog { grid-column: 1 / -1; order: 2; }
-    .panel .filters > .gr { order: 1; }
-    .panel .filters > .field.adv { order: 3; }
+    .panel .filters > .fl-left > .field, .panel .filters > .fl-left > .field.wide { grid-column: 1 / -1; order: 0; }
+    .panel .filters > .fl-left > .adv-tog { grid-column: 1 / -1; order: 1; }
+    .panel .filters > .field.adv { order: 2; }
+    .panel .filters > .gr { order: 3; }
   }
   @media (max-width: 640px) {
     .panel .per-wrap > .hc .hc-date { font-size: 12px; white-space: nowrap; }
@@ -1511,6 +1517,18 @@
     .panel .gr-b { justify-content: center; row-gap: 14px; }
     .panel .gr-leg { flex: 1 1 100%; }
   }
+
+  /* ===== Grafik batang ===== */
+  .gr-sum { margin: 6px 0 0; font-size: 13px; color: var(--muted); }
+  .gr-sum b { font-size: 20px; color: var(--ink); margin-right: 4px; }
+  .gr-bars { list-style: none; margin: 10px 0 2px; padding: 0; display: grid; gap: 10px; }
+  .gr-bar { display: grid; grid-template-columns: 104px 1fr 36px; align-items: center; gap: 10px; font-size: 13.5px; color: var(--ink); }
+  .gr-bar .gl { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .gr-track { height: 10px; border-radius: 99px; background: var(--off-soft); overflow: hidden; }
+  .gr-track i { display: block; height: 100%; border-radius: 99px; min-width: 0; }
+  .gr-bar em { text-align: right; font-style: normal; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .gr-bar.nol { opacity: .45; }
+  @media (max-width: 380px) { .gr-bar { grid-template-columns: 88px 1fr 30px; gap: 8px; } }
 </style>
 </head>
 <body>
@@ -2129,7 +2147,7 @@
   // Tempel URL Web App dari Apps Script di antara tanda kutip.
   // Contoh: 'https://script.google.com/macros/s/XXXX/exec'
   // ============================================================
-  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwsOqAf4zO5mhWJ6Dad22h2cCGSCA7dnH-hoRAKgX3Yp5DmRQ2MdYfEoUdQeyC1npZ1FA/exec';
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwMkgS8jnh70pJY7VEsxI_4EovFfnwf7c09W8U_PqgcZOA5mV-tXSV1nQiDrIkl6_-Ekg/exec';
   // ============================================================
 
   function p2(n) { return (n < 10 ? '0' : '') + n; }
@@ -3007,7 +3025,7 @@
     renderUtama();
   }
 
-  /* ---------- Grafik kehadiran (donat) di samping pilihan periode: ikut periode gaji maupun kalender biasa ---------- */
+  /* ---------- Grafik kehadiran (batang) di samping pilihan periode: ikut periode gaji maupun kalender biasa ---------- */
   function renderGrafik(base, pesan) {
     var el = $('grafik');
     if (!el) return;
@@ -3035,19 +3053,15 @@
     if (!total) { el.innerHTML = judul + '<div class="gr-empty">Belum ada hari kerja pada pilihan ini.</div>'; return; }
     var dasar = total - K[5].n;                       // "belum absen" (hari ini) belum menentukan persentase
     var pct = dasar > 0 ? Math.round(hadir / dasar * 100) : 0;
-    var R = 52, C = 2 * Math.PI * R, off = 0, arcs = '';
-    K.forEach(function (k) {
-      if (!k.n) return;
-      var len = k.n / total * C;
-      arcs += '<circle cx="66" cy="66" r="' + R + '" stroke="' + k.c + '" stroke-dasharray="' + len.toFixed(2) + ' ' + (C - len).toFixed(2) + '" stroke-dashoffset="' + (-off).toFixed(2) + '"><title>' + k.l + ': ' + k.n + '</title></circle>';
-      off += len;
-    });
-    var leg = K.map(function (k) { return '<li class="' + (k.n ? '' : 'nol') + '"><i style="background:' + k.c + '"></i>' + k.l + '<em>' + k.n + '</em></li>'; }).join('');
+    var rows = K.map(function (k) {
+      var w = k.n ? Math.max(k.n / total * 100, 1.5) : 0;
+      return '<li class="gr-bar' + (k.n ? '' : ' nol') + '"><span class="gl">' + k.l + '</span>' +
+        '<span class="gr-track"><i style="width:' + w.toFixed(1) + '%;background:' + k.c + '" title="' + k.l + ': ' + k.n + '"></i></span>' +
+        '<em>' + k.n + '</em></li>';
+    }).join('');
     el.innerHTML = judul +
-      '<div class="gr-b"><div class="gr-donut" role="img" aria-label="Kehadiran ' + pct + ' persen dari ' + total + ' hari kerja">' +
-      '<svg viewBox="0 0 132 132"><circle class="gr-bg" cx="66" cy="66" r="' + R + '"/>' + arcs + '</svg>' +
-      '<div class="gr-ctr"><b>' + pct + '%</b><small>hadir</small></div></div>' +
-      '<ul class="gr-leg">' + leg + '</ul></div>';
+      '<p class="gr-sum" role="img" aria-label="Kehadiran ' + pct + ' persen dari ' + total + ' hari kerja"><b>' + pct + '%</b>hadir dari ' + total + ' hari kerja</p>' +
+      '<ul class="gr-bars">' + rows + '</ul>';
   }
 
   function renderUtama() {
