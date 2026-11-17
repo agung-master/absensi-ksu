@@ -1518,17 +1518,28 @@
     .panel .gr-leg { flex: 1 1 100%; }
   }
 
-  /* ===== Grafik batang ===== */
-  .gr-sum { margin: 6px 0 0; font-size: 13px; color: var(--muted); }
-  .gr-sum b { font-size: 20px; color: var(--ink); margin-right: 4px; }
-  .gr-bars { list-style: none; margin: 10px 0 2px; padding: 0; display: grid; gap: 10px; }
-  .gr-bar { display: grid; grid-template-columns: 104px 1fr 36px; align-items: center; gap: 10px; font-size: 13.5px; color: var(--ink); }
-  .gr-bar .gl { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .gr-track { height: 10px; border-radius: 99px; background: var(--off-soft); overflow: hidden; }
-  .gr-track i { display: block; height: 100%; border-radius: 99px; min-width: 0; }
-  .gr-bar em { text-align: right; font-style: normal; font-weight: 700; font-variant-numeric: tabular-nums; }
-  .gr-bar.nol { opacity: .45; }
-  @media (max-width: 380px) { .gr-bar { grid-template-columns: 88px 1fr 30px; gap: 8px; } }
+  /* ===== Grafik kehadiran: ringkas (angka besar + batang bertumpuk + legenda) ===== */
+  .gr-main { display: flex; align-items: center; gap: 18px; margin-top: 12px; }
+  .gr-big { display: flex; flex-direction: column; line-height: 1; flex: 0 0 auto; }
+  .gr-big b { font-family: var(--serif); font-weight: 500; font-size: 46px; color: var(--ink); letter-spacing: -.02em; font-variant-numeric: tabular-nums lining-nums; }
+  .gr-big b small { font-size: 22px; margin-left: 2px; color: var(--muted); }
+  .gr-big span { margin-top: 4px; font-size: 12.5px; font-weight: 600; color: var(--muted); }
+  .gr-side { flex: 1 1 auto; min-width: 0; }
+  .gr-sum { margin: 0 0 8px; font-size: 13px; color: var(--muted); }
+  .gr-sum b { color: var(--ink); }
+  .gr-stack { display: flex; gap: 3px; height: 14px; }
+  .gr-stack i { display: block; min-width: 6px; border-radius: 4px; }
+  .gr-lg { list-style: none; margin: 14px 0 0; padding: 12px 0 0; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 8px 18px; }
+  .gr-lg li { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; color: var(--ink); }
+  .gr-lg li i { width: 10px; height: 10px; border-radius: 3px; flex: 0 0 auto; }
+  .gr-lg li em { font-style: normal; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .gr-nol { margin: 8px 0 0; font-size: 12px; color: var(--muted); }
+  /* kolom kiri (filter) tidak lagi ditarik setinggi grafik */
+  @media (min-width: 761px) {
+    .panel .filters > .fl-left { justify-content: flex-start; align-self: start; }
+    .panel .filters > .gr { align-self: start; }
+  }
+  @media (max-width: 420px) { .gr-big b { font-size: 38px; } .gr-main { gap: 14px; } }
 </style>
 </head>
 <body>
@@ -2147,7 +2158,7 @@
   // Tempel URL Web App dari Apps Script di antara tanda kutip.
   // Contoh: 'https://script.google.com/macros/s/XXXX/exec'
   // ============================================================
-  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwMkgS8jnh70pJY7VEsxI_4EovFfnwf7c09W8U_PqgcZOA5mV-tXSV1nQiDrIkl6_-Ekg/exec';
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwn_oiDCvsofPITtKlIS3b4s20yHW7K1vFUHqAEaEFG7decDh-2L_Y_ptA22uLN1yueGg/exec';
   // ============================================================
 
   function p2(n) { return (n < 10 ? '0' : '') + n; }
@@ -3053,15 +3064,18 @@
     if (!total) { el.innerHTML = judul + '<div class="gr-empty">Belum ada hari kerja pada pilihan ini.</div>'; return; }
     var dasar = total - K[5].n;                       // "belum absen" (hari ini) belum menentukan persentase
     var pct = dasar > 0 ? Math.round(hadir / dasar * 100) : 0;
-    var rows = K.map(function (k) {
-      var w = k.n ? Math.max(k.n / total * 100, 1.5) : 0;
-      return '<li class="gr-bar' + (k.n ? '' : ' nol') + '"><span class="gl">' + k.l + '</span>' +
-        '<span class="gr-track"><i style="width:' + w.toFixed(1) + '%;background:' + k.c + '" title="' + k.l + ': ' + k.n + '"></i></span>' +
-        '<em>' + k.n + '</em></li>';
-    }).join('');
+    var seg = '', leg = '', nol = [];
+    K.forEach(function (k) {
+      if (!k.n) { nol.push(k.l); return; }
+      seg += '<i style="flex:' + k.n + ';background:' + k.c + '" title="' + k.l + ': ' + k.n + '"></i>';
+      leg += '<li><i style="background:' + k.c + '"></i>' + k.l + '<em>' + k.n + '</em></li>';
+    });
     el.innerHTML = judul +
-      '<p class="gr-sum" role="img" aria-label="Kehadiran ' + pct + ' persen dari ' + total + ' hari kerja"><b>' + pct + '%</b>hadir dari ' + total + ' hari kerja</p>' +
-      '<ul class="gr-bars">' + rows + '</ul>';
+      '<div class="gr-main" role="img" aria-label="Kehadiran ' + pct + ' persen dari ' + total + ' hari kerja">' +
+      '<div class="gr-big"><b>' + pct + '<small>%</small></b><span>hadir</span></div>' +
+      '<div class="gr-side"><p class="gr-sum">dari <b>' + total + '</b> hari kerja</p><div class="gr-stack">' + seg + '</div></div></div>' +
+      '<ul class="gr-lg">' + leg + '</ul>' +
+      (nol.length ? '<p class="gr-nol">Tidak ada: ' + nol.join(', ') + '</p>' : '');
   }
 
   function renderUtama() {
