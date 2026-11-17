@@ -2020,7 +2020,7 @@
   // Tempel URL Web App dari Apps Script di antara tanda kutip.
   // Contoh: 'https://script.google.com/macros/s/XXXX/exec'
   // ============================================================
-  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxRdtCZ-OT_MJseJVhBPoadsi7FCfbpmUpeoa6kcnvMgLMmMAC5reooLtYIMoFdGuR2og/exec';
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxISaZcgOsKjgzRQWkQC2UycKjvBhMr0OcNGsjr-BbaT04dQ16YWbQPEP6Jkyj_8j-nhg/exec';
   // ============================================================
 
   function p2(n) { return (n < 10 ? '0' : '') + n; }
@@ -2136,19 +2136,11 @@
   }
 
   function mulaiAwal() {
-    var cached = null;
-    try { cached = JSON.parse(localStorage.getItem('absInit') || 'null'); } catch (e) { cached = null; }
-    if (cached && cached.periods && cached.config) {
-      try {
-        init(cached);   // tampil instan dari data terakhir, lalu segarkan di latar belakang
-        var tries = 0, iv = setInterval(function () {
-          if (!LOADING || ++tries > 100) { clearInterval(iv); muatUlang(true, true); }   // true,true = diam-diam tapi paksa data terbaru
-        }, 150);
-        return;
-      } catch (e) { try { localStorage.removeItem('absInit'); } catch (e2) {} }
-    }
-    api('init', null, init, showError);
+    // Data absensi TIDAK lagi ditampilkan dari localStorage: layar "Memuat data absensi…" tetap tampil
+    // sampai data terbaru dari server tiba (fresh = lewati cache server), supaya tidak ada tampilan data lama.
+    api('init', null, init, showError, true);
   }
+
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mulaiAwal); else setTimeout(mulaiAwal, 0);
 
   function hitungShiftMalam(r) {
