@@ -2020,7 +2020,7 @@
   // Tempel URL Web App dari Apps Script di antara tanda kutip.
   // Contoh: 'https://script.google.com/macros/s/XXXX/exec'
   // ============================================================
-  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx4cpqVUce8YYq5MiSHQiiDyPH1phiQp7078BjGNAIgiN2Tox1N_HIU666mC-LiSg/exec';
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyNCvVoX5ObgoWEMSJdmwX2ewxMsS_XKjLgHH8qlzsDm1DeFhDAA9B2VHP3oJN9EqGcuA/exec';
   // ============================================================
 
   function p2(n) { return (n < 10 ? '0' : '') + n; }
@@ -2135,7 +2135,7 @@
     }
   }
 
-  (function mulaiAwal() {
+  function mulaiAwal() {
     var cached = null;
     try { cached = JSON.parse(localStorage.getItem('absInit') || 'null'); } catch (e) { cached = null; }
     if (cached && cached.periods && cached.config) {
@@ -2148,7 +2148,8 @@
       } catch (e) { try { localStorage.removeItem('absInit'); } catch (e2) {} }
     }
     api('init', null, init, showError);
-  })();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mulaiAwal); else setTimeout(mulaiAwal, 0);
 
   function hitungShiftMalam(r) {
     if (!SHIFT_MALAM_AKTIF || !r.masuk || !r.pulang) return false;
@@ -5450,6 +5451,11 @@
     $('rkdTutup').onclick = rkDetailTutup;
     $('rkdBack').addEventListener('mousedown', function (e) { if (e.target === $('rkdBack')) rkDetailTutup(); });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('rkdBack').hidden) rkDetailTutup(); });
+    $('rkBody').addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      var t = e.target && e.target.closest ? e.target.closest('.rk-sort') : null;
+      if (t) { e.preventDefault(); t.click(); }
+    });
     $('rkBody').addEventListener('click', function (e) {
       var nm = e.target.closest ? e.target.closest('[data-nm]') : null;
       if (nm) { rkDetail(nm.getAttribute('data-nm')); return; }
