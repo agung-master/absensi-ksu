@@ -2171,7 +2171,7 @@
   // Tempel URL Web App dari Apps Script di antara tanda kutip.
   // Contoh: 'https://script.google.com/macros/s/XXXX/exec'
   // ============================================================
-  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwn_oiDCvsofPITtKlIS3b4s20yHW7K1vFUHqAEaEFG7decDh-2L_Y_ptA22uLN1yueGg/exec';
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxAFVGOsdyeiLnLz759rebmuRHX_uvRIXMlPKOmqJhqQGDs1J-5MewEkfuFbM56yNiv6Q/exec';
   // ============================================================
 
   function p2(n) { return (n < 10 ? '0' : '') + n; }
@@ -4012,26 +4012,21 @@
     var m = Math.max(5, Math.round(0.3 * maxN)), minN = Math.max(1, Math.ceil(RK_MIN_PERSEN * maxN));
     layak.forEach(function (o) {
       var c = o.n / (o.n + m);                       // makin sedikit hari dinilai, makin dekat ke rata-rata tim
-      o.skor = Math.round((mean + (o.mentah - mean) * c) * 10) / 10;
+      o.skorRaw = mean + (o.mentah - mean) * c;      // tanpa pembulatan, dipakai untuk mengurutkan
+      o.skor = Math.round(o.skorRaw * 10) / 10;
       o.cukup = o.n >= minN;
       o.no = 9999;
     });
     var rank = rkPeringkat(layak.filter(function (o) { return o.cukup; }),
-      function (a, b) { return (b.skor - a.skor) || (b.n - a.n) || (a.telatM - b.telatM) || (b.awalM - a.awalM) || a.nama.localeCompare(b.nama, 'id'); },
-      function (o) { return o.skor + '|' + o.n + '|' + o.telatM + '|' + o.awalM; });
+      function (a, b) { return (b.skorRaw - a.skorRaw) || (b.n - a.n) || (a.telatN - b.telatN) || (a.telatM - b.telatM) || (a.cepat - b.cepat) || (b.awalM - a.awalM) || (b.awal - a.awal) || (b.tepat - a.tepat) || a.nama.localeCompare(b.nama, 'id'); });
     rank.forEach(function (x) { x.o.no = x.no; });
     return { layak: layak, rank: rank, mean: mean, m: m, maxN: maxN, minN: minN };
   }
 
-  function rkPeringkat(list, cmp, kunciFn) {
-    var out = [], no = 0, prev = null, idx = 0;
-    list.slice().sort(cmp).forEach(function (o) {
-      idx++;
-      var k = kunciFn(o);
-      if (k !== prev) { no = idx; prev = k; }
-      out.push({ no: no, o: o });
-    });
-    return out;
+  /** Nomor peringkat selalu unik (1, 2, 3, ...). Urutan seri ditentukan oleh fungsi pembanding yang
+   *  harus berakhir pada nama, sehingga hasilnya tetap dan tidak ada dua orang dengan nomor sama. */
+  function rkPeringkat(list, cmp) {
+    return list.slice().sort(cmp).map(function (o, i) { return { no: i + 1, o: o }; });
   }
 
   function rkKartu(judul, sub, daftar, kind, maks, semua) {
@@ -4058,8 +4053,7 @@
     var all = rkHitung(), minH = +$('rkMin').value || 1, q = $('rkCari').value.trim().toLowerCase();
     var N = rkNilai(all, minH), layak = N.layak;
     var tepat = N.rank;
-    var telat = rkPeringkat(layak.filter(function (o) { return o.telatN > 0; }), function (a, b) { return (b.telatN - a.telatN) || (b.telatM - a.telatM) || (a.rate - b.rate) || a.nama.localeCompare(b.nama, 'id'); },
-      function (o) { return o.telatN + '|' + o.telatM + '|' + o.rate; });
+    var telat = rkPeringkat(layak.filter(function (o) { return o.telatN > 0; }), function (a, b) { return (b.telatN - a.telatN) || (b.telatM - a.telatM) || ((a.rate === null ? 1 : a.rate) - (b.rate === null ? 1 : b.rate)) || a.nama.localeCompare(b.nama, 'id'); });
     if (q) {
       tepat = tepat.filter(function (x) { return x.o.nama.toLowerCase().indexOf(q) >= 0; });
       telat = telat.filter(function (x) { return x.o.nama.toLowerCase().indexOf(q) >= 0; });
@@ -4099,8 +4093,9 @@
     var key = RK.urut, dir = RK.arah;
     rows.sort(function (a, b) {
       var va = key === 'nama' ? a.nama : key === 'rate' ? a.rate : a[key], vb = key === 'nama' ? b.nama : key === 'rate' ? b.rate : b[key];
+      if (key === 'rate') { va = va === null ? -1 : va; vb = vb === null ? -1 : vb; }
       var c = key === 'nama' ? va.localeCompare(vb, 'id') : (va - vb);
-      return (c * dir) || (key === 'no' ? (b.skor - a.skor) || (b.n - a.n) : 0) || a.nama.localeCompare(b.nama, 'id');
+      return (c * dir) || (key === 'no' ? (b.skorRaw - a.skorRaw) || (b.n - a.n) || (a.telatM - b.telatM) || (b.awalM - a.awalM) : 0) || a.nama.localeCompare(b.nama, 'id');
     });
     function th(k, l) { return '<th class="rk-sort" data-k="' + k + '" tabindex="0">' + l + (RK.urut === k ? (RK.arah > 0 ? ' ▲' : ' ▼') : '') + '</th>'; }
     h += '<div class="rk-tophead"><h3>Tabel lengkap</h3><span>' + rows.length + ' karyawan</span></div><div class="tablebox rk-scroll" tabindex="0" aria-label="Tabel lengkap peringkat, dapat digulir"><table><thead><tr>' +
