@@ -2171,7 +2171,7 @@
   // Tempel URL Web App dari Apps Script di antara tanda kutip.
   // Contoh: 'https://script.google.com/macros/s/XXXX/exec'
   // ============================================================
-  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxAFVGOsdyeiLnLz759rebmuRHX_uvRIXMlPKOmqJhqQGDs1J-5MewEkfuFbM56yNiv6Q/exec';
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby682XcUgFonb0sRY1YJrh5Wzs0oZN4WtRu7NsrClkIcZsnJiW9nE0Lb2ynUP81ROgj/exec';
   // ============================================================
 
   function p2(n) { return (n < 10 ? '0' : '') + n; }
@@ -2266,7 +2266,7 @@
     function hasil(res) {
       if (res && res.error) fail(new Error(res.error));
       else {
-        if (action === 'init' && res && res.periods) { try { localStorage.setItem('absInit', JSON.stringify(res)); } catch (e) {} }
+        if (action === 'init' && res && res.periods) { try { localStorage.setItem('absInit', JSON.stringify({ profil: res.profil || null })); } catch (e) {} }
         ok(res);
       }
     }
@@ -3769,7 +3769,11 @@
                  r.telat || 0, r.cepat || 0, r.lembur || 0, statusTxt, chipsTxt(r)]);
     });
     var csv = rows.map(function (row) {
-      return row.map(function (cell) { return '"' + String(cell).replace(/"/g, '""') + '"'; }).join(',');
+      return row.map(function (cell) {
+        var t = String(cell);
+        if (typeof cell === 'string' && /^[=+\-@\t\r]/.test(t)) t = "'" + t;   // cegah rumus Excel/Sheets dari teks nama/keterangan
+        return '"' + t.replace(/"/g, '""') + '"';
+      }).join(',');
     }).join('\r\n');
     var blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
     var url = URL.createObjectURL(blob);
