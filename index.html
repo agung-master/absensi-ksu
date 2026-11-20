@@ -2172,7 +2172,7 @@
   // Tempel URL Web App dari Apps Script di antara tanda kutip.
   // Contoh: 'https://script.google.com/macros/s/XXXX/exec'
   // ============================================================
-  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxDke12Fa2_WpwHaRUPMRZqkubu9dD6aBPE0n4SLL5rXLhOvF1MTsTiFhg4171uP4pD/exec';
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyVT96G0zchxkvkGEhjk5hDwdMzjHAMQ85EnSj_qN4vURl3_bG0j5yDlslZz1_60LCLJw/exec';
   // ============================================================
 
   function p2(n) { return (n < 10 ? '0' : '') + n; }
@@ -2291,9 +2291,11 @@
   }
 
   function mulaiAwal() {
-    // Data absensi TIDAK lagi ditampilkan dari localStorage: layar "Memuat data absensi…" tetap tampil
-    // sampai data terbaru dari server tiba (fresh = lewati cache server), supaya tidak ada tampilan data lama.
-    api('init', null, init, showError, true);
+    // Data absensi TIDAK ditampilkan dari localStorage: layar "Memuat data absensi…" tetap tampil sampai data dari server tiba.
+    // Pemuatan awal TIDAK memakai fresh: cache server otomatis dibuang setiap ada perubahan data (sistem generasi cache),
+    // jadi isinya tetap terbaru. Memaksa fresh di sini membuat setiap pengguna menghitung ulang seluruh spreadsheet
+    // dan itulah yang membuat aplikasi melambat saat dibuka banyak orang. Tombol "Muat ulang data" tetap fresh.
+    api('init', null, init, showError, false);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mulaiAwal); else setTimeout(mulaiAwal, 0);
