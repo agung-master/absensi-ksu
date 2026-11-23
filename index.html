@@ -10,7 +10,8 @@
 <title>Absensi KSU</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap" rel="stylesheet"></noscript>
 <style>
   :root {
     --bg: #e9f1ff;
@@ -1663,6 +1664,26 @@
     #nav *, #nav *::before { transition-duration: .01ms !important; transition-delay: 0s !important; animation: none !important; }
     #app:not([hidden]), #pmView:not([hidden]), #adView:not([hidden]), #izView:not([hidden]), #rankView:not([hidden]) { animation: none; }
   }
+
+  /* ===================== PERBAIKAN v11: kelancaran scroll & interaksi =====================
+     • Semua backdrop-filter (blur) dimatikan, termasuk di panel pop-up: blur membuat GPU menghitung ulang layar tiap frame.
+     • Animasi baris tabel dimatikan (tiap ganti halaman/filter, 10-100 baris beranimasi sekaligus).
+     • Jam digital: tanpa filter blur & tanpa will-change per angka (6 layer GPU yang terus berubah tiap detik).
+     • Pergantian halaman: hanya memudar (opacity), tidak memindahkan seluruh halaman (transform). */
+  *, *::before, *::after { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+  .tablebox tbody tr { animation: none !important; }
+  .stats .stat { content-visibility: visible; }
+  @keyframes nvView { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes ckIn  { from { transform: translateY(60%); opacity: 0; } to { transform: none; opacity: 1; } }
+  @keyframes ckOut { from { transform: none; opacity: 1; } to { transform: translateY(-60%); opacity: 0; } }
+  .ck-d .n { will-change: auto; text-shadow: none; }
+  .ck-d .n.in, .ck-d .n.out { animation-duration: .28s; }
+  html.scrolling .ck-c i { animation-play-state: paused; }
+  @media (max-width: 760px) {
+    .ck-d .n.in, .ck-d .n.out { animation: none; }
+    .ck-c i { animation: none; opacity: .85; }
+    .stats .stat, .panel, .gr, .kal { transition: none; }
+  }
 </style>
 </head>
 <body>
@@ -2260,11 +2281,17 @@
 
 <script>
 (function () {
-  function setH() {
-    var h = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
-    if (h) document.documentElement.style.setProperty('--app-h', Math.round(h) + 'px');
+  /* Mengubah variabel CSS di :root membuat browser menghitung ulang gaya SELURUH halaman. Di HP, resize visualViewport terjadi
+     berulang-ulang saat scroll (bilah alamat naik/turun), sehingga scroll patah-patah. Dibatasi: tunggu berhenti, dan abaikan perubahan kecil. */
+  var lastH = 0, tH = 0;
+  function terapH() {
+    var h = Math.round((window.visualViewport && window.visualViewport.height) || window.innerHeight);
+    if (!h || Math.abs(h - lastH) < 2) return;
+    lastH = h;
+    document.documentElement.style.setProperty('--app-h', h + 'px');
   }
-  setH();
+  function setH() { clearTimeout(tH); tH = setTimeout(terapH, 160); }
+  terapH();
   window.addEventListener('resize', setH);
   window.addEventListener('orientationchange', setH);
   if (window.visualViewport) window.visualViewport.addEventListener('resize', setH);
@@ -2289,6 +2316,8 @@
   // ============================================================
 
   function p2(n) { return (n < 10 ? '0' : '') + n; }
+  /* localeCompare(..., 'id') membuat objek pembanding baru di setiap perbandingan (lambat untuk ribuan baris); Collator dibuat sekali. */
+  var COLL = (window.Intl && Intl.Collator) ? new Intl.Collator('id') : { compare: function (a, b) { return String(a).localeCompare(String(b), 'id'); } };
   function hariIni() {
     if (DB && DB.hariIni && /^\d{4}-\d{2}-\d{2}$/.test(DB.hariIni.tgl || '')) return DB.hariIni.tgl;
     return new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
@@ -2478,6 +2507,7 @@
   }
 
   function buildRows(data) {
+    DB_VER++;
     var rec = {}, has = {}, maxD = '', lib = {};
     (data.l || []).forEach(function (k) { lib[k] = true; });
     (data.j || []).forEach(function (x) { JAD[nk(x[0]) + '|' + x[1]] = x; });
@@ -2531,7 +2561,7 @@
   var NAMA_LIST = [];
 
   function updateNames() {
-    var list = Object.keys(DB.names).sort(function (a, b) { return a.localeCompare(b, 'id'); });
+    var list = Object.keys(DB.names).sort(function (a, b) { return COLL.compare(a, b); });
     NAMA_LIST = list;
     if (S.nama && !DB.names[S.nama]) S.nama = '';
     $('selNama').value = S.nama || '';
@@ -2641,7 +2671,7 @@
   }
   function hdTile(l, v) { return '<div class="dt-t"><span>' + esc(l) + '</span><b>' + esc(v) + '</b></div>'; }
   function hdCocok(n) { return !HD.cari || String(n).toLowerCase().indexOf(HD.cari) >= 0; }
-  function hdUrutNama(a, b) { return String(a.n).localeCompare(String(b.n), 'id'); }
+  function hdUrutNama(a, b) { return COLL.compare(String(a.n), String(b.n)); }
 
   function bukaHadir(jenis, opener) {
     var d = DB.hariIni;
@@ -2808,6 +2838,7 @@
   }
 
   var LAST_LOAD = Date.now();
+  var LAST_SIG = '';   // sidik data terakhir: pemuatan otomatis yang hasilnya sama tidak membangun ulang apa pun
   var AUTO_MIN_JEDA = 60 * 1000;
   var AUTO_INTERVAL = 5 * 60 * 1000;
 
@@ -2850,7 +2881,11 @@
         var semua = {}, k;
         for (k in awal) semua[k] = awal[k];
         for (k in (tambahan || {})) semua[k] = tambahan[k];
-        DB.records = []; DB.names = {}; LOADED = {}; SEEN = {}; JAD = {};   // JAD wajib dikosongkan: jadwal lama yang sudah dihapus/diubah tidak boleh tersisa
+        var sig = '';
+        try { sig = JSON.stringify([semua, data.periods, data.config, data.sesuai, data.izt, data.izn, data.ctt, data.tks, data.profil, data.hariIni, hariIni()]); } catch (e) { sig = ''; }
+        if (silent === true && !paksa && sig && sig === LAST_SIG) { LAST_LOAD = Date.now(); selesai(); return; }   // data sama: layar tidak disentuh
+        LAST_SIG = sig;
+        DB_VER++; DB.records = []; DB.names = {}; LOADED = {}; SEEN = {}; JAD = {};   // JAD wajib dikosongkan: jadwal lama yang sudah dihapus/diubah tidak boleh tersisa
         TODAY = hariIni();
         addSheets(semua, []);
         isiOpsiTahun();
@@ -2898,7 +2933,8 @@
     initPmNamaCombo('pmaNama', 'listPmaNama', 'arrowPmaNama');
     initStatusFilter();
     bindDetail();
-    $('inpCari').oninput = function () { S.cari = this.value.trim().toLowerCase(); reset(); };
+    var tCari = 0;
+    $('inpCari').oninput = function () { var v = this.value.trim().toLowerCase(); clearTimeout(tCari); tCari = setTimeout(function () { S.cari = v; reset(); }, 180); };
     $('selTahun').onchange = function () { S.tahun = this.value; reset(); };
     $('selBulan').onchange = function () { S.bulan = this.value; reset(); };
     $('selTanggal').onchange = function () { S.tanggal = this.value; reset(); };
@@ -3122,7 +3158,14 @@
     reset();
   }
 
+  var DB_VER = 0, LIST_C = { k: '', v: null };
   function getList() {
+    var k = [DB_VER, DB.records.length, S.periode, S.tahun, S.bulan, S.tanggal, S.mode, S.nama, S.cari, S.urut].join('\u0001');
+    if (LIST_C.v && LIST_C.k === k) return LIST_C.v;
+    LIST_C.v = getListRaw(); LIST_C.k = k;
+    return LIST_C.v;
+  }
+  function getListRaw() {
     var pr = S.periode ? PMAP[S.periode] : null;
     var list = DB.records.filter(function (r) {
       if (pr) return r.tgl >= pr.s && r.tgl <= pr.e && (!S.tanggal || r.d == S.tanggal);
@@ -3131,10 +3174,10 @@
     if (S.mode === 'me') list = list.filter(function (r) { return r.nama === S.nama; });
     else if (S.cari) list = list.filter(function (r) { return r.nama.toLowerCase().indexOf(S.cari) >= 0; });
 
-    function byTgl(a, b) { return a.tgl > b.tgl ? -1 : a.tgl < b.tgl ? 1 : a.nama.localeCompare(b.nama, 'id'); }
+    function byTgl(a, b) { return a.tgl > b.tgl ? -1 : a.tgl < b.tgl ? 1 : COLL.compare(a.nama, b.nama); }
     list.sort(function (a, b) {
-      if (S.urut === 'nama') return a.nama.localeCompare(b.nama, 'id') || (a.tgl < b.tgl ? -1 : 1);
-      if (S.urut === 'lama') return a.tgl < b.tgl ? -1 : a.tgl > b.tgl ? 1 : a.nama.localeCompare(b.nama, 'id');
+      if (S.urut === 'nama') return COLL.compare(a.nama, b.nama) || (a.tgl < b.tgl ? -1 : 1);
+      if (S.urut === 'lama') return a.tgl < b.tgl ? -1 : a.tgl > b.tgl ? 1 : COLL.compare(a.nama, b.nama);
       if (S.urut === 'telat' || S.urut === 'cepat' || S.urut === 'lembur') return (b[S.urut] - a[S.urut]) || byTgl(a, b);
       if (S.urut === 'masuk' || S.urut === 'masukl') {
         if (!a.masuk !== !b.masuk) return a.masuk ? -1 : 1;
@@ -3322,7 +3365,7 @@
       x.lm += r.lembur;
     });
     var rows = Object.keys(g).map(function (k) { return g[k]; })
-      .sort(function (a, b) { return a.nama.localeCompare(b.nama, 'id'); });
+      .sort(function (a, b) { return COLL.compare(a.nama, b.nama); });
 
     var h = '<table><thead><tr><th>Nama</th><th class="num">Hari hadir</th><th class="num">Tidak hadir</th><th class="num">Terlambat</th>' +
             '<th class="num">Menit terlambat</th><th class="num">Pulang cepat</th><th class="num">Total lembur</th></tr></thead><tbody>';
@@ -3821,7 +3864,7 @@
       var g = {};
       L.forEach(function (r) { (g[r.nama] || (g[r.nama] = [])).push(r); });
       var names = Object.keys(g).sort(function (a, b) {
-        return D.urut === 'nama' ? a.localeCompare(b, 'id') : (g[b].length - g[a].length) || a.localeCompare(b, 'id');
+        return D.urut === 'nama' ? COLL.compare(a, b) : (g[b].length - g[a].length) || COLL.compare(a, b);
       });
       h = '<table><thead><tr><th>Nama</th><th class="num">Jumlah</th>' + (c.aggL ? '<th>' + c.aggL + '</th>' : '') + '<th>Tanggal</th></tr></thead><tbody>';
       names.forEach(function (n) {
@@ -3835,9 +3878,9 @@
       info = names.length + ' karyawan · ' + L.length + ' kejadian';
     } else {
       L = L.slice().sort(function (a, b) {
-        var byTgl = a.tgl > b.tgl ? -1 : a.tgl < b.tgl ? 1 : a.nama.localeCompare(b.nama, 'id');
-        if (D.urut === 'lama') return a.tgl < b.tgl ? -1 : a.tgl > b.tgl ? 1 : a.nama.localeCompare(b.nama, 'id');
-        if (D.urut === 'nama') return a.nama.localeCompare(b.nama, 'id') || (a.tgl < b.tgl ? -1 : 1);
+        var byTgl = a.tgl > b.tgl ? -1 : a.tgl < b.tgl ? 1 : COLL.compare(a.nama, b.nama);
+        if (D.urut === 'lama') return a.tgl < b.tgl ? -1 : a.tgl > b.tgl ? 1 : COLL.compare(a.nama, b.nama);
+        if (D.urut === 'nama') return COLL.compare(a.nama, b.nama) || (a.tgl < b.tgl ? -1 : 1);
         if (D.urut === 'nilai' && c.vk) return (b[c.vk] - a[c.vk]) || byTgl;
         return byTgl;
       });
@@ -3887,7 +3930,7 @@
                 'Status', 'Keterangan'];
     var rows = [head];
     L.slice().sort(function (a, b) {
-      return a.tgl < b.tgl ? -1 : a.tgl > b.tgl ? 1 : a.nama.localeCompare(b.nama, 'id');
+      return a.tgl < b.tgl ? -1 : a.tgl > b.tgl ? 1 : COLL.compare(a.nama, b.nama);
     }).forEach(function (r) {
       var statusTxt = r.st === 'hadir' ? (r.mg ? 'Hadir (libur)' : 'Hadir') : (r.st === 'absen' ? 'Tidak hadir' : (r.st === 'belum' ? 'Belum absen' : (r.st === 'izin' ? 'Izin / dinas' : 'Libur')));
       rows.push([r.tgl, r.nama, r.masuk || '', r.pulang || '',
@@ -4147,7 +4190,7 @@
       o.no = 9999;
     });
     var rank = rkPeringkat(layak.filter(function (o) { return o.cukup; }),
-      function (a, b) { return (b.skorRaw - a.skorRaw) || (b.n - a.n) || (a.telatN - b.telatN) || (a.telatM - b.telatM) || (a.cepat - b.cepat) || (b.awalM - a.awalM) || (b.awal - a.awal) || (b.tepat - a.tepat) || a.nama.localeCompare(b.nama, 'id'); });
+      function (a, b) { return (b.skorRaw - a.skorRaw) || (b.n - a.n) || (a.telatN - b.telatN) || (a.telatM - b.telatM) || (a.cepat - b.cepat) || (b.awalM - a.awalM) || (b.awal - a.awal) || (b.tepat - a.tepat) || COLL.compare(a.nama, b.nama); });
     rank.forEach(function (x) { x.o.no = x.no; });
     return { layak: layak, rank: rank, mean: mean, m: m, maxN: maxN, minN: minN };
   }
@@ -4182,7 +4225,7 @@
     var all = rkHitung(), minH = +$('rkMin').value || 1, q = $('rkCari').value.trim().toLowerCase();
     var N = rkNilai(all, minH), layak = N.layak;
     var tepat = N.rank;
-    var telat = rkPeringkat(layak.filter(function (o) { return o.telatN > 0; }), function (a, b) { return (b.telatN - a.telatN) || (b.telatM - a.telatM) || ((a.rate === null ? 1 : a.rate) - (b.rate === null ? 1 : b.rate)) || a.nama.localeCompare(b.nama, 'id'); });
+    var telat = rkPeringkat(layak.filter(function (o) { return o.telatN > 0; }), function (a, b) { return (b.telatN - a.telatN) || (b.telatM - a.telatM) || ((a.rate === null ? 1 : a.rate) - (b.rate === null ? 1 : b.rate)) || COLL.compare(a.nama, b.nama); });
     if (q) {
       tepat = tepat.filter(function (x) { return x.o.nama.toLowerCase().indexOf(q) >= 0; });
       telat = telat.filter(function (x) { return x.o.nama.toLowerCase().indexOf(q) >= 0; });
@@ -4223,8 +4266,8 @@
     rows.sort(function (a, b) {
       var va = key === 'nama' ? a.nama : key === 'rate' ? a.rate : a[key], vb = key === 'nama' ? b.nama : key === 'rate' ? b.rate : b[key];
       if (key === 'rate') { va = va === null ? -1 : va; vb = vb === null ? -1 : vb; }
-      var c = key === 'nama' ? va.localeCompare(vb, 'id') : (va - vb);
-      return (c * dir) || (key === 'no' ? (b.skorRaw - a.skorRaw) || (b.n - a.n) || (a.telatM - b.telatM) || (b.awalM - a.awalM) : 0) || a.nama.localeCompare(b.nama, 'id');
+      var c = key === 'nama' ? COLL.compare(va, vb) : (va - vb);
+      return (c * dir) || (key === 'no' ? (b.skorRaw - a.skorRaw) || (b.n - a.n) || (a.telatM - b.telatM) || (b.awalM - a.awalM) : 0) || COLL.compare(a.nama, b.nama);
     });
     function th(k, l) { return '<th class="rk-sort" data-k="' + k + '" tabindex="0">' + l + (RK.urut === k ? (RK.arah > 0 ? ' ▲' : ' ▼') : '') + '</th>'; }
     h += '<div class="rk-tophead"><h3>Tabel lengkap</h3><span>' + rows.length + ' karyawan</span></div><div class="tablebox rk-scroll" tabindex="0" aria-label="Tabel lengkap peringkat, dapat digulir"><table><thead><tr>' +
@@ -5967,7 +6010,7 @@
     if (!CK.d) { CK.d = box.querySelectorAll('.ck-d'); }
     var now = new Date(), str = p2(now.getHours()) + p2(now.getMinutes()) + p2(now.getSeconds());
     if (str !== CK.last) {
-      var diam = paksa && !CK.last || document.hidden || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var diam = paksa && !CK.last || document.hidden || rm || window.__scrolling || window.innerWidth <= 760;
       for (var i = 0; i < 6; i++) {
         if (CK.last && CK.last.charAt(i) === str.charAt(i)) continue;
         var d = CK.d[i], lama = d.querySelector('.n:not(.out)'), baru = document.createElement('span');
@@ -5986,6 +6029,13 @@
   document.addEventListener('visibilitychange', function () { if (!document.hidden) { CK.last = ''; jam(true); jalankanJam(); } });
   window.terapkanProfil();
   tick(); setInterval(tick, 30000); jalankanJam();
+  /* tanda sedang scroll: animasi hiasan (jam) berhenti sementara supaya scroll tidak berebut dengan animasi */
+  var scT = 0;
+  window.addEventListener('scroll', function () {
+    if (!window.__scrolling) { window.__scrolling = true; root.classList.add('scrolling'); }
+    clearTimeout(scT);
+    scT = setTimeout(function () { window.__scrolling = false; root.classList.remove('scrolling'); }, 160);
+  }, { passive: true });
   /* menu "kaca cair": indikator melar & bergeser mengikuti tab aktif (laptop & HP) */
   var nav = $('nav');
   if (nav) {
@@ -6052,13 +6102,14 @@
   }
   [['stats', '.stat b'], ['hadirCard', '.hc-num b']].forEach(function (c) {
     var box = $(c[0]); if (!box) return;
-    new MutationObserver(function () { box.querySelectorAll(c[1]).forEach(cu); }).observe(box, { childList: true });
+    new MutationObserver(function () {
+      var sig = box.textContent;
+      if (sig === box.__sig) return;          // angka sama (mis. ganti halaman tabel): tidak perlu animasi ulang
+      box.__sig = sig;
+      box.querySelectorAll(c[1]).forEach(cu);
+    }).observe(box, { childList: true });
   });
   /* baris tabel muncul bertahap */
-  var tb = $('tableBox');
-  if (tb) new MutationObserver(function () {
-    tb.querySelectorAll('tbody tr').forEach(function (r, i) { r.style.animationDelay = Math.min(i, 12) * 22 + 'ms'; });
-  }).observe(tb, { childList: true });
 })();
 </script>
 <script>
