@@ -1554,6 +1554,115 @@
     .stats .stat.forgot small { display: none; }
     .stats .stat::after { font-size: 11px; margin-top: auto; padding-top: 4px; }
   }
+
+  /* ===================== MENU NAVIGASI v10 — Kaca Cair (liquid glass) =====================
+     Terinspirasi video contoh "Navigation Tabs V10"; warna tetap mengikuti tema Navy & Emas (terang/gelap).
+     • Laptop/tablet : kapsul menempel di atas, indikator "cair" yang melar saat berpindah tab.
+     • HP            : bilah mengambang di bawah; tab aktif melebar (ikon + nama), Admin jadi tombol bulat terpisah.
+     Sengaja tanpa backdrop-filter agar scroll tetap ringan (lihat catatan PERBAIKAN v9).
+     Semua aturan memakai #nav agar menang atas aturan menu lama di atas tanpa !important. */
+  #nav {
+    --nv-ease: cubic-bezier(.3, 1.25, .5, 1);
+    --nv-h: 60px;
+    --nv-bg: linear-gradient(180deg, rgba(255,255,255,.99), rgba(243,246,251,.97));
+    --nv-bd: rgba(20,33,61,.09);
+    --nv-sh: inset 0 1px 0 rgba(255,255,255,.95), 0 8px 26px rgba(20,33,61,.12), 0 2px 6px rgba(20,33,61,.06);
+    --nv-ink: var(--muted);
+    --nv-on: #fff;
+    --nv-gem: #e3bd78;
+    --nv-ia: #26407a; --nv-ib: #14213d; --nv-ic: #0b1530;
+    --nv-ring: rgba(217,176,106,.5);
+    --nv-glow: rgba(20,33,61,.38);
+  }
+  :root[data-theme="dark"] #nav {
+    --nv-bg: linear-gradient(180deg, rgba(31,43,70,.98), rgba(22,31,52,.97));
+    --nv-bd: rgba(255,255,255,.10);
+    --nv-sh: inset 0 1px 0 rgba(255,255,255,.07), 0 10px 30px rgba(0,0,0,.5), 0 2px 6px rgba(0,0,0,.3);
+    --nv-ia: #5a7bc6; --nv-ib: #3b5694; --nv-ic: #2d4478;
+    --nv-ring: rgba(224,184,115,.55);
+    --nv-glow: rgba(70,104,184,.6);
+    --nv-gem: #f0cf94;
+  }
+
+  /* wadah: transparan, hanya kapsul di dalamnya yang menangkap sentuhan */
+  #nav { display: flex; align-items: center; justify-content: flex-start; gap: 10px; position: sticky; top: 10px; z-index: 80;
+         margin: 12px 0 0; padding: 0; background: none; border: 0; border-radius: 0; box-shadow: none; pointer-events: none; }
+  #nav[hidden] { display: none; }
+  #nav > * { pointer-events: auto; }
+
+  /* kapsul kaca */
+  #nav .nav-main, #nav .nav-adm { display: flex; align-items: center; background: var(--nv-bg); border: 1px solid var(--nv-bd); border-radius: 999px; box-shadow: var(--nv-sh); }
+  #nav .nav-main { gap: 2px; padding: 5px; }
+  #nav .nav-adm { margin-left: auto; padding: 5px; }
+
+  /* indikator cair: posisi & ukuran diatur skrip (melar di sisi depan, menyusul di sisi belakang) */
+  #nav .nav-ind { position: absolute; left: 0; top: 0; z-index: 0; width: 0; height: 0; border-radius: 999px; opacity: 0; pointer-events: none;
+    background: linear-gradient(135deg, var(--nv-ia) 0%, var(--nv-ib) 55%, var(--nv-ic) 100%);
+    box-shadow: 0 0 0 1px var(--nv-ring), 0 9px 22px -6px var(--nv-glow), inset 0 1px 0 rgba(255,255,255,.22), inset 0 -7px 12px rgba(0,0,0,.18);
+    transition: opacity .25s; will-change: transform, width, height; }
+  #nav .nav-ind::after { content: ""; position: absolute; left: 12%; right: 12%; top: 1px; height: 46%; border-radius: 999px;
+    background: linear-gradient(180deg, rgba(255,255,255,.24), rgba(255,255,255,0)); }
+
+  /* tombol */
+  #nav button { position: relative; z-index: 1; display: inline-flex; flex-direction: row; align-items: center; justify-content: center; gap: 8px;
+    grid-column: auto; flex: 1 1 auto; height: 44px; min-height: 0; min-width: 0; margin: 0; padding: 0 18px; border: 0; border-radius: 999px; background: transparent; box-shadow: none;
+    color: var(--nv-ink); font: inherit; font-size: 14px; font-weight: 600; line-height: 1; white-space: nowrap; cursor: pointer;
+    -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; touch-action: manipulation;
+    transition: color .22s .09s, background-color .2s; }
+  #nav button .ni { display: inline-flex; flex: 0 0 auto; width: 19px; height: 19px; font-size: 0; transition: transform .3s var(--nv-ease), color .25s; }
+  #nav button .ni svg { display: block; width: 100%; height: 100%; }
+  #nav button .nl { display: block; min-width: 0; font-size: inherit; line-height: 1; }
+  #nav button .nl-in { display: block; white-space: nowrap; }
+  #nav button[aria-pressed="true"] { background: transparent; box-shadow: none; color: var(--nv-on); }
+  #nav button[aria-pressed="true"] .ni { color: var(--nv-gem); animation: nvPop .55s cubic-bezier(.34,1.56,.64,1); }
+  #nav button:active .ni { transform: scale(.84); }
+  #nav button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+  @media (hover: hover) { #nav button:not([aria-pressed="true"]):hover { background: var(--hover); color: var(--ink); } }
+  @keyframes nvPop { 0% { transform: scale(.55) rotate(-10deg); } 55% { transform: scale(1.22) rotate(4deg); } 100% { transform: scale(1) rotate(0); } }
+
+  /* halaman yang baru dibuka muncul dengan gerak halus */
+  @keyframes nvView { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  #app:not([hidden]), #pmView:not([hidden]), #adView:not([hidden]), #izView:not([hidden]), #rankView:not([hidden]) { animation: nvView .38s cubic-bezier(.2,.7,.2,1) backwards; }
+
+  /* ---------- HP & tablet kecil: bilah mengambang di bawah ---------- */
+  @media (max-width: 760px) {
+    .wrap { padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px)); }
+    #nav { position: fixed; top: auto; left: 0; right: 0; bottom: 0; z-index: 90; margin: 0; justify-content: center; gap: 10px;
+           padding: 0 12px calc(12px + env(safe-area-inset-bottom, 0px)); }
+    /* pudar lembut di belakang bilah supaya isi halaman tidak terlihat "bocor" di sisinya */
+    #nav::before { content: ""; position: absolute; left: 0; right: 0; bottom: 0; top: -28px; z-index: -1; pointer-events: none;
+                   background: linear-gradient(to top, var(--bg) 38%, transparent); }
+    #nav .nav-main { flex: 1 1 auto; min-width: 0; max-width: 440px; height: var(--nv-h); padding: 5px; }
+    #nav .nav-adm { flex: 0 0 auto; margin: 0; height: var(--nv-h); padding: 5px; }
+    #nav button { height: calc(var(--nv-h) - 12px); padding: 0; gap: 0; }
+    #nav button .ni { width: 22px; height: 22px; }
+    #nav .nav-main > button { flex: 1 1 0; overflow: hidden; transition: flex-grow .5s var(--nv-ease), color .22s .06s, background-color .2s; }
+    #nav .nav-main > button[aria-pressed="true"] { flex-grow: 2.7; }
+    #nav .nav-adm button { width: calc(var(--nv-h) - 12px); }
+    #nav .nav-adm .nl { display: none; }
+    /* nama tab hanya muncul pada tab aktif; melebar mengikuti panjang tulisannya */
+    #nav .nav-main .nl { display: grid; grid-template-columns: 0fr; margin-left: 0; transition: grid-template-columns .45s var(--nv-ease), margin-left .45s var(--nv-ease); }
+    #nav .nav-main .nl-in { overflow: hidden; min-width: 0; font-size: 12px; font-weight: 700; letter-spacing: .005em; opacity: 0; transform: translateX(-6px);
+                            transition: opacity .18s, transform .45s var(--nv-ease); }
+    #nav .nav-main button[aria-pressed="true"] .nl { grid-template-columns: 1fr; margin-left: 6px; }
+    #nav .nav-main button[aria-pressed="true"] .nl-in { opacity: 1; transform: none; transition: opacity .3s .1s, transform .45s var(--nv-ease) .05s; }
+    #nav .pre { display: none; }
+  }
+  @media (max-width: 360px) {
+    #nav { --nv-h: 56px; gap: 8px; padding-left: 8px; padding-right: 8px; }
+    #nav button .ni { width: 20px; height: 20px; }
+    #nav .nav-main > button[aria-pressed="true"] { flex-grow: 2.9; }
+    #nav .nav-main .nl-in { font-size: 11px; }
+  }
+  /* tablet/laptop sempit: rapatkan sedikit supaya semua nama tab tetap muat */
+  @media (min-width: 761px) and (max-width: 900px) {
+    #nav button { padding: 0 14px; gap: 7px; font-size: 13.5px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    #nav *, #nav *::before { transition-duration: .01ms !important; transition-delay: 0s !important; animation: none !important; }
+    #app:not([hidden]), #pmView:not([hidden]), #adView:not([hidden]), #izView:not([hidden]), #rankView:not([hidden]) { animation: none; }
+  }
 </style>
 </head>
 <body>
@@ -1574,11 +1683,15 @@
   </header>
 
   <nav class="nav" id="nav" aria-label="Menu utama" hidden>
-    <button type="button" id="nvAbs" aria-pressed="true"><span class="ni" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span><span class="nl">Absensi</span></button>
-    <button type="button" id="nvRank" aria-pressed="false"><span class="ni" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 01-10 0V4z"/><path d="M17 5h3v2a3 3 0 01-3 3M7 5H4v2a3 3 0 003 3"/></svg></span><span class="nl">Peringkat</span></button>
-    <button type="button" id="nvForm" aria-pressed="false"><span class="ni" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9l-6-6z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg></span><span class="nl">Ajukan Permohonan</span></button>
-    <button type="button" id="nvIzin" aria-pressed="false"><span class="ni" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><span class="nl">Ajukan Izin</span></button>
-    <button type="button" id="nvAdmin" aria-pressed="false"><span class="ni" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg></span><span class="nl">Admin</span></button>
+    <div class="nav-main">
+      <button type="button" id="nvAbs" aria-pressed="true" aria-label="Absensi"><span class="ni" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span><span class="nl"><span class="nl-in">Absensi</span></span></button>
+      <button type="button" id="nvRank" aria-pressed="false" aria-label="Peringkat"><span class="ni" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 01-10 0V4z"/><path d="M17 5h3v2a3 3 0 01-3 3M7 5H4v2a3 3 0 003 3"/></svg></span><span class="nl"><span class="nl-in">Peringkat</span></span></button>
+      <button type="button" id="nvForm" aria-pressed="false" aria-label="Ajukan Permohonan"><span class="ni" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9l-6-6z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg></span><span class="nl"><span class="nl-in"><span class="pre">Ajukan </span>Permohonan</span></span></button>
+      <button type="button" id="nvIzin" aria-pressed="false" aria-label="Ajukan Izin"><span class="ni" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><span class="nl"><span class="nl-in"><span class="pre">Ajukan </span>Izin</span></span></button>
+    </div>
+    <div class="nav-adm">
+      <button type="button" id="nvAdmin" aria-pressed="false" aria-label="Admin"><span class="ni" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg></span><span class="nl"><span class="nl-in">Admin</span></span></button>
+    </div>
   </nav>
 
   <div id="loading" class="loading" role="status" aria-live="polite">Memuat data absensi…</div>
@@ -2172,7 +2285,7 @@
   // Tempel URL Web App dari Apps Script di antara tanda kutip.
   // Contoh: 'https://script.google.com/macros/s/XXXX/exec'
   // ============================================================
-  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwisszhZNDap3FjzCtkPHF7_hi70i29Fesqzl587jseoAfZ5m9RT2651eBkJ-Q6OsWpEg/exec';
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwiuvY9_rpAyjgCBkJQySPLLzwGyjL0NLRFq0ltV2L3mIRtD4f1S1hK4xiUgXkPSQs19w/exec';
   // ============================================================
 
   function p2(n) { return (n < 10 ? '0' : '') + n; }
@@ -5873,18 +5986,63 @@
   document.addEventListener('visibilitychange', function () { if (!document.hidden) { CK.last = ''; jam(true); jalankanJam(); } });
   window.terapkanProfil();
   tick(); setInterval(tick, 30000); jalankanJam();
-  /* indikator tab yang bergeser */
+  /* menu "kaca cair": indikator melar & bergeser mengikuti tab aktif (laptop & HP) */
   var nav = $('nav');
   if (nav) {
     var ind = document.createElement('span'); ind.className = 'nav-ind'; ind.setAttribute('aria-hidden', 'true'); nav.appendChild(ind);
-    var pos = function () {
-      var a = nav.querySelector('button[aria-pressed="true"]');
-      if (!a || nav.hidden) { ind.style.opacity = 0; return; }
-      ind.style.opacity = 1; ind.style.width = a.offsetWidth + 'px'; ind.style.height = a.offsetHeight + 'px';
-      ind.style.transform = 'translate(' + a.offsetLeft + 'px,' + a.offsetTop + 'px)';
+    var last = null, raf = 0, shown = false, busy = 0;
+    var eFast = function (t) { return 1 - Math.pow(1 - t, 4); };
+    var eSlow = function (t) { return t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; };
+    var box = function (e) { return { l: e.offsetLeft, t: e.offsetTop, r: e.offsetLeft + e.offsetWidth, b: e.offsetTop + e.offsetHeight }; };
+    var paint = function (g) {
+      ind.style.width = (g.r - g.l) + 'px'; ind.style.height = (g.b - g.t) + 'px';
+      ind.style.transform = 'translate3d(' + g.l + 'px,' + g.t + 'px,0)'; last = g;
     };
-    new MutationObserver(pos).observe(nav, { attributes: true, subtree: true, attributeFilter: ['aria-pressed', 'hidden'] });
-    addEventListener('resize', pos); setTimeout(pos, 400);
+    var aktif = function () { return nav.querySelector('button[aria-pressed="true"]'); };
+    var track = function (ms) {                    /* tempel ke tab aktif & ikuti terus selama transisi tata letak berjalan */
+      cancelAnimationFrame(raf);
+      var s0 = performance.now(); busy = s0 + ms;
+      (function f(now) {
+        var a = aktif();
+        if (!a || nav.hidden) { ind.style.opacity = 0; shown = false; return; }
+        paint(box(a)); ind.style.opacity = 1; shown = true;
+        if (now - s0 < ms) raf = requestAnimationFrame(f);
+      })(s0);
+    };
+    var snap = function () { track(640); };       /* pindah seketika (awal, resize, putar layar, font selesai dimuat) */
+    var geser = function () {                      /* sisi depan melaju cepat, sisi belakang menyusul = efek cair */
+      var a = aktif();
+      if (!a || nav.hidden || !a.offsetWidth || !shown || !last || rm) { snap(); return; }
+      cancelAnimationFrame(raf);
+      var from = last, s0 = performance.now(), D = 480, TAIL = 640, kanan = box(a).l >= from.l;
+      busy = s0 + TAIL;
+      (function f(now) {
+        var el = now - s0, t = Math.min(1, el / D), to = box(a), v = eSlow(t);
+        paint({ l: from.l + (to.l - from.l) * (kanan ? eSlow(t) : eFast(t)), r: from.r + (to.r - from.r) * (kanan ? eFast(t) : eSlow(t)),
+                t: from.t + (to.t - from.t) * v, b: from.b + (to.b - from.b) * v });
+        if (el < TAIL) raf = requestAnimationFrame(f); else paint(box(a));   /* akhir: tepat di tab aktif */
+      })(s0);
+    };
+    new MutationObserver(function () { if (nav.hidden || !shown) snap(); else geser(); })
+      .observe(nav, { attributes: true, subtree: true, attributeFilter: ['aria-pressed', 'hidden'] });
+    addEventListener('resize', snap); addEventListener('orientationchange', function () { setTimeout(snap, 200); });
+    if (window.ResizeObserver) { var ro = new ResizeObserver(function () { if (performance.now() > busy) snap(); }); Array.prototype.forEach.call(nav.children, function (c) { if (c !== ind) ro.observe(c); }); }
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(snap);
+    setTimeout(snap, 400);
+    /* mengetuk tab baru: getar singkat (Android) & kembali ke atas halaman */
+    nav.addEventListener('click', function (e) {
+      var b = e.target.closest ? e.target.closest('button') : null;
+      if (!b || b.getAttribute('aria-pressed') === 'true') return;
+      try { if (navigator.vibrate) navigator.vibrate(8); } catch (x) {}
+      setTimeout(function () { if ((window.pageYOffset || 0) > 40) window.scrollTo({ top: 0, behavior: rm ? 'auto' : 'smooth' }); }, 30);
+    }, true);
+    /* papan ketik: panah kiri/kanan, Home, End memindahkan fokus antar tab */
+    nav.addEventListener('keydown', function (e) {
+      var k = e.key; if (k !== 'ArrowRight' && k !== 'ArrowLeft' && k !== 'Home' && k !== 'End') return;
+      var bs = Array.prototype.slice.call(nav.querySelectorAll('button')), i = bs.indexOf(document.activeElement); if (i < 0) return;
+      var n = k === 'Home' ? 0 : k === 'End' ? bs.length - 1 : (i + (k === 'ArrowRight' ? 1 : -1) + bs.length) % bs.length;
+      bs[n].focus(); e.preventDefault();
+    });
   }
   /* angka naik dari nol */
   function cu(el) {
