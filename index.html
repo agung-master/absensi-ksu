@@ -2315,7 +2315,7 @@
   // Tempel URL Web App dari Apps Script di antara tanda kutip.
   // Contoh: 'https://script.google.com/macros/s/XXXX/exec'
   // ============================================================
-  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx8Z2XbZT6sl0i5stOQwSkMsL_Tr34yzpsLMmjZNUYn9i50K23D10_9FCbZ6V-WoSaHSg/exec';
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzQ2RmryZzRaEWlO4ZzZjW4_Eo0-vWSqfWp1opHqbMMMztpibWfI9RxYpgR0dRnPS5Auw/exec';
   // ============================================================
 
   function p2(n) { return (n < 10 ? '0' : '') + n; }
@@ -3016,14 +3016,19 @@
   }
 
   function hadirLengkap(r) { return r.st === 'hadir' && !r.mg; }
+  /* Definisi "hadir" yang SAMA di kartu, grafik, rekap, dan Peringkat:
+   * hadir = hari kerja yang dihadiri + Dinas tanpa scan. Masuk saat libur/Minggu (termasuk libur pengganti lembur) dihitung terpisah. */
+  function masukLibur(r) { return r.st === 'hadir' && (!!r.mg || !!(r.adj && r.adj.j === 'libur')); }
+  function hadirKerja(r) { return r.st === 'hadir' && !masukLibur(r); }
+  function hadirHitung(r) { return hadirKerja(r) || isDinasHari(r); }
   function tdkLengkap(r) { return r.st === 'hadir' && (!r.masuk || !r.pulang) && !(r.tgl === TODAY && r.masuk && !r.pulang); }
   var SF = [
-    { k: 'hadir',      g: 'Kehadiran',   c: 'ok',    l: 'Hadir',                 t: function (r) { return r.st === 'hadir'; } },
+    { k: 'hadir', d: 'Hari kerja yang dihadiri, termasuk dinas tanpa scan (masuk saat libur dihitung terpisah)', g: 'Kehadiran',   c: 'ok',    l: 'Hadir (hari kerja)',    t: hadirHitung },
     { k: 'absen',      g: 'Kehadiran',   c: 'abs',   l: 'Tidak hadir',           t: function (r) { return r.st === 'absen'; } },
     { k: 'belum', d: 'Belum ada scan sama sekali hari ini',      g: 'Kehadiran',   c: 'inc',   l: 'Belum absen',           t: function (r) { return r.st === 'belum'; } },
     { k: 'tdklengkap', d: 'Scan masuk atau scan pulang masih kosong', g: 'Kehadiran',   c: 'inc',   l: 'Absen belum lengkap',   t: tdkLengkap },
     { k: 'libur',      g: 'Kehadiran',   c: 'inc',   l: 'Libur',                 t: function (r) { return r.st === 'libur'; } },
-    { k: 'liburmasuk', d: 'Hari libur tetapi tetap masuk', g: 'Kehadiran',   c: 'ot',    l: 'Masuk saat libur',      t: function (r) { return r.st === 'hadir' && r.mg; } },
+    { k: 'liburmasuk', d: 'Hari libur tetapi tetap masuk', g: 'Kehadiran',   c: 'ot',    l: 'Masuk saat libur',      t: masukLibur },
     { k: 'malam', d: 'Masuk sore/malam dan pulang keesokan harinya', g: 'Kehadiran',   c: 'ot',    l: 'Shift malam',           t: function (r) { return r.malam; } },
 
     { k: 'tepatmasuk', d: 'Masuk sebelum batas jam masuk', g: 'Jam masuk',   c: 'ok',    l: 'Masuk tepat waktu',     t: function (r) { return hadirLengkap(r) && !!r.masuk && !r.telat; } },
@@ -3233,20 +3238,24 @@
       { l: 'Tepat waktu', c: '#2f6f55', n: 0 },
       { l: 'Terlambat', c: '#b4651f', n: 0 },
       { l: 'Pulang cepat', c: '#a2456b', n: 0 },
-      { l: 'Izin / dinas', c: '#4a55a2', n: 0 },
+      { l: 'Dinas', c: '#2b7a8c', n: 0 },
+      { l: 'Izin / cuti', c: '#4a55a2', n: 0 },
       { l: 'Tidak hadir', c: '#a33a3a', n: 0 },
       { l: 'Belum absen', c: '#a3acbd', n: 0 }
     ];
+    var liburMasuk = 0;
     base.forEach(function (r) {
+      if (masukLibur(r)) { liburMasuk++; return; }   // masuk saat libur bukan hari kerja: tidak masuk total maupun persentase
       if (r.st === 'hadir') { if (r.telat > 0) K[1].n++; else if (r.cepat > 0) K[2].n++; else K[0].n++; }
-      else if (r.st === 'izin') K[3].n++;
-      else if (r.st === 'absen') K[4].n++;
-      else if (r.st === 'belum') K[5].n++;
+      else if (isDinasHari(r)) K[3].n++;
+      else if (r.st === 'izin') K[4].n++;
+      else if (r.st === 'absen') K[5].n++;
+      else if (r.st === 'belum') K[6].n++;
     });
-    var total = 0, hadir = K[0].n + K[1].n + K[2].n;
+    var total = 0, hadir = K[0].n + K[1].n + K[2].n + K[3].n;
     K.forEach(function (k) { total += k.n; });
     if (!total) { el.innerHTML = judul + '<div class="gr-empty">Belum ada hari kerja pada pilihan ini.</div>'; return; }
-    var dasar = total - K[5].n;                       // "belum absen" (hari ini) belum menentukan persentase
+    var dasar = total - K[6].n;                       // "belum absen" (hari ini) belum menentukan persentase
     var pct = dasar > 0 ? Math.round(hadir / dasar * 100) : 0;
     var seg = '', leg = '', nol = [];
     K.forEach(function (k) {
@@ -3259,7 +3268,8 @@
       '<div class="gr-big"><b>' + pct + '<small>%</small></b><span>hadir</span></div>' +
       '<div class="gr-side"><p class="gr-sum">dari <b>' + total + '</b> hari kerja</p><div class="gr-stack">' + seg + '</div></div></div>' +
       '<ul class="gr-lg">' + leg + '</ul>' +
-      (nol.length ? '<p class="gr-nol">Tidak ada: ' + nol.join(', ') + '</p>' : '');
+      (nol.length ? '<p class="gr-nol">Tidak ada: ' + nol.join(', ') + '</p>' : '') +
+      (liburMasuk ? '<p class="gr-nol">Masuk saat libur: <b>' + liburMasuk + '</b> hari (tidak dihitung sebagai hari kerja)</p>' : '');
   }
 
   function renderUtama() {
@@ -3281,9 +3291,10 @@
     updateSfCounts(base, list);
     renderGrafik(base);
 
-    var hadir = 0, absen = 0, telatN = 0, telatM = 0, lemburM = 0, cepatN = 0, lupaN = 0;
+    var hadir = 0, liburN = 0, absen = 0, telatN = 0, telatM = 0, lemburM = 0, cepatN = 0, lupaN = 0;
     base.forEach(function (r) {
-      if (r.st === 'hadir') hadir++;
+      if (hadirHitung(r)) hadir++;
+      if (masukLibur(r)) liburN++;
       if (r.st === 'absen') absen++;
       if (r.telat) { telatN++; telatM += r.telat; }
       if (r.cepat) cepatN++;
@@ -3291,7 +3302,7 @@
       lemburM += r.lembur;
     });
     $('stats').innerHTML =
-      statBtn('hadir', 'hadir', hadir, 'Hari hadir', '') +
+      statBtn('hadir', 'hadir', hadir, 'Hari hadir', liburN ? '+' + liburN + ' masuk libur' : '') +
       statBtn('absen', 'absent', absen, 'Tidak hadir', '') +
       statBtn('lupa', 'forgot', lupaN, 'Belum absen', 'scan terlewat') +
       statBtn('telat', 'late', telatN, 'Terlambat', fmtMin(telatM)) +
@@ -3361,7 +3372,7 @@
     var g = {};
     list.forEach(function (r) {
       var x = g[r.nama] || (g[r.nama] = { nama: r.nama, hadir: 0, absen: 0, tn: 0, tm: 0, cn: 0, lm: 0 });
-      if (r.st === 'hadir') x.hadir++;
+      if (hadirHitung(r)) x.hadir++;
       if (r.st === 'absen') x.absen++;
       if (r.telat) { x.tn++; x.tm += r.telat; }
       if (r.cepat) x.cn++;
@@ -3647,16 +3658,16 @@
   var CARDS = {
     hadir: {
       t: 'Hari hadir', col: '#14213d', chip: 'ok',
-      d: 'Semua hari dengan minimal satu scan absen (masuk dan/atau pulang), termasuk masuk di hari libur.',
-      test: function (r) { return r.st === 'hadir'; },
+      d: 'Hari kerja dengan minimal satu scan absen (masuk dan/atau pulang), ditambah hari Dinas tanpa scan. Masuk di hari libur/Minggu tidak dihitung di sini (lihat filter "Masuk saat libur").',
+      test: hadirHitung,
       cols: [['Masuk', 'num', function (r) { return tm(r.masuk); }], ['Pulang', 'num', function (r) { return tm(r.pulang); }],
              ['Durasi kerja', 'num', function (r) { return durKerja(r) || DASH; }], ['Keterangan', '', function (r) { return '<span class="chips">' + chips(r) + '</span>'; }]],
       ct: function () { return ''; },
       aggL: 'Tepat waktu penuh',
-      agg: function (a) { return cnt(a, function (r) { return !r.mg && r.masuk && r.pulang && !r.telat && !r.cepat; }) + ' hari'; },
+      agg: function (a) { return cnt(a, function (r) { return r.st === 'hadir' && r.masuk && r.pulang && !r.telat && !r.cepat; }) + ' hari'; },
       sum: function (L) {
-        var k = L.filter(function (r) { return !r.mg; });
-        return [['Total hari hadir', L.length], ['Hari kerja', k.length], ['Masuk saat libur', L.length - k.length],
+        var k = L.filter(function (r) { return r.st === 'hadir'; });
+        return [['Total hari hadir', L.length], ['Hadir dengan scan', k.length], ['Dinas tanpa scan', L.length - k.length],
                 ['Tepat waktu penuh', cnt(k, function (r) { return r.masuk && r.pulang && !r.telat && !r.cepat; })],
                 ['Rata-rata jam masuk', avgTime(k.filter(function (r) { return !r.malam; }), 'masuk')],
                 ['Rata-rata jam pulang', avgTime(k.filter(function (r) { return !r.malam; }), 'pulang')]];
