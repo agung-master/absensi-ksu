@@ -389,6 +389,7 @@
   .stat:active { transform: translateY(0); }
   .stat::after { content: "Lihat detail ›"; margin-top: 3px; font-size: 11.5px; font-weight: 600; color: var(--brand); }
   .stat.forgot { border-top-color: #eab308; }
+  .stat.libur { border-top-color: #5b7db1; }
   .stat.forgot b { color: #a16207; }
   .chip.forgot { background: #fef3c7; color: #92400e; }
   .chip.viol { background: #dc2626; color: #fff; font-weight: 700; }
@@ -1011,7 +1012,7 @@
   .stats .stat span { display: flex; align-items: center; gap: 7px; }
   .stats .stat span::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--sc); flex: none; }
   .stats .stat.late { --sc: var(--late); } .stats .stat.early { --sc: var(--early); } .stats .stat.ot { --sc: var(--ot); }
-  .stats .stat.absent { --sc: var(--abs); } .stats .stat.forgot { --sc: var(--gold); }
+  .stats .stat.absent { --sc: var(--abs); } .stats .stat.forgot { --sc: var(--gold); } .stats .stat.libur { --sc: #5b7db1; }
   .stat:hover { transform: none; border-color: var(--line-2); box-shadow: 0 10px 26px rgba(20,33,61,.10); }
   .stat::after { color: var(--gold-ink); }
 
@@ -1550,6 +1551,8 @@
   @media (max-width: 640px) {
     .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
     .stats .stat:last-child:nth-child(odd) { grid-column: auto; }
+    .stats .stat:last-child:nth-child(7) { grid-column: 1 / -1; }   /* 7 kartu: 3 + 3 + 1, kartu terakhir selebar baris */
+    .stats .stat.libur small { display: none; }
     .stats .stat { padding: 10px 10px 8px; min-height: 0; gap: 2px; }
     .stats .stat b { font-size: 22px; white-space: nowrap; }
     .stats .stat span { font-size: 12px; gap: 5px; min-width: 0; }
@@ -3019,6 +3022,7 @@
   /* Definisi "hadir" yang SAMA di kartu, grafik, rekap, dan Peringkat:
    * hadir = hari kerja yang dihadiri + Dinas tanpa scan. Masuk saat libur/Minggu (termasuk libur pengganti lembur) dihitung terpisah. */
   function masukLibur(r) { return r.st === 'hadir' && (!!r.mg || !!(r.adj && r.adj.j === 'libur')); }
+  function jenisLibur(r) { return r.adj && r.adj.j === 'libur' ? 'Libur pengganti lembur' : r.dow === 0 ? 'Hari Minggu' : 'Hari libur'; }
   function hadirKerja(r) { return r.st === 'hadir' && !masukLibur(r); }
   function hadirHitung(r) { return hadirKerja(r) || isDinasHari(r); }
   function tdkLengkap(r) { return r.st === 'hadir' && (!r.masuk || !r.pulang) && !(r.tgl === TODAY && r.masuk && !r.pulang); }
@@ -3302,7 +3306,8 @@
       lemburM += r.lembur;
     });
     $('stats').innerHTML =
-      statBtn('hadir', 'hadir', hadir, 'Hari hadir', liburN ? '+' + liburN + ' masuk libur' : '') +
+      statBtn('hadir', 'hadir', hadir, 'Hari hadir', '') +
+      statBtn('liburmasuk', 'libur', liburN, 'Masuk libur', 'di luar hari kerja') +
       statBtn('absen', 'absent', absen, 'Tidak hadir', '') +
       statBtn('lupa', 'forgot', lupaN, 'Belum absen', 'scan terlewat') +
       statBtn('telat', 'late', telatN, 'Terlambat', fmtMin(telatM)) +
@@ -3671,6 +3676,20 @@
                 ['Tepat waktu penuh', cnt(k, function (r) { return r.masuk && r.pulang && !r.telat && !r.cepat; })],
                 ['Rata-rata jam masuk', avgTime(k.filter(function (r) { return !r.malam; }), 'masuk')],
                 ['Rata-rata jam pulang', avgTime(k.filter(function (r) { return !r.malam; }), 'pulang')]];
+      }
+    },
+    liburmasuk: {
+      t: 'Masuk libur', col: '#5b7db1', chip: 'ot', vk: 'lembur', vl: 'Lembur terbanyak',
+      d: 'Hari Minggu, hari libur, atau libur pengganti lembur yang tetap masuk. Tidak dihitung sebagai hari kerja (tidak masuk "Hari hadir" maupun Peringkat); lembur dihitung dari scan pertama sampai scan terakhir.',
+      test: masukLibur,
+      cols: [['Masuk', 'num', function (r) { return tm(r.masuk); }], ['Pulang', 'num', function (r) { return tm(r.pulang); }],
+             ['Jenis hari', '', jenisLibur], ['Lembur', '', function (r) { return r.lembur ? '<span class="chip ot">' + fmtMin(r.lembur) + '</span>' : DASH; }]],
+      ct: function (r) { return ' · ' + jenisLibur(r); },
+      aggL: 'Total lembur', agg: function (a) { return fmtMin(tot(a, 'lembur')); },
+      sum: function (L) {
+        var t = tot(L, 'lembur');
+        return [['Hari masuk libur', L.length + ' hari'], ['Total lembur', fmtMin(t)], ['Rata-rata per hari', L.length ? fmtMin(Math.round(t / L.length)) : '–'],
+                ['Terbanyak', recTxt(maxRec(L, 'lembur'), 'lembur')]];
       }
     },
     absen: {
