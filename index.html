@@ -1706,6 +1706,43 @@
     .ck-c i { animation: none; opacity: .85; }
     .stats .stat, .panel, .gr, .kal { transition: none; }
   }
+/* ===== Kartu ringkasan di HP: hero + grid 3x2 ===== */
+.stats .stat.zero b { color: var(--muted); opacity: .5; }
+.stats .stat.zero span::before { opacity: .35; }
+.stats .stat.late:not(.zero) b   { color: var(--late); }
+.stats .stat.early:not(.zero) b  { color: var(--early); }
+.stats .stat.absent:not(.zero) b { color: var(--abs); }
+.stats .stat.forgot:not(.zero) b { color: var(--gold-ink); }
+.stats .stat.ot:not(.zero) b     { color: var(--ot); }
+
+@media (max-width: 640px) {
+  .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .stats .stat:last-child:nth-child(7) { grid-column: auto; }
+  .stats .stat {
+    position: relative; align-items: flex-start; justify-content: flex-end;
+    min-height: 92px; padding: 12px 12px 10px; gap: 2px;
+  }
+  .stats .stat b { font-size: 26px; line-height: 1.1; white-space: nowrap; }
+  .stats .stat span { font-size: 12px; }
+  .stats .stat small { font-size: 11px; }
+  .stats .stat::after {
+    content: "›"; position: absolute; top: 7px; right: 10px;
+    margin: 0; padding: 0; font-size: 20px; line-height: 1;
+    color: var(--muted); opacity: .55;
+  }
+  .stats .stat:first-child {
+    grid-column: 1 / -1; display: grid; grid-template-columns: auto 1fr;
+    grid-template-rows: auto auto; column-gap: 16px; align-content: center; align-items: center;
+    min-height: 0; padding: 16px 18px;
+    background: var(--brand); border-color: transparent;
+    box-shadow: 0 10px 26px rgba(20,33,61,.22);
+  }
+  .stats .stat:first-child b { grid-row: 1 / 3; font-size: 48px; color: var(--gold-lt); opacity: 1; }
+  .stats .stat:first-child span { align-self: end; color: #fff; font-size: 15px; font-weight: 600; }
+  .stats .stat:first-child span::before { display: none; }
+  .stats .stat:first-child small { display: block; align-self: start; color: rgba(255,255,255,.7); }
+  .stats .stat:first-child::after { top: 50%; right: 16px; margin-top: -11px; color: #fff; opacity: .7; }
+}
 </style>
 </head>
 <body>
@@ -3322,13 +3359,13 @@
       lemburM += r.lembur;
     });
     $('stats').innerHTML =
-      statBtn('hadir', 'hadir', hadir, 'Hari hadir', '') +
+      statBtn('hadir', 'hadir', hadir, 'Hari hadir', 'hari kerja dihadiri') +
       statBtn('liburmasuk', 'libur', liburN, 'Masuk libur', 'di luar hari kerja') +
       statBtn('absen', 'absent', absen, 'Tidak hadir', '') +
       statBtn('lupa', 'forgot', lupaN, 'Belum absen', 'scan terlewat') +
       statBtn('telat', 'late', telatN, 'Terlambat', fmtMin(telatM)) +
       statBtn('cepat', 'early', cepatN, 'Pulang cepat', '') +
-      statBtn('lembur', 'ot', fmtMin(lemburM), 'Total lembur', '');
+      statBtn('lembur', 'ot', fmtRingkas(lemburM), 'Total lembur', '');
 
     if (S.mode === 'me' && S.tampil === 'kal') {
       renderKalender();
@@ -3632,8 +3669,12 @@
   var D = { key: '', view: 'tgl', cari: '', urut: 'baru', limit: 50, rows: [], opener: null };
   var DASH = '<span class="dim">–</span>';
 
+  function fmtRingkas(m) { return fmtMin(m).replace(' j ', 'j ').replace(/ m$/, 'm'); }
+
   function statBtn(k, cls, b, label, small) {
-    return '<button type="button" class="stat ' + cls + '" data-card="' + k + '" aria-haspopup="dialog" aria-label="Lihat detail ' + label + '">' +
+    var nol = (b === 0 || b === '0 menit');
+    if (nol) small = '';
+    return '<button type="button" class="stat ' + cls + (nol ? ' zero' : '') + '" data-card="' + k + '" aria-haspopup="dialog" aria-label="Lihat detail ' + label + '">' +
       '<b>' + b + '</b><span>' + label + '</span>' + (small ? '<small>' + small + '</small>' : '') + '</button>';
   }
 
