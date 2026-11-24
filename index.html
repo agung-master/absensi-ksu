@@ -1547,6 +1547,22 @@
   }
   @media (max-width: 420px) { .gr-big b { font-size: 38px; } .gr-main { gap: 14px; } }
 
+  /* ===== Kartu ringkasan di laptop/tablet lebar: 7 kartu selalu satu baris ===== */
+  @media (min-width: 980px) {
+    .stats { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px; }
+    .stats .stat { padding: 14px 12px 10px; min-width: 0; }
+    .stats .stat b { font-size: clamp(22px, 2.1vw, 30px); white-space: nowrap; }
+    .stats .stat span { font-size: 12.5px; gap: 6px; min-width: 0; }
+    .stats .stat span::before { width: 7px; height: 7px; }
+    .stats .stat small { font-size: 11.5px; overflow-wrap: anywhere; }
+    .stats .stat::after { white-space: nowrap; font-size: 11.5px; }
+  }
+  @media (min-width: 1280px) {
+    .stats { gap: 14px; }
+    .stats .stat { padding: 16px 16px 12px; }
+    .stats .stat span { font-size: 13px; }
+  }
+
   /* ===== Kartu ringkasan di HP: 3 kolom x 2 baris ===== */
   @media (max-width: 640px) {
     .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
