@@ -1753,6 +1753,62 @@
   html.kb .dt-back { top: var(--vv-top, 0px); bottom: auto; height: var(--app-h); }
   html.kb .dt, html.kb .kd, html.kb .hd, html.kb .sf-panel { top: var(--vv-top, 0px); bottom: auto; max-height: var(--app-h); height: auto; transform: none; border-radius: 0 0 16px 16px; overflow-y: auto; }
   html.kb #nav, html.kb .nav { display: none !important; }   /* menu bawah melayang tidak menutupi form saat mengetik */
+
+  /* ===================== PERAPIAN HP v10: chip, kartu, kotak statistik ===================== */
+  /* Chip keterangan: selalu ada jarak antar chip, di mana pun dipakai (dialog detail hari, kartu, daftar hadir) */
+  .chips, .hd-meta, .kd-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chips { display: inline-flex; max-width: 100%; }
+  .chip { line-height: 1.35; }
+  .chip:not(.viol):not(.today) { box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 14%, transparent); }
+  .hd-meta { gap: 6px; margin-top: 5px; }
+  .hd-meta .chip { font-size: 12px; padding: 2px 9px; }
+
+  /* Dialog detail hari (kalender) */
+  .kd-chips { gap: 8px; margin: 14px 0 8px; }
+  .kd-chips .chip { font-size: 13px; font-weight: 600; padding: 5px 12px; border-radius: 14px; max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+  .kd-body { margin-top: 0; padding-top: 2px; }
+  .kd-row { align-items: baseline; }
+  .kd-row span { flex: 0 0 auto; white-space: nowrap; }
+  .kd-row b { min-width: 0; overflow-wrap: anywhere; }
+
+  /* Peringkat: nama dan keterangan tidak menempel */
+  .rk-nm { line-height: 1.4; margin-bottom: 4px; }
+  .rk-link { padding-bottom: 1px; }
+
+  @media (max-width: 640px) {
+    /* Pemilih periode: teks tidak terpotong */
+    .per-nav { width: 42px; }
+    .per .field select { padding-left: 12px; padding-right: 26px; text-overflow: ellipsis; }
+
+    /* Kotak statistik: angka sejajar di atas, satuan panjang dikecilkan */
+    .stats .stat:not(:first-child) { justify-content: flex-start; padding: 16px 12px 10px; }
+    .stats .stat b.long { font-size: 19px; line-height: 1.45; }
+
+    /* Kartu riwayat harian: ringkas, jam dalam 3 kotak sejajar */
+    .tbl-h tbody tr { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 12px; margin-bottom: 12px; }
+    .tbl-h tbody td { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; margin: 0; padding: 0; border: 0; text-align: left; }
+    .tbl-h tbody td::before { display: block; font-size: 12px; font-weight: 600; color: var(--muted); }
+    .tbl-h tbody td.c-tgl { grid-column: 1 / -1; flex-direction: row; justify-content: space-between; align-items: center; gap: 10px; padding: 0 0 10px; border-bottom: 1px solid var(--line); }
+    .tbl-h tbody td.c-tgl::before { display: none; }
+    .tbl-h tbody td.c-tgl b { font-size: 15.5px; }
+    .tbl-h tbody td.c-tgl small { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; font-weight: 500; }
+    .tbl-h tbody td.c-tgl .chip.today { margin: 0; }
+    .tbl-h tbody td.c-nama { grid-column: 1 / -1; font-size: 15px; font-weight: 700; overflow-wrap: anywhere; }
+    .tbl-h tbody td.c-nama::before { display: none; }
+    .tbl-h tbody td.c-jam, .tbl-h tbody td.c-dur { align-items: center; text-align: center; padding: 9px 4px; border-radius: 12px; background: rgba(120, 135, 170, .10); font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .tbl-h tbody tr:nth-child(n):not(.libur) td.c-jam, .tbl-h tbody tr:nth-child(n):not(.libur) td.c-dur, .tbl-h tbody tr.libur td.c-jam, .tbl-h tbody tr.libur td.c-dur { background: rgba(120, 135, 170, .10); }
+    .tbl-h tbody tr:hover td.c-jam, .tbl-h tbody tr:hover td.c-dur { background: rgba(120, 135, 170, .16); }
+    .tbl-h tbody td.c-ket { grid-column: 1 / -1; padding-top: 2px; }
+    .tbl-h tbody td.c-ket::before { display: none; }
+    .tbl-h tbody td.c-ket .chips { display: flex; }
+
+    /* Rekap per karyawan: nama sebagai judul, angka dalam kotak 3 kolom */
+    #tableBox > table:not(.tbl-h) tbody tr { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 12px; }
+    #tableBox > table:not(.tbl-h) tbody td { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; margin: 0; padding: 9px 4px; border: 0; border-radius: 12px; background: rgba(120, 135, 170, .10); text-align: center; font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    #tableBox > table:not(.tbl-h) tbody td::before { display: block; font-size: 12px; font-weight: 600; color: var(--muted); }
+    #tableBox > table:not(.tbl-h) tbody td:first-child { grid-column: 1 / -1; align-items: flex-start; text-align: left; background: none; border-radius: 0; padding: 0 0 10px; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+    #tableBox > table:not(.tbl-h) tbody td:first-child::before { display: none; }
+  }
 </style>
 </head>
 <body>
@@ -3706,7 +3762,7 @@
     var nol = (b === 0 || b === '0 menit');
     if (nol) small = '';
     return '<button type="button" class="stat ' + cls + (nol ? ' zero' : '') + '" data-card="' + k + '" aria-haspopup="dialog" aria-label="Lihat detail ' + label + '">' +
-      '<b>' + b + '</b><span>' + label + '</span>' + (small ? '<small>' + small + '</small>' : '') + '</button>';
+      '<b' + (String(b).length > 4 ? ' class="long"' : '') + '>' + b + '</b><span>' + label + '</span>' + (small ? '<small>' + small + '</small>' : '') + '</button>';
   }
 
   function tm(t) { return t || DASH; }
@@ -3850,6 +3906,7 @@
   var PMAP = {}, PKEYS = [];
   function pKey(y, m) { return y + '-' + p2(m); }
   function tglPendek(t, thn) { var a = t.split('-'); return (+a[2]) + ' ' + BULAN[+a[1] - 1].slice(0, 3) + (thn ? ' ' + a[0] : ''); }
+  function periodeSingkat(k) { var a = PMAP[k]; return a.s.slice(0, 4) === a.e.slice(0, 4) ? tglPendek(a.s, false) + ' – ' + tglPendek(a.e, true) : periodeText(k); }
   function periodeText(k) { return tglPendek(PMAP[k].s, true) + ' – ' + tglPendek(PMAP[k].e, true); }
   function buildPeriods() {
     PMAP = {}; PKEYS = [];
@@ -3868,7 +3925,7 @@
   }
   function isiOpsiPeriode() {
     var o = '';
-    PKEYS.slice().reverse().forEach(function (k) { o += '<option value="' + k + '">' + periodeText(k) + '</option>'; });
+    PKEYS.slice().reverse().forEach(function (k) { o += '<option value="' + k + '">' + periodeSingkat(k) + '</option>'; });
     $('selPeriode').innerHTML = o;
   }
 
