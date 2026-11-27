@@ -2098,6 +2098,7 @@
               <option value="keluar">Ijin Keluar (keluar sebentar)</option>
               <option value="tidakmasuk">Ijin Tidak Masuk</option>
               <option value="dinas">Dinas</option>
+          <option value="ketlembur">Keterangan Lembur (alasan lembur)</option>
             </select>
           </div>
           <div class="field">
@@ -2304,6 +2305,7 @@
           <option value="keluar">Ijin Keluar (keluar sebentar)</option>
           <option value="tidakmasuk">Ijin Tidak Masuk</option>
           <option value="dinas">Dinas</option>
+          <option value="ketlembur">Keterangan Lembur (alasan lembur)</option>
         </select>
       </div>
       <div class="field" style="margin-top:10px"><label for="izaTgl">Tanggal</label><input id="izaTgl" type="date" autocomplete="off"></div>
@@ -2458,7 +2460,7 @@
   // Tempel URL Web App dari Apps Script di antara tanda kutip.
   // Contoh: 'https://script.google.com/macros/s/XXXX/exec'
   // ============================================================
-  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyTG-JxoPtgbeTAOaOLzZ1aaKmDyg8-vh1rlLWvD_0vIQ0_oo_ti7XLxNkA7j-XsD9VGg/exec';
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzJRmGpArpXomMTEb9qoeQhOJoMeXDM21emLBH3fuK2iU5DzyI4NWc1wS9xK9TrOxq42A/exec';
   // ============================================================
 
   function p2(n) { return (n < 10 ? '0' : '') + n; }
@@ -3621,7 +3623,7 @@
                  (lupa || r.st === 'belum' ? ', ' + lupaApa(r).toLowerCase() : '');
       if (r.st === 'hadir' && r.iz && r.iz.length) {
         var izLbl = [];
-        r.iz.forEach(function (x) { var t = x.j.replace(/^Ijin /, 'Izin ').replace('Absensi Terlambat', 'Izin telat'); if (izLbl.indexOf(t) < 0) izLbl.push(t); });
+        r.iz.forEach(function (x) { var t = x.j.replace(/^Ijin /, 'Izin ').replace('Absensi Terlambat', 'Izin telat').replace('Keterangan Lembur', 'Ket. lembur'); if (izLbl.indexOf(t) < 0) izLbl.push(t); });
         isi += '<span class="kal-s">' + esc(izLbl[0]) + (izLbl.length > 1 ? ' +' + (izLbl.length - 1) : '') + '</span>';   // rincian lengkap ada di panel detail
       }
       if (r.iz && r.iz.length) aria += ', ' + izTxt(r);
@@ -5471,7 +5473,8 @@
     terlambat: 'Jam datang TIDAK perlu diisi: akan terisi otomatis dari data absensi (jam Masuk) setelah admin memperbarui data dari mesin finger print.',
     keluar: 'Isi jam keluar dan jam kembali Anda (mesin finger print tidak mencatat keluar sebentar).',
     tidakmasuk: 'Isi tanggal mulai. Jika izin lebih dari satu hari, isi juga kolom "Sampai tanggal".',
-    dinas: 'Isi tanggal mulai. Jika dinas lebih dari satu hari, isi juga kolom "Sampai tanggal".'
+    dinas: 'Isi tanggal mulai. Jika dinas lebih dari satu hari, isi juga kolom "Sampai tanggal".',
+    ketlembur: 'Isi tanggal lembur (tanggal Anda masuk kerja) dan alasan / kegiatan lembur pada kolom keterangan. Setelah disetujui admin, alasan tampil di baris Lembur pada data absensi Anda.'
   };
   var IZ_KIRIM_JALAN = false;
   function izSiap() { izUbahJenis(); }
@@ -5481,6 +5484,7 @@
     $('izJam1Box').hidden = j !== 'keluar';
     $('izJam2Box').hidden = j !== 'keluar';
     $('izInfo').textContent = IZ_INFO[j] || 'Pilih jenis izin terlebih dahulu.';
+    $('izKet').placeholder = j === 'ketlembur' ? 'Mis. menyelesaikan laporan akhir bulan' : 'Mis. mengantar keluarga ke dokter';
     izGerbang();
   }
   function izGerbang() {
@@ -5570,6 +5574,7 @@
     $('izaJam1Box').hidden = j !== 'keluar';
     $('izaJam2Box').hidden = j !== 'keluar';
     $('izaInfo').textContent = IZ_INFO[j] || 'Pilih jenis izin terlebih dahulu.';
+    $('izaKet').placeholder = j === 'ketlembur' ? 'Mis. menyelesaikan laporan akhir bulan' : 'Mis. kontrol kandungan';
     izaGerbang();
   }
   function izaGerbang() {
@@ -5724,7 +5729,7 @@
     $('adIzBaru').hidden = m !== 'izin';
     $('adPmBaru').hidden = m === 'izin';
     $('adJenis').innerHTML = m === 'izin'
-      ? '<option value="">Semua jenis</option><option value="Ijin Pulang">Ijin Pulang</option><option value="Absensi Terlambat">Absensi Terlambat</option><option value="Ijin Keluar">Ijin Keluar</option><option value="Ijin Tidak Masuk">Ijin Tidak Masuk</option><option value="Dinas">Dinas</option>'
+      ? '<option value="">Semua jenis</option><option value="Ijin Pulang">Ijin Pulang</option><option value="Absensi Terlambat">Absensi Terlambat</option><option value="Ijin Keluar">Ijin Keluar</option><option value="Ijin Tidak Masuk">Ijin Tidak Masuk</option><option value="Dinas">Dinas</option><option value="Keterangan Lembur">Keterangan Lembur</option>'
       : '<option value="">Semua jenis</option><option value="Pulang Cepat">Pulang Cepat</option><option value="Datang Lambat">Datang Lambat</option><option value="Libur">Libur</option>';
     $('adStatus').innerHTML = m === 'izin'
       ? '<option value="">Semua status</option><option value="Disetujui">Disetujui</option><option value="Ditolak">Ditolak admin</option>'
@@ -5756,7 +5761,7 @@
     function kv(l, v) { return '<div><span>' + l + '</span><b>' + (v || '–') + '</b></div>'; }
     var tgl = esc(tglPjg(o.tgl)) + (o.tglAkhir && o.tglAkhir !== o.tgl ? '<br>s/d ' + esc(tglPjg(o.tglAkhir)) : '');
     var jam = o.jenis === 'Ijin Keluar' ? 'Keluar ' + esc(o.jam1 || '–') + ', kembali ' + esc(o.jam2 || '–')
-      : (o.jenis === 'Ijin Pulang' ? 'Jam pulang diambil dari data absensi' : (o.jenis === 'Absensi Terlambat' ? 'Jam masuk diambil dari data absensi' : ''));
+      : (o.jenis === 'Ijin Pulang' ? 'Jam pulang diambil dari data absensi' : (o.jenis === 'Absensi Terlambat' ? 'Jam masuk diambil dari data absensi' : (o.jenis === 'Keterangan Lembur' ? 'Jam lembur diambil dari data absensi' : '')));
     var h = '<article class="pm-it st-' + esc(st.replace(/\s+/g, '-')) + '">' +
       '<div class="pm-it-h"><b>' + esc(o.nama) + '</b><span class="chip ot">' + esc(o.jenis) + '</span><span class="chip ' + stChip + '">' + esc(st) + '</span>' + (String(o.catatan || '').indexOf('Diinput langsung') === 0 ? '<span class="chip inc">Input admin</span>' : '') + '<span class="pm-it-id">' + esc(o.id) + '</span></div>' +
       '<div class="pm-kv">' + kv('Tanggal', tgl) + kv('Jam', jam) + kv('Diajukan', esc(o.diajukan)) + '</div>';
